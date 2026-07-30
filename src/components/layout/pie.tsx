@@ -6,8 +6,13 @@ import Link from 'next/link';
  *  requisito de la licencia de las cartillas, no una nota de cortesía.
  *  Ver también ADR-001. */
 export function Pie() {
+  // 13px y no 12 (DISENO.md §2.5): la regla 4 de §2.3 decía «nada de lectura
+  // bajo 13px» y exceptuaba el único caso que la violaba. «Es legal, luego va
+  // pequeño» es inercia: ADR-001 vuelve esta atribución un requisito de
+  // licencia, lo que pide que se lea mejor, no peor. Cuesta cero: va bajo el
+  // doblez. Contraste sin cambio: 5.49 claro / 6.18 oscuro.
   return (
-    <footer className="mt-16 border-t border-border px-4 py-8 text-xs leading-relaxed text-muted-foreground">
+    <footer className="mt-16 border-t border-border px-4 py-8 text-[0.8125rem] leading-relaxed text-muted-foreground">
       <div className="mx-auto max-w-3xl space-y-3">
         <p>
           Contenido educativo adaptado de la{' '}

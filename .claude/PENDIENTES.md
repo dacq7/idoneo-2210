@@ -30,7 +30,7 @@ Se transcribieron §9.2–§9.5 (6 blueprints · 14 erratas · 70 datos duros ·
 
 ## Paso 7 — Renderizado MDX
 
-- **§12.4 NO se copia literal.** `<AlertaContradiccion>` usa un ternario binario sobre `errata.tipo`, y desde **ADR-012** hay un tercer valor, `'aclaracion'`: cualquier `'aclaracion'` caería en el `else` y se rotularía «Errata de la cartilla», que es exactamente el defecto que ADR-012 arregla. **Tres ramas**, y para `'aclaracion'` el rótulo es **«Aclaración: no es un error»**.
+- **§12.4 ya está corregida en `CLAUDE.md`** (enmienda de ADR-012, 2026-07-30): el ternario binario pasó a **tres ramas** y para `'aclaracion'` el rótulo es «Aclaración: no es un error». Copiar §12.4 literal **ahora sí es correcto**. El pin de regresión de `esquemas.test.ts` sigue vigilando que X-03 no vuelva a `'contradiccion'`.
 - **El tratamiento visual de una `'aclaracion'` no puede ser el destructivo.** `border-destructive` codifica «algo está mal» y en una aclaración no lo hay. El token coherente es `aviso`, el que ya usa `<Ojo>`. El estilo fino se acuerda con el `ui-designer`; lo fijado es que **no sea rojo**.
 - `/erratas` agrupa por **tres** tipos y conserva el ancla `id="X-03"`: `DD-001` de `datos-duros.ts` enlaza por ahí.
 - ~~Decidir el `tipo` de `X-03`~~ **resuelto en el Paso 6 (ADR-012)**: es `'aclaracion'`.
@@ -69,6 +69,16 @@ Se transcribieron §9.2–§9.5 (6 blueprints · 14 erratas · 70 datos duros ·
 
 - Reemplazar la portada **provisional** que dejó el Paso 5 en `src/app/page.tsx` por la real (continuar donde ibas, racha, resumen, cola de repaso, acceso al diagnóstico).
 - Borrar **los 5 SVG** de create-next-app en `public/` (`file`, `globe`, `next`, `vercel`, `window`). Desde el Paso 5 **ya no los referencia nadie**, así que se pueden borrar sin tocar código. Si sobreviven, entran al manifiesto de precache de Serwist en el 18.1 y son peso muerto en la caché offline.
+
+## Paso 15 — Contenido del bloque D · y todo paso que escriba tablas
+
+- **El CSS de la ficha declara claves hasta `--et-7`.** Una tabla de **8 columnas o más** apilaría igual, pero de la octava en adelante el valor saldría **sin su clave**. Ninguna tabla de las cartillas llega a 6; si alguna llegara, se añade la línea que falte en `globals.css` §3.2.
+
+- **A-18 · «0 violaciones de axe» ya NO significa «tabla verificada».** El degradado que señala el desplazamiento horizontal de las tablas (A-11) es un `background-image` sobre el contenedor, y axe **no sabe calcular contraste sobre un degradado**: lo marca como *incompleto* y se abstiene. Medido en la reverificación del Paso 7: las incompletas de un módulo con teoría pasan de **1 a 32**, y **31 son celdas de tabla**.
+
+  No hay ningún fallo detrás — el texto de tabla mide 17.03 claro / 15.22 oscuro, muy por encima del 4.5 —, pero **la comprobación automática dejó de cubrir ese caso**. Los pasos 15, 16 y 17 escriben 29 módulos llenos de tablas, que son el formato dominante de las cartillas.
+
+  **Consecuencia operativa:** al auditar contenido nuevo con tablas, el contraste de sus celdas **se mide a mano** o se comprueba desactivando temporalmente el degradado. Un informe de axe en verde no responde por ellas. Ver A-18 en `ACCESIBILIDAD.md`.
 
 ## Paso 16 — Resto del bloque C
 
