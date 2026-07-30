@@ -249,7 +249,8 @@ Móvil primero. Donde no hay columna `lg`, el valor no cambia.
 
 | Rol | Familia | Móvil | `lg` | Peso | line-height | tracking |
 |---|---|---|---|---|---|---|
-| Eyebrow / etiqueta | Inter | 0.6875rem · 11px | = | 600 | 1.1 | +0.08em, `uppercase` |
+| Antetítulo (eyebrow) | Inter | 0.6875rem · 11px | = | 600 | 1.1 | +0.08em, `uppercase` |
+| **Clave de campo** | Inter | **0.75rem · 12px** | = | 600 | 1.1 | +0.08em, `uppercase` |
 | `h1` de pantalla | Barlow Cond. | 1.75rem · 28px | 2.25rem · 36px | 700 | 1.08 | −0.005em |
 | `h2` de sección | Barlow Cond. | 1.375rem · 22px | 1.5rem · 24px | 600 | 1.15 | 0 |
 | `h3` | Barlow Cond. | 1.125rem · 18px | = | 600 | 1.25 | 0 |
@@ -259,7 +260,7 @@ Móvil primero. Donde no hay columna `lg`, el valor no cambia.
 | Enunciado de ítem | Inter | 1.0625rem · 17px | = | 500 | 1.45 | 0 |
 | Opción de ítem | Inter | 0.95rem · 15px | = | 400 | 1.4 | 0 |
 | Auxiliar / metadato | Inter | 0.8125rem · 13px | = | 400 | 1.5 | 0 |
-| Pie legal | Inter | 0.75rem · 12px | = | 400 | 1.6 | 0 |
+| Pie legal | Inter | **0.8125rem · 13px** | = | 400 | 1.6 | 0 |
 | Etiqueta de nav inferior | Inter | 0.6875rem · 11px | = | 500 · 600 activo | 1 | +0.01em |
 | Cronómetro, pantalla completa | JB Mono | 2.25rem · 36px | 2.75rem · 44px | 500 | 1 | −0.02em |
 | Cronómetro, barra fija | JB Mono | 1.375rem · 22px | = | 500 | 1 | −0.02em |
@@ -275,8 +276,11 @@ Móvil primero. Donde no hay columna `lg`, el valor no cambia.
 3. **El cronómetro va en ranura de ancho fijo.** JetBrains Mono + `tabular-nums`
    + un contenedor de ancho mínimo calculado para `H:MM:SS`. Los dígitos no
    pueden mover el layout cada segundo.
-4. **Ningún tamaño de lectura por debajo de 13px**, salvo el pie legal (12px) y
-   las etiquetas de nav y eyebrow (11px), que son etiquetas, no lectura.
+4. **Ningún tamaño de lectura baja de 13px. Sin excepciones.** Lo único que vive
+   por debajo son **etiquetas** (11–12px), y una etiqueta no es lectura: es una
+   pieza corta y fija que se reconoce por posición y forma, no que se recorre
+   palabra a palabra. Hasta el 2026-07-30 esta regla llevaba una excepción para
+   el pie legal (12px); la excepción se elimina — ver §2.5.
 
 ### 2.4 El rótulo de bloque — **REGLA DEL SISTEMA**
 
@@ -321,7 +325,8 @@ de título. No en el encabezado.
 │                                        │
 ```
 
-Estilo, tal cual sale de la escala de §2.3 (fila «Eyebrow / etiqueta»), sin
+Estilo, tal cual sale de la escala de §2.3 (fila «Antetítulo (eyebrow)» — y ahí
+**se queda en 11px** tras la revisión de A-16, ver §2.5), sin
 inventar nada: **Inter 600, 0.6875rem (11px), `uppercase`, tracking +0.08em,
 line-height 1.1**, color `text-bloque-{a|b|c|d}` vía `CLASES_BLOQUE`, y `mb-1.5`
 de separación con el `h1`.
@@ -384,6 +389,86 @@ más visitadas sería ruido.
 hay **exactamente un** bloque en contexto. Varios bloques a la vez ⇒ no hay rótulo,
 porque no hay un color de bloque que acompañar.
 
+### 2.5 Antetítulo o clave de campo — **cuál de los dos 11/12px aplica**
+
+> Añadida el 2026-07-30. Resuelve **A-16** de la auditoría del Paso 7 y la
+> observación heredada del Paso 5 sobre el pie. Sustituye a la antigua fila
+> única «Eyebrow / etiqueta».
+
+**El error no era el tamaño: era la fila.** §6.7 llevó el `<dt>` de
+`<AlertaContradiccion>` a la fila «Eyebrow» con buen criterio —sacarlo del
+`text-xs tracking-wide`, que no estaba en la escala— pero a la fila equivocada.
+Un antetítulo y una clave de campo hacen trabajos distintos:
+
+| | **Antetítulo (11px)** | **Clave de campo (12px)** |
+|---|---|---|
+| Qué es | rótulo que **precede a un título** y lo califica | **clave de una lista de definición**: nombra el campo que le sigue |
+| Cómo se lee | una vez, al entrar a la pantalla. Orienta y se retira | **muchas veces**: el lector salta entre claves comparando campos |
+| Cuántas hay | una por pantalla | 3 por ficha · **42 en `/erratas`** |
+| Si desaparece | se pierde orientación | **se pierde la estructura**: la ficha deja de ser legible |
+
+Una pieza que se relee todo el rato no puede ir en el escalón más pequeño de la
+escala. El antetítulo sí: se lee una vez y su tamaño pequeño es justamente lo que
+le dice al ojo «esto no es el título».
+
+**Quién es cuál, hoy:**
+
+| Pieza | Fila | Por qué |
+|---|---|---|
+| `<dt>` de `<AlertaContradiccion>` y de la ficha de `/erratas` | **Clave de campo · 12px** | es la estructura de la ficha, releída en cada una de las 14 |
+| `RotuloBloque` (§2.4) | Antetítulo · 11px | se lee al entrar; el `h1` de 28px que va debajo lo respalda de inmediato |
+| Título de `<TablaClave>` | Antetítulo · 11px | antetítulo de la tabla, leído una vez antes de bajar a los datos |
+| `etiqueta` de `<Dato>` | Antetítulo · 11px | va **en línea** dentro de la prosa de 17px y pegada a su valor: los dos se leen de una sola mirada. Subirla engorda el chip y descuadra el ritmo de línea del párrafo |
+| Etiqueta de la barra inferior | Antetítulo · 11px | acompaña a un icono en posición fija y permanente. Además, subirla **agravaría A-01** (a 200 % de zoom la barra ya pierde el quinto destino) |
+| Antetítulos de `/`, `/modulos`, `/erratas`, `error.tsx`, `not-found.tsx` | Antetítulo · 11px | los cinco son antetítulos de un `h1` |
+
+**Criterio para cualquier etiqueta futura:** ¿el lector vuelve a ella mientras
+lee? Si vuelve, es clave de campo (12px). Si la lee una vez y sigue, es
+antetítulo (11px).
+
+#### Las versalitas se quedan
+
+Se descarta quitarles el `uppercase` a los `<dt>`, que era la opción más barata
+del auditor. Las mayúsculas cuestan perfil de palabra —cierto— pero aquí ese
+coste se paga **una sola vez**: las tres claves son siempre las mismas tres, en
+el mismo orden, en las catorce fichas. A partir de la segunda ficha el lector ya
+no las lee, las reconoce por forma y posición, y es justamente el bloque de
+versalitas lo que le permite saltar directo a «LO CORRECTO» sin leer. En prosa
+corrida el perfil de palabra importa en cada palabra; en un marco fijo y
+repetido, no. Se conserva el `uppercase` y la legibilidad se compra con el
+tamaño, que es donde el problema estaba de verdad.
+
+#### El pie sube a 13px y la excepción desaparece
+
+El pie de atribución iba a 12px por la excepción que la regla 4 se concedía a sí
+misma. Se elimina, por tres razones:
+
+1. **El pie es lectura, no etiqueta.** Es un párrafo de texto corrido, el único
+   que quedaba por debajo del listón. La regla decía «nada de lectura bajo 13px»
+   y acto seguido exceptuaba el único caso que la violaba.
+2. **«Es legal, luego va pequeño» es inercia, no argumento.** ADR-001 convierte
+   esa atribución en requisito de licencia: si algo, eso pide que se lea mejor,
+   no peor.
+3. **Cuesta cero.** El contraste ya sobra (5.49 claro · 6.18 oscuro) y el pie
+   vive al final de la página, debajo del doblez, sin nada que descuadrar.
+
+Tras el cambio, la fila «Pie legal» solo se distingue de «Auxiliar / metadato»
+por su `line-height` de 1.6, que se conserva: es un bloque legal denso y ese aire
+extra es lo que lo hace recorrible.
+
+⚠ **No se toca el `py-3.5` del enlace de licencia.** Es la solución de A-05/A-08:
+padding vertical sobre una caja `inline`, que agranda el área táctil sin alterar
+la caja de línea. Con 13px el enlace pasa de 43 a **44,0 px exactos** de alto
+(medido en navegador por el `accessibility-auditor` el 2026-07-30; la
+estimación previa de ~49 px era incorrecta). Ese número cierra el «1 px corto»
+que A-05 y A-08 habían anotado como trade-off consciente: el enlace de la
+licencia **cumple el piso de 44 px exacto**, no por debajo y no por encima.
+
+**La excepción quedó retirada en §3 el 2026-07-30.** El piso táctil vuelve a no
+tener más válvula que `data-compacto` (D-7). Cualquier documento que todavía
+describa el enlace del pie como excepción al piso está desactualizado: la cifra
+que manda es la medida, 44,0 px.
+
 ---
 
 ## 3. Espaciado, radio y superficie
@@ -393,7 +478,7 @@ blueprint.
 
 | Regla | Valor |
 |---|---|
-| Ancho de contenido | `max-w-3xl` (768px). App de leer y responder, no tablero ancho. |
+| Ancho de contenido | `max-w-3xl` (768px). App de leer y responder, no tablero ancho. **Dentro de esa columna hay dos medidas — ver §3.1.** |
 | Padding horizontal de página | `px-4` móvil · `px-6` desde `sm` |
 | Padding de tarjeta | `p-4` móvil · `p-6` desde `sm` |
 | Separación entre tarjetas | `gap-3` móvil · `gap-4` desde `sm` |
@@ -401,10 +486,196 @@ blueprint.
 | Radio base | `--radius: 0.625rem` → `sm` 6px · `md` 8px · `lg` 10px · `xl` 14px |
 | Radio por elemento | tarjetas `rounded-lg` · botones y opciones `rounded-md` · insignias `rounded-full` · **bandas del instrumento de umbral `rounded-none`** |
 | Sombra | `shadow-sm` en tarjetas. Los botones son planos con borde. Cero sombras de color. |
-| Táctil | opciones de ítem `min-h-[52px]` · resto de interactivos 44px (forzado en `@layer base`) |
+| Táctil | opciones de ítem `min-h-[52px]` · resto de interactivos **44px, sin excepciones** (forzado en `@layer base`). Única válvula: `data-compacto` (D-7, al final de esta sección) |
 | Barra inferior | `h-16` + `env(safe-area-inset-bottom)` |
 | Transiciones | ≤200ms. Por defecto 150ms `ease-out`. Solo `color`, `background-color`, `border-color`, `opacity`, `transform`. **Nunca `all`.** |
 | Movimiento reducido | `@media (prefers-reduced-motion: reduce)` anula duraciones a 0.01ms (§11.3) |
+
+> **El enlace de licencia del pie deja de ser una excepción al piso táctil —
+> 2026-07-30.** Mientras el pie iba a 12px, ese enlace medía **43 px** y esta
+> sección le concedía un pase por ser una caja `inline` con `py-3.5`. Con el pie
+> a 13px (§2.5) el `accessibility-auditor` lo midió en **44,0 px exactos**:
+> cumple el piso por derecho propio y **la excepción se retira**, no se renueva.
+> Nada que aplicar en código — el `py-3.5` de `pie.tsx` **no se toca**, es
+> justamente lo que produce los 44,0 px. Lo que cambia es la regla: a partir de
+> aquí, **ningún elemento interactivo de esta app baja de 44 px salvo con
+> `data-compacto`**, y `data-compacto` no se usa en el pie.
+
+### 3.1 Dos medidas dentro de la columna — **lectura y consulta**
+
+> Añadida el 2026-07-30. Resuelve **A-15** de la auditoría del Paso 7.
+
+**La columna de 768px sigue siendo la columna. Lo que se estrecha es el texto que
+se lee renglón a renglón.**
+
+| | **Medida de lectura** | **Medida de consulta** |
+|---|---|---|
+| Ancho | **≈75 caracteres por línea**, que en píxeles son **38rem · 608px** en las superficies de **17px** y **36rem · 576px** en las de **15px** | la columna entera · **720px** |
+| Qué va aquí | 38rem: párrafos, listas, `h2`, `h3`, `hr`. 36rem: los dos recuadros de prosa (`<Ojo>`, `<AlertaContradiccion>`) y la ficha de `/erratas` | tablas, `<TablaClave>`, `<Formula>` |
+| Cómo se consume | se recorre línea tras línea | se **busca** un dato dentro de una retícula |
+
+#### La medida se define en caracteres, no en píxeles
+
+> ⚠ **Corregido el 2026-07-30, reverificación del Paso 7.** La primera versión de
+> §3.1 fijó un único tope de 38rem y afirmó que dejaba «cinco caracteres de
+> margen» bajo el 80 de 1.4.8. **Esa afirmación era cierta solo para la teoría de
+> 17px.** El auditor remidió con `canvas.measureText` sobre el texto real y
+> encontró que las tres superficies de 15px se quedaban en **79,2–79,6 cpl**: el
+> margen ahí era de **0,4 a 0,8 caracteres**, no de cinco. La estimación original
+> usó 7,17px de ancho de carácter para todas; los valores reales van de **6,81 a
+> 7,27px** según el texto.
+
+**La causa es aritmética, y explica por qué un solo número en píxeles no puede
+servir para dos cuerpos.** Un recuadro tiene padding (y `<Ojo>`, además, la
+columna del icono), así que su caja de texto baja de 608 a 544–576px — un 6 a 11 %
+menos. Pero el carácter de 15px es un **17 % más estrecho** que el de 17px. El
+ancho baja menos de lo que el carácter encoge, así que entran *más* caracteres,
+no menos. Capar las dos cosas al mismo valor en píxeles produce, necesariamente,
+dos medidas distintas en caracteres.
+
+**Se corrige subiendo la definición un nivel: la medida es ≈75 cpl y el píxel es
+su implementación.** Un valor por cuerpo, calculado con el ancho de carácter
+medido de cada superficie:
+
+| Superficie | Cuerpo | Ancho de carácter medido | Caja de texto | **cpl** |
+|---|---|---|---|---|
+| Párrafo de teoría · tope 38rem | 17px | 8,17px | 608px | **74,4** |
+| `<Ojo>` · tope **36rem** | 15px | 6,86px | 512px (576 − 32 de `p-4` − 32 de icono y `gap`) | **74,6** |
+| `<dd>` de la alerta en teoría · tope **36rem** | 15px | 7,27px | 544px (576 − 32 de `p-4`) | **74,8** |
+| Ficha de `/erratas` · tope **36rem** | 15px | 7,04px | 528px (576 − 48 de `p-6` desde `sm`) | **75,0** |
+| Tabla · `<TablaClave>` · `<Formula>` | 15px | — | 720px | **medida de consulta — no se capa** |
+
+Las cuatro caen entre **74,4 y 75,0 cpl**: dentro de la banda clásica de lectura
+sostenida (45–75) y ahora sí con **cinco caracteres de margen reales** bajo el 80
+de 1.4.8, en las cuatro superficies y no solo en una.
+
+**Por qué no se acepta el 0,4 de margen, que era la otra salida legítima.** Los
+tres pasan el 80 hoy, y 1.4.8 es AAA, no AA: aceptarlo era defendible. Se descarta
+por una razón concreta y con cifra: **el margen no es para el texto de hoy, es
+para el de los pasos 15–17.** Los recuadros de C5 son 5; los 29 módulos meterán
+del orden de 150. Con la caja de la alerta en 576px y el ancho de carácter
+**mínimo** que el auditor midió (6,81px), un texto con más caracteres estrechos de
+la media da `576 ÷ 6,81 = 84,6 cpl` — cruza el 80 sin que nadie lo note, porque
+nadie va a remedir 150 recuadros. Con 36rem el mismo peor caso da **75,2 cpl**. Es
+un tope que se sostiene solo mientras el contenido crece; el de 38rem dependía de
+que el texto futuro se pareciera al de C5.
+
+**Se descarta bajar a 34rem (544px)**, que era el número «seguro»: deja las tres
+superficies en ~70 cpl, por debajo de la teoría, y crea una diferencia de 64px
+entre el párrafo y el recuadro que sí se ve como un escalón. 36rem se separa solo
+**32px** de la prosa: a esa distancia el recuadro se lee alineado con el texto, no
+indentado.
+
+**A 375px no cambia absolutamente nada, ni con 38rem ni con 36rem**: la caja ya
+mide 343px (42,2 cpl, que es correcto). Los topes solo empiezan a morder desde
+~656px y ~624px de viewport respectivamente. **Dos reglas, ningún breakpoint.**
+
+El argumento que manda no es el número de la AAA de todos modos: es que este es el
+público que lee de noche, con presbicia, después de trabajar.
+
+⚠ **`max-w-[65ch]` NO sirve en este proyecto, y hay que decirlo antes de que
+alguien lo «arregle».** El `body` lleva `font-variant-numeric: tabular-nums`
+(§11.3, deliberado por los rangos numéricos), que ensancha el glifo «0» de Inter
+hasta **11px** a 17px de cuerpo. Medido: `65ch = 715px ≈ 87,9 cpl`,
+prácticamente los 720 de ahora. **La unidad `ch` miente aquí. Se capa en `rem`.**
+
+#### El interlineado de 1.65 se conserva, y no era el arreglo
+
+Un interlineado generoso reduce el **error de retorno de línea** —saltarse una
+línea al volver al margen izquierdo—, no la **distancia de barrido**, que es lo
+que cansa a 88 caracteres. Con presbicia y de noche el problema dominante es el
+barrido. 1.65 ayuda y se queda; el tope es lo que arregla el problema.
+
+#### Que las tablas sobresalgan es deliberado
+
+Las tablas, `<TablaClave>` y `<Formula>` quedan **112px más anchas que el texto**
+y sobresalen por la derecha. Es una decisión, no un descuido, por tres razones en
+orden de peso:
+
+1. **Estrechar la tabla crearía un problema de accesibilidad donde hoy no lo
+   hay.** Una tabla de 5 columnas de la Cartilla 3 empezaría a desplazarse
+   horizontalmente en viewports donde hoy entra entera — es decir, A-11 (la tabla
+   se corta sin señal) aparecería en escritorio, que es justo donde no aparece.
+   Regresión real a cambio de nada.
+2. **`<Formula>` es `whitespace-nowrap` con `overflow-x-auto`.** Estrecharla la
+   hace desplazarse antes, y una fórmula partida o desplazada no se lee.
+3. **El saliente es señal.** Un bloque más ancho que la columna de texto dice,
+   solo por su forma, «esto no es prosa, es un dato que se consulta». Refuerza
+   por geometría la misma distinción que §6.1 hace por marco frente a barra
+   lateral. Con esta regla el saliente pasa a significar **exactamente una cosa**,
+   porque los recuadros de prosa dejan de sobresalir.
+
+Ese último punto es el cambio respecto a lo que proponía el auditor, que dejaba
+`<Ojo>` y `<AlertaContradiccion>` a 720px junto con las tablas. **Se corrige: los
+dos recuadros contienen frases, no datos, y a 720px su texto interior corre a
+91–96 cpl, peor que la propia teoría.** Van a medida de lectura.
+
+⚠ **Todo lo anterior habla de `sm` para arriba.** Por debajo de 640px la tabla
+ancha deja de ser una tabla: se apila en fichas. Es §3.2, y es la decisión que
+resuelve de verdad A-11.
+
+#### Dónde se escribe — **no hay clase de Tailwind, y es correcto**
+
+Los elementos los emite MDX, no un JSX que se pueda decorar. La regla vive donde
+vive el resto de `.prose-idoneo`: en `globals.css`, dentro del `@layer components`
+que ya existe, **inmediatamente después de la regla base `.prose-idoneo`**:
+
+```css
+  /* Medida de lectura, superficies de 17px (DISENO.md §3.1). Solo hijos
+     DIRECTOS: los <p> que van dentro de <Ojo> o <AlertaContradiccion> no se
+     capan por su cuenta — el <aside> ya viene capado y capar también su interior
+     dejaría un hueco muerto dentro del marco. Tablas, <TablaClave> (div) y
+     <Formula> (figure) quedan fuera de la lista a propósito: §3.1, medida de
+     consulta. `ch` no sirve aquí: tabular-nums lo infla a ~88 cpl. */
+  .prose-idoneo > :is(p, ul, ol, h2, h3, hr) {
+    max-width: 38rem;
+  }
+
+  /* Medida de lectura, superficies de 15px: los dos recuadros de prosa. 36rem
+     deja su TEXTO INTERIOR —la caja menos el padding y, en <Ojo>, la columna del
+     icono— en 74,6–74,8 cpl, los mismos 75 que la teoría. Con 38rem caían en
+     79,2–79,3: pasaban el 80 de 1.4.8 con 0,4 caracteres de margen, que no es
+     margen. Va como regla aparte y NO dentro del :is() de arriba, para que la
+     diferencia sea explícita y no dependa del orden de dos selectores empatados
+     en especificidad. */
+  .prose-idoneo > aside {
+    max-width: 36rem;
+  }
+```
+
+El selector de **hijo directo** hace todo el trabajo de alcance: no hay que
+exceptuar nada a mano, y si mañana entra un componente MDX nuevo, entra por
+defecto a medida de consulta —que es lo conservador— hasta que alguien decida lo
+contrario.
+
+`hr` va en la lista aunque el auditor no lo pusiera: una regla horizontal a 720px
+bajo un texto de 608px sobresaldría por la derecha sin significar nada.
+
+**`/erratas` recibe la misma medida, en la página, y en dos niveles.** No pasa por
+`.prose-idoneo` —monta su propio `FichaErrata`— y son 14 fichas seguidas: es
+lectura sostenida. El envoltorio de la página se queda en **38rem** porque lo que
+gobierna son el `h1` y la entradilla, que son de 17px; **la ficha se capa aparte
+en 36rem**, porque su `<dd>` es de 15px y es la superficie que el auditor midió en
+79,6 cpl.
+
+| Archivo | Qué | Cómo queda |
+|---|---|---|
+| `src/app/globals.css` | dos reglas en `@layer components`, tras `.prose-idoneo` | el bloque CSS de arriba |
+| `src/app/erratas/page.tsx` | envoltorio de la página, hoy `className="space-y-8 py-2"` | `className="max-w-[38rem] space-y-8 py-2"` — **sin cambio** |
+| `src/app/erratas/page.tsx` | raíz de `FichaErrata`, hoy `'scroll-mt-[calc(var(--alto-encabezado)+1rem)] rounded-lg border p-4 sm:p-6'` | `'max-w-[36rem] scroll-mt-[calc(var(--alto-encabezado)+1rem)] rounded-lg border p-4 sm:p-6'` |
+
+El `<h1>` de la página de módulo, el `RotuloBloque` y los objetivos quedan fuera:
+viven fuera de `.prose-idoneo` y son piezas cortas que nunca alcanzan los 608px.
+No se les pone tope para no fabricar una alineación que en la práctica no se ve.
+
+**Prohibido a partir de aquí:**
+
+| Prohibido | Por qué |
+|---|---|
+| `max-w-[65ch]` o cualquier tope en `ch` para texto | `tabular-nums` infla `1ch` a 11px: 65ch ≈ 88 cpl, no arregla nada |
+| Llevar tablas o `<Formula>` a medida de lectura | adelanta el desplazamiento horizontal y con él A-11 |
+| Centrar la columna de texto dentro de la de consulta (`mx-auto`) | el borde izquierdo del texto es el ancla del retorno de línea; si baila entre bloques, se pierde el beneficio que el tope venía a dar |
+| Bajar el `line-height` de 1.65 «ahora que la línea es corta» | son dos mitigaciones de problemas distintos: barrido y retorno de línea |
 
 **Consecuencia conocida del piso táctil de 44px.** La regla de §11.3 aplica
 `min-height: 44px` a `button, [role="button"], a[href], input, select, textarea`
@@ -431,6 +702,478 @@ a[href]:not([data-compacto]), input, select, textarea { min-height: 44px; }
 los `TabsTrigger`, y en esos casos el objetivo táctil se garantiza con
 `gap` suficiente entre celdas. Si no se aprueba, el Paso 11 tendrá que resolverlo
 con `!important` o con un `<div role="button">` sin `role`, que es peor.
+
+### 3.2 La tabla ancha en móvil — **una ficha por fila**
+
+> Añadida el 2026-07-30, reverificación del Paso 7. Cierra **A-11** de verdad:
+> el degradado avisaba de que la tabla seguía, pero **no devolvía el dato**.
+
+#### El problema, con su cifra
+
+La tabla de zonas de C5 a 375px mide **518px** de contenido en un hueco de
+**341px**: oculta **177px, el 34 % de su ancho**. El corte no cae entre columnas,
+cae a mitad de celda, así que **en pantalla se lee «95 % / 5» donde el valor es
+«95 % / 5 %»**, y la quinta columna entera no existe hasta que el usuario se
+desplaza.
+
+Eso no incumple ninguna norma —1.4.10 exime expresamente a las tablas de datos— y
+aun así es el peor defecto abierto del Paso 7, por tres hechos que se acumulan:
+
+1. **Es la tabla más consultada de la app.** La teoría la llama, con esas
+   palabras, «la tabla que hay que saberse», y es contenido del módulo piloto que
+   §22 regla 10 designa plantilla de oro: los **28 módulos restantes** replican su
+   forma.
+2. **El examen pregunta esos valores con número exacto.** R1 65–75 %, R2 75–85 %
+   del VO₂máx y 80–90 % de la FCmáx, participaciones 99/1, 95/5, 65/35.
+3. **El truncamiento es silencioso.** «95 % / 5» no parece un dato cortado: parece
+   un dato. El usuario no sabe que le falta algo, así que no se desplaza. Memoriza
+   un valor falso y falla la pregunta.
+
+Un aviso perimetral no puede resolver el punto 3, porque el problema no es que el
+usuario ignore que la tabla sigue: es que **cree que ya leyó el valor**.
+
+#### La decisión
+
+> **Por debajo de `sm` (640px), toda tabla de 4 columnas o más deja de
+> presentarse como retícula y se presenta como una ficha por fila: cada fila del
+> `<tbody>` es un bloque, y cada celda es una pareja clave-valor con el
+> encabezado de su columna encima.** De `sm` para arriba no cambia
+> absolutamente nada.
+
+```
+┌────────────────────────────────────────┐  375 px
+│  ZONAS DE ENTRENAMIENTO — LA TABLA…    │  título de <TablaClave>, 11px
+│ ┌────────────────────────────────────┐ │  .marco-tabla
+│ │ ZONA                               │ │  clave, Inter 600 12px versalitas
+│ │ R2 · VT2                           │ │  valor 1.º, Barlow Cond. 600 18px
+│ │                                    │ │
+│ │ % FCMÁX / VO₂MÁX                   │ │
+│ │ 75–85 % VO₂máx · 80–90 % FCmáx     │ │  valor, 15px — COMPLETO
+│ │                                    │ │
+│ │ OBJETIVO                           │ │
+│ │ Oxidación del glucógeno, ↑ volemia,│ │
+│ │ ↑ volumen sistólico… Contiene el   │ │
+│ │ MLSS                               │ │
+│ │                                    │ │
+│ │ AERÓBICO / ANAERÓBICO              │ │
+│ │ 95 % / 5 %                         │ │  ← el dato que hoy se pierde
+│ │                                    │ │
+│ │ SUSTRATO DOMINANTE                 │ │
+│ │ Casi exclusivamente hidratos       │ │  ← la columna que hoy no existe
+│ ├────────────────────────────────────┤ │  1px --border entre fichas
+│ │ ZONA                               │ │
+│ │ R3 / R3+                           │ │
+│ …                                      │
+```
+
+**Cuatro razones, en orden de peso:**
+
+1. **Restituye el dato, que era el encargo.** Cero desplazamiento horizontal,
+   cero truncamiento, cero columna invisible. Es la única de las alternativas
+   evaluadas que lo hace.
+2. **Coincide con lo que la propia app ya enseña.** Las tarjetas C5-T02 a C5-T05
+   están escritas exactamente así — «Zona R2 (VT2): porcentaje, objetivo y
+   sustrato», una zona con todos sus campos — porque es la unidad en la que este
+   contenido se memoriza. La vista móvil de la tabla deja de contradecir al mazo
+   de tarjetas del mismo módulo.
+3. **Escala sola a los 29 módulos.** La regla no menciona ninguna tabla concreta:
+   se dispara por número de columnas. El autor de los pasos 15–17 escribe markdown
+   normal y no se entera.
+4. **Es la lectura que un pulgar puede hacer.** Vertical, en la dirección en la
+   que ya se está desplazando la página, sin gesto lateral dentro de un contenedor
+   dentro de una página.
+
+**Qué se pierde, y por qué se acepta.** La ficha no permite comparar R1 con R2 de
+un vistazo, que es lo que una retícula hace bien. Se acepta porque a 375px **esa
+comparación hoy tampoco existe**: dos de las cinco columnas están fuera de
+pantalla. Se cambia una comparación imaginaria por cuatro valores exactos. Y la
+retícula no desaparece del producto: reaparece intacta desde 640px, que es donde
+sí cabe.
+
+#### El umbral: 4 columnas, y por qué no todas
+
+`:has(thead th:nth-child(4))`. Una tabla de 2 o 3 columnas **cabe** a 375px —la de
+modelos de distribución de C5 tiene 2— y ahí la retícula es mejor que la ficha:
+compara sin coste. Apilarlas sería alargar la página a cambio de nada. El umbral
+está en 4 porque cuatro columnas con el `padding` de §3.2 pasan de los 341px
+disponibles en cuanto una celda lleva texto de frase.
+
+CSS puede contar columnas; no puede medir si la tabla desborda. Contar es
+determinista y se comporta igual en los 29 módulos, que es lo que hace falta.
+
+#### El degradado de A-11 se retira — **A-22, corrección de esta sección**
+
+> Esta subsección decía, hasta el 2026-07-30, que por debajo de `sm` el degradado
+> se apagaba y **de 640px para arriba se conservaba tal cual «porque una tabla de
+> 6 columnas todavía puede desbordar a 700px»**. El `accessibility-auditor` midió
+> esa premisa y **no se sostiene con este contenido**. Se retira el degradado
+> **entero**, en los dos temas y en todos los anchos.
+
+**La premisa era una suposición; el barrido, un hecho.** Las cuatro tablas del
+fixture —incluida una de **7 columnas**— en ocho anchos (640 · 660 · 680 · 700 ·
+720 · 768 · 900 · 1280px): **cero desbordamiento**. Y no es suerte del contenido,
+es estructura: la tabla lleva `width: 100%` con `table-layout: auto`, así que las
+celdas **reparten y envuelven** en vez de desbordar. Para desbordar haría falta un
+`min-content` mayor que la columna: una cadena sin puntos de corte.
+
+**Y no solo arriba: tampoco abajo.** El apagado estaba atado a
+`:has(thead th:nth-child(4))`, así que las tablas de 2 y 3 columnas conservaban el
+degradado también a 375px. Están medidas en el mismo informe: a 375px siguen en
+retícula y **ninguna desborda** —es exactamente lo que el umbral de 4 columnas
+promete—. También ahí el degradado señalaba un desplazamiento que no existe.
+
+Los dos números que cierran la decisión:
+
+| | Beneficio | Coste |
+|---|---|---|
+| **≥ 640px** | ninguno medible: 0 desbordes en 8 anchos, 7 columnas incluidas | **49 incompletas** de axe a 1280px |
+| **< 640px, tablas de 2 y 3 col.** | ninguno medible: 0 desbordes a 375px | **24 incompletas** de axe a 375px (12 + 12) |
+| **< 640px, tablas de 4+ col.** | ninguno: ya es ficha, no hay nada que desplazar | 0 — ya estaba apagado |
+
+**No queda ningún viewport donde el degradado ayude.** Conservarlo «por si acaso»
+sería CSS muerto que además **ciega la única comprobación automática de contraste
+que tenemos sobre tablas**, y los pasos 15–17 van a escribir 28 módulos llenos de
+tablas. Un recurso sin escenario donde ayude no se conserva: se retira.
+Retirado el degradado, `/modulos` pasa de **49 → 0** incompletas a 1280px
+y de **25 → 1** a 375px (la que queda es la del pie, ajena a esto).
+
+**Qué se pierde, y por qué es aceptable.** Si algún día una celda lleva una cadena
+inquebrable —una URL, una fórmula sin espacios—, esa tabla desbordará y ya no
+habrá señal visual de que continúa. Se acepta por tres razones, y la tercera lo
+convierte casi en teórico:
+
+1. **La afordancia perimetral nunca fue la que arreglaba el problema.** Es la
+   tesis de esta misma sección: el degradado avisaba de que la tabla seguía y **no
+   restituía el dato**. Lo que cerró A-11 fue la ficha, no la sombra.
+2. **El acceso no depende del degradado.** El envoltorio conserva
+   `overflow-x: auto`, `tabIndex={0}`, `role="group"` y su `aria-labelledby`
+   (A-10, A-19). El contenido sigue siendo alcanzable con teclado, con puntero y
+   con lector; lo que desaparece es un adorno que no señalaba nada.
+3. **El caso residual se previene, no se señala.** Junto con la retirada,
+   `.prose-idoneo table` estrena `overflow-wrap: anywhere`: una cadena
+   inquebrable **envuelve** en vez de desbordar. Sobre el contenido actual es un
+   no-op —todas las palabras ya caben, por eso el barrido dio cero— y sobre el
+   contenido futuro elimina el escenario en lugar de avisar de él. Es la misma
+   tesis de §3.2 aplicada al caso residual: **restituir el dato vale más que
+   advertir de que falta.**
+
+**Se declina, igual que antes, el complemento que proponía el auditor** —una línea
+de ayuda fija dentro de `<TablaClave>` que dijera «Se desplaza en horizontal»—.
+Con el degradado retirado sería falsa en todos los anchos, no solo en la ficha.
+
+**Lo que hay que dejar escrito para quien venga después:** el contraste del texto
+de tabla ya **no** es una medición manual pendiente. Con el degradado fuera, axe
+lo evalúa solo, en los cuatro escenarios (2 temas × 2 anchos). Eso es justo la
+cobertura que A-18 daba por perdida y la que los 28 módulos que faltan van a
+necesitar.
+
+**El CSS que queda, literal.** En `globals.css` desaparecen dos bloques enteros
+—la regla base de `.prose-idoneo .tabla-desliz` pierde sus cinco declaraciones
+`background-*` y la variante `.dark .prose-idoneo .tabla-desliz` se borra
+completa— y el envoltorio se queda en esto:
+
+```css
+  .prose-idoneo .tabla-desliz {
+    margin-block: 1.5rem;
+
+    /* Red de seguridad, no afordancia. A-22 midió las cuatro tablas del fixture
+       —la de 7 columnas incluida— en ocho anchos de 640 a 1280 px: ninguna
+       desborda, porque `width: 100%` con `table-layout: auto` hace que las
+       celdas repartan y envuelvan. Por eso aquí NO hay degradado: no señalaba
+       nada y cegaba la medición de contraste de axe en toda tabla (49 celdas a
+       1280 px). Se queda `overflow-x`: sostiene el `role="group"` enfocable de
+       A-10/A-19 y cubre el caso residual. */
+    overflow-x: auto;
+  }
+```
+
+Y la tabla suma una línea, que es la que sustituye al degradado en su único caso
+real:
+
+```css
+  .prose-idoneo table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+    line-height: 1.45;
+    /* A-22 · una cadena inquebrable ENVUELVE en vez de desbordar. Sobre el
+       contenido actual no cambia un píxel —todas las palabras ya caben— y
+       elimina el único escenario que el degradado decía cubrir. Es heredada:
+       basta declararla aquí para que llegue a `th` y `td`. */
+    overflow-wrap: anywhere;
+  }
+```
+
+#### Tipografía de la ficha — todo sale de la escala de §2.3
+
+| Pieza | Fila de §2.3 | Valor |
+|---|---|---|
+| Clave del campo | **Clave de campo** | Inter 600 · 12px · versalitas · tracking +0.08em · `muted-foreground` |
+| Valor de la primera celda | **`h3`** | Barlow Condensed 600 · 18px · line-height 1.25 |
+| Valor del resto de celdas | **Cuerpo de interfaz** | Inter 400 · 15px (el que la tabla ya usa) |
+
+La clave es **clave de campo (12px) y no antetítulo (11px)**, y el criterio es el
+de §2.5 aplicado literalmente: *¿el lector vuelve a ella mientras lee?* Vuelve, y
+mucho — 5 claves × 4 fichas en una sola tabla, y la misma tabla en cada módulo. Es
+exactamente el caso del `<dt>` de las fichas de errata.
+
+El primer valor sube a la fila `h3` porque **es la identidad de la ficha**: dice de
+qué zona se está hablando y hay que poder saltar de ficha en ficha por él. 18px es
+además el mínimo que §2.3 regla 1 le permite a Barlow Condensed, así que la
+elección no abre ninguna excepción.
+
+**Ningún color se mueve.** La clave usa `muted-foreground` sobre `background`, que
+es un par ya verificado en §1.3 (grupo «texto normal», peor caso 4.93:1 — AA con
+holgura para texto normal, que es el umbral que aplica a 12px). El filete entre
+fichas usa `--border`, decorativo y exento de 1.4.11 por la misma nota de §1.3. No
+hay contraste que recalcular.
+
+#### Accesibilidad — dos cosas que hay que hacer bien o no hacerlo
+
+1. **Los roles se escriben explícitamente en las seis piezas de la tabla.** Todo
+   navegador retira la semántica de tabla del árbol de accesibilidad en cuanto el
+   `display` deja de ser `table-*`: sin roles, la vista de ficha convertiría la
+   tabla en un `generic` y tiraría por la borda **A-12** (`scope="col"`, 8 de 8) y
+   la mitad de **A-10**. Con `role="table"`, `rowgroup`, `row`, `columnheader` y
+   `cell` escritos, la semántica **deja de depender de la presentación** — que es
+   más robusto que lo que hay hoy, no menos.
+2. **El `<thead>` se oculta a la vista, nunca con `display: none`.** Es el origen
+   de los `columnheader`; con `display:none` desaparecen del árbol. Se usa el
+   recorte de 1px. El usuario de lector sigue teniendo la tabla completa; el
+   usuario vidente ve la ficha.
+
+**No se toca nada de lo que el auditor dejó cerrado:** ni el `tabIndex={0}`, ni el
+`role="group"`, ni el `aria-label` del envoltorio, ni el `scope="col"`.
+
+⚠ **Consecuencia que hay que anotar y que decide el auditor, no este documento.**
+Por debajo de `sm` el envoltorio sigue siendo un `role="group"` enfocable
+etiquetado «Tabla, desplazable en horizontal», y ahí ya no hay nada que desplazar.
+No es un fallo —el grupo sigue nombrando correctamente lo que contiene— pero la
+segunda mitad del nombre sobra en ese viewport. **Queda planteado, sin cambiarlo.**
+
+#### El CSS exacto — `src/app/globals.css`
+
+Va **dentro del `@layer components` que ya existe**, inmediatamente después de la
+regla `.prose-idoneo tbody tr:last-child td`. Usa anidamiento CSS, que Tailwind v4
+compila con Lightning CSS.
+
+```css
+  /* ── §3.2 · La tabla ancha se apila en ficha por debajo de `sm` ──────────
+     Solo tablas de 4 columnas o más. Las de 2 y 3 caben a 375 px y se quedan
+     como retícula, que es donde comparan mejor. El umbral se cuenta, no se
+     mide: CSS sabe cuántas columnas hay y eso se comporta igual en los 29
+     módulos. */
+  @media (max-width: 39.9375rem) {
+    .prose-idoneo .tabla-desliz:has(thead th:nth-child(4)) {
+      /* Aquí iba `background-image: none`, para apagar el degradado de A-11.
+         Sobra desde que A-22 lo retiró de la hoja entera: no hay degradado que
+         apagar. `overflow-x: auto` se queda como está: quitarlo no aporta nada
+         y el contenedor sigue siendo el mismo elemento que el teclado ya
+         conoce. */
+
+      & table {
+        display: block;
+        width: 100%;
+      }
+
+      /* El encabezado sigue en el árbol de accesibilidad: es el origen de los
+         `columnheader` que A-12 dejó en 8 de 8. Se oculta a la vista, NUNCA
+         con `display: none`, que sí los borraría. */
+      & thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+
+      & tbody {
+        display: block;
+      }
+
+      /* Una fila = una ficha. El filete las separa; el marco de <TablaClave>
+         ya pone el borde exterior y una tabla suelta no lo necesita. */
+      & tbody tr {
+        display: block;
+        padding: 0.75rem;
+        border-bottom: 1px solid var(--border);
+      }
+
+      & tbody tr:last-child {
+        border-bottom: 0;
+      }
+
+      /* Una celda = clave arriba, valor debajo. */
+      & tbody td {
+        display: block;
+        padding: 0;
+        border: 0;
+      }
+
+      & tbody td + td {
+        margin-top: 0.625rem;
+      }
+
+      /* La clave. Fila «Clave de campo» de §2.3, literal. El texto lo pone
+         `componentes.tsx` en `--et-N` a partir del <thead>; si faltara, la
+         ficha se degrada a valores sin clave — nunca a una ficha rota.
+         `font-family` explícita: la primera celda pasa a Barlow Condensed y
+         el ::before heredaría 12 px condensados, que viola §2.3 regla 1. */
+      & tbody td::before {
+        display: block;
+        margin-bottom: 0.125rem;
+        font-family: var(--font-sans);
+        font-size: 0.75rem;
+        font-weight: 600;
+        line-height: 1.1;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted-foreground);
+        content: var(--et-1, "");
+      }
+
+      & tbody td:nth-child(2)::before { content: var(--et-2, ""); }
+      & tbody td:nth-child(3)::before { content: var(--et-3, ""); }
+      & tbody td:nth-child(4)::before { content: var(--et-4, ""); }
+      & tbody td:nth-child(5)::before { content: var(--et-5, ""); }
+      & tbody td:nth-child(6)::before { content: var(--et-6, ""); }
+      & tbody td:nth-child(7)::before { content: var(--et-7, ""); }
+
+      /* La primera celda es la identidad de la fila: hace de título de ficha.
+         18 px es además el mínimo que §2.3 regla 1 permite a Barlow Condensed. */
+      & tbody td:first-child {
+        font-family: var(--font-titulo);
+        font-size: 1.125rem;
+        font-weight: 600;
+        line-height: 1.25;
+      }
+    }
+  }
+```
+
+**Tope de 7 columnas** en las claves. Una tabla de 8 o más apilaría igual, pero de
+la octava en adelante el valor saldría sin su clave. Ninguna tabla de las cartillas
+llega a 6; si alguna llegara, se añade la línea que falte.
+
+#### El mapeo exacto — `src/components/mdx/componentes.tsx`
+
+Dos cosas: los **roles explícitos** en las seis piezas, y las claves de columna
+como custom properties. Las claves se leen del `<thead>` **una sola vez, en el
+servidor**, y viajan en `style` como `--et-1 … --et-N`. No hay atributo por celda,
+no hay JS de cliente, no hay estado.
+
+```tsx
+import { Children, isValidElement, type ReactElement, type ReactNode } from 'react';
+
+/* Roles explícitos. NO son redundantes: la vista de ficha de DISENO.md §3.2
+   cambia el `display` de `table`, `tbody`, `tr` y `td`, y todo navegador retira
+   la semántica de tabla del árbol de accesibilidad en cuanto el display deja de
+   ser `table-*`. Con los roles escritos, la semántica deja de depender de la
+   presentación — y A-10 y A-12 siguen en pie en los dos viewports. */
+const Thead = (props: React.ComponentProps<'thead'>) => <thead role="rowgroup" {...props} />;
+const Tbody = (props: React.ComponentProps<'tbody'>) => <tbody role="rowgroup" {...props} />;
+const Tr = (props: React.ComponentProps<'tr'>) => <tr role="row" {...props} />;
+const Th = (props: React.ComponentProps<'th'>) => <th scope="col" role="columnheader" {...props} />;
+const Td = (props: React.ComponentProps<'td'>) => <td role="cell" {...props} />;
+
+/** Texto plano de un subárbol de React: un <th> puede traer <strong> o <code>. */
+function textoPlano(nodo: ReactNode): string {
+  if (typeof nodo === 'string' || typeof nodo === 'number') return String(nodo);
+  if (Array.isArray(nodo)) return nodo.map(textoPlano).join('');
+  if (isValidElement(nodo)) return textoPlano((nodo.props as { children?: ReactNode }).children);
+  return '';
+}
+
+function primerHijo(nodo: ReactNode, tipo: unknown): ReactElement | undefined {
+  return Children.toArray(nodo).find(
+    (hijo): hijo is ReactElement => isValidElement(hijo) && hijo.type === tipo,
+  );
+}
+
+/** Los encabezados de columna, en orden. [] si la tabla no trae <thead>: en ese
+ *  caso la ficha sale sin claves, que es una degradación, no una rotura. */
+function clavesDeColumna(children: ReactNode): string[] {
+  const thead = primerHijo(children, Thead);
+  const fila = thead && primerHijo((thead.props as { children?: ReactNode }).children, Tr);
+  if (!fila) return [];
+  return Children.toArray((fila.props as { children?: ReactNode }).children)
+    .filter((hijo): hijo is ReactElement => isValidElement(hijo) && hijo.type === Th)
+    .map((th) => textoPlano((th.props as { children?: ReactNode }).children).trim());
+}
+```
+
+Y el mapa. **El `table` de hoy solo gana `style` y `role`; el `th` de hoy pasa a
+ser `Th`.** El resto son altas:
+
+```tsx
+export const componentesMdx: MDXComponents = {
+  Dato,
+  Formula,
+  TablaClave,
+  Ojo,
+  AlertaContradiccion,
+
+  table: ({ children, ...props }) => {
+    // Las claves de columna viajan como custom properties; el CSS de §3.2 las
+    // pinta con `content: var(--et-N)` en la vista de ficha. `JSON.stringify`
+    // las entrega ya entrecomilladas y escapadas, que es lo que `content` pide.
+    const estilo = Object.fromEntries(
+      clavesDeColumna(children).map((clave, i) => [`--et-${i + 1}`, JSON.stringify(clave)]),
+    ) as React.CSSProperties;
+
+    return (
+      <div
+        className="tabla-desliz"
+        tabIndex={0}
+        role="group"
+        aria-label="Tabla, desplazable en horizontal"
+        style={estilo}
+      >
+        <table role="table" {...props}>
+          {children}
+        </table>
+      </div>
+    );
+  },
+
+  thead: Thead,
+  tbody: Tbody,
+  tr: Tr,
+  th: Th,
+  td: Td,
+};
+```
+
+**Tres notas de aplicación:**
+
+- `clavesDeColumna` compara `type` **por identidad** contra los componentes del
+  propio archivo. Funciona porque son constantes de módulo y porque MDX sustituye
+  el elemento por el componente mapeado. Si alguien quita `thead`, `tr` o `th` del
+  mapa, la función devuelve `[]` y las fichas salen sin clave: falla visible y
+  ruidosa, nunca silenciosa.
+- `role="table"` sobre un `<table>` es redundante en la vista de retícula y ahí no
+  molesta. `eslint-config-next` no activa `jsx-a11y/no-redundant-roles`, así que no
+  hay aviso que silenciar.
+- El `<span>` que algunas soluciones de este patrón inyectan por celda **no hace
+  falta**: la clave la pone el pseudo-elemento. Que el lector de pantalla anuncie
+  además el `::before` es aceptable y hasta útil, porque GFM no sabe expresar
+  `<th scope="row">` (límite documentado en A-12) y esta es la única pista de fila
+  que llega.
+
+#### Prohibiciones que nacen de §3.2
+
+| Prohibido | Por qué |
+|---|---|
+| Resolver el truncamiento pidiéndole al autor que escriba la tabla de otra forma | son 29 módulos escritos con markdown de GFM. Lo que no salga del CSS o del mapeo, no se aplica solo |
+| `display: none` en el `<thead>` de la vista de ficha | borra los `columnheader` del árbol y deshace A-12 |
+| Cambiar el `display` de la tabla **sin** escribir los roles | convierte la tabla en `generic` y deshace A-10 y A-12 |
+| Apilar tablas de 2 o 3 columnas | caben a 375px, y en retícula comparan mejor. La ficha es la salida de un problema, no un estilo |
+| Poner la clave del campo en 11px | es clave de campo, no antetítulo: se relee en cada ficha y en cada módulo (§2.5) |
+| Poner el valor de la primera celda en Barlow Condensed **por debajo** de 18px | §2.3 regla 1, sin excepciones |
+| **Volver a poner el degradado de A-11**, en cualquier ancho | A-22 midió 0 desbordes en 8 anchos de 640 a 1280px, la tabla de 7 columnas incluida, y 0 a 375px en las de 2 y 3. No señalaba nada y costaba 49 incompletas de axe. Si algún día una tabla desborda de verdad, el arreglo es que **quepa** (`overflow-wrap`, menos columnas), no volver a avisar de que no cabe |
+| Quitar `overflow-x: auto` del envoltorio «ya que nada desborda» | es la red de seguridad del caso residual y el sostén del `role="group"` enfocable de A-10/A-19. Se queda pase lo que pase |
+| Estrechar la tabla a la medida de lectura para «que quepa» | §3.1: adelanta el desbordamiento a viewports donde hoy entra entera |
 
 ---
 
@@ -675,11 +1418,310 @@ haga.
 
 ---
 
-## 6. Registro de cambios
+## 6. Los recuadros de contenido — `<Ojo>` y `<AlertaContradiccion>`
+
+> Añadida el 2026-07-30 para el Paso 7. Cierra la decisión que **ADR-012** dejó
+> abierta («el tratamiento visual de una `'aclaracion'` no debe ser el
+> destructivo; el token lo decide el `ui-designer`») y el punto correspondiente de
+> `PENDIENTES.md` → Paso 7.
+
+La app tiene **dos** recuadros que interrumpen la lectura de la teoría, y hay que
+poder distinguirlos de un vistazo. Esta sección fija los dos, no solo el nuevo:
+la mitad de las decisiones de abajo solo tienen sentido como par.
+
+### 6.1 La regla de forma — lo que separa un recuadro del otro
+
+**No los separa el color. Los separa el marco.**
+
+| | `<Ojo>` (§12.3) | `<AlertaContradiccion>` (§12.4) |
+|---|---|---|
+| Marco | **barra lateral izquierda de 4px**, sin borde alrededor | **marco completo de 1px**, sin barra lateral |
+| Estructura | título fijo + prosa libre | rótulo + **id** + tema + `<dl>` de tres campos + enlace |
+| Qué es | la voz del autor dentro de la teoría | una **entrada catalogada** del registro de erratas |
+
+**Regla dura: la alerta lleva marco completo y nunca barra lateral; el `<Ojo>`
+lleva barra lateral y nunca marco.** Un agente que las intercambie borra la única
+señal estructural que las distingue.
+
+Que compartan color en un caso concreto (§6.4) es **deliberado**: en Idóneo 2210 el
+ámbar significa siempre «esto se confunde» y el rojo significa siempre «aquí hay
+algo incorrecto». Esa constancia semántica es más valiosa que dos tonos distintos
+para el mismo mensaje, **porque la forma ya carga la diferencia de componente.**
+
+### 6.2 Los tres tipos — token, icono y rótulo
+
+`TipoErrata` tiene tres valores desde ADR-012. El catálogo real
+(`content/erratas.ts`, 14 entradas): **2 `contradiccion` · 11 `errata` ·
+1 `aclaracion`**.
+
+| `tipo` | Token | Icono (`lucide-react`) | Rótulo (fijado en ADR-012) | Qué afirma el cuadro |
+|---|---|---|---|---|
+| `contradiccion` | `destructive` | **`Scale`** | «Las cartillas se contradicen» | dos cartillas oficiales dan valores distintos; hay que **sopesar** según el bloque evaluado |
+| `errata` | `destructive` | **`CircleX`** | «Errata de la cartilla» | la cartilla afirma algo **falso** |
+| `aclaracion` | **`aviso`** | **`CircleAlert`** | «Aclaración: no es un error» | la cartilla **no se equivoca**; el dato se confunde con otro vecino |
+
+**Se retira `TriangleAlert`**, que hoy sirve a los tres. Es el genérico de
+«peligro» y no dice nada que el rótulo no diga ya; tres iconos específicos añaden
+información donde el actual solo añade alarma.
+
+- **`Scale`** (balanza de dos platos) es la metáfora exacta del `comoResponder` de
+  X-01 y X-02: *«responde según el bloque evaluado»*. No hay una verdad, hay dos
+  versiones que se eligen por contexto.
+- **`CircleX`** es la marca de «esto es falso», que es literalmente lo que ocurre
+  en las once E-*.
+- **`CircleAlert`** es advertencia sin afirmación de error — un escalón por debajo
+  del triángulo — y **no es `Eye`**, que es del `<Ojo>`. Los dos recuadros ámbar
+  llevan iconos distintos a propósito.
+
+Los tres verificados como export de `lucide-react ^1.27.0`. El icono va
+`aria-hidden`: **nunca es el único portador**, el rótulo textual siempre lo
+acompaña.
+
+### 6.3 El rótulo va en `foreground`, no en el color del tipo — **decidido por medición**
+
+§12.4 pinta hoy el rótulo en `text-destructive`. **Eso no puede generalizarse al
+tipo `aclaracion`, y el número que lo decide es este:**
+
+> `text-aviso` sobre `bg-aviso/10` da **4.09:1** en tema claro sobre `background`
+> (4.19:1 sobre `card`). **Falla AA para texto normal (4.5).**
+
+No es un problema del alfa elegido: `--aviso` puro sobre `background` ya está en
+**4.65:1** — el token con menos margen de toda la paleta, porque D-1 lo bajó
+justo hasta el mínimo viable. **Cualquier tinte de aviso en el fondo lo hunde por
+debajo de AA.** A `/5` da 4.36; no hay alfa que lo salve.
+
+**Decisión: el rótulo y el id van en `foreground` en los tres tipos.** El color se
+queda donde no tiene requisito de 4.5:1 — el **icono** (objeto gráfico, 3:1) y el
+**marco** (delimitador).
+
+Tres razones más allá de la métrica:
+
+1. **Es lo que `<Ojo>` ya hace**: su título «Ojo con esto» va sin color, y su
+   ámbar vive en el icono y en la barra lateral. Unifica el patrón en vez de
+   inventar uno.
+2. **El rótulo es la información**, y §1.2 prohíbe que el color sea su único
+   portador. Ponerlo en el color de más bajo contraste de la paleta es lo
+   contrario de lo que pide esa regla.
+3. Evita una rama de estilo distinta por tipo dentro del mismo componente:
+   los tres se rotulan igual y solo cambian icono, marco y tinte.
+
+**Corrección tipográfica que entra con esto.** El rótulo de §12.4 es
+`font-titulo text-sm` = **Barlow Condensed a 14px**, que viola la regla dura 1 de
+§2.3 («Barlow Condensed nunca baja de 1.125rem»). Pasa a **Inter 600 a 15px**
+(fila «Cuerpo de interfaz»). El **id** (`X-03`) pasa a **JetBrains Mono 500 a
+14px** (fila «Dato / valor / fórmula»): es un código del mismo registro que
+`C5-014`, y en mono se localiza al buscarlo en `/erratas`.
+
+### 6.4 Por qué `contradiccion` y `errata` siguen compartiendo `destructive`
+
+Se evaluó separarlas: son operativamente distintas para quien presenta el examen
+—ante una errata hay **una** verdad, ante una contradicción hay que **elegir según
+el bloque**—. Se descarta porque **no queda un token honesto para la tercera**:
+
+| Candidato | Por qué no |
+|---|---|
+| `exito` | verde = «correcto». Sobre un cuadro que marca un defecto del material sería una mentira de color. |
+| `primary` | es el color de acción y de enlace, y **el propio cuadro ya lleva un enlace en `text-primary`** («Ver todas las erratas»). El rótulo competiría con él dentro del mismo recuadro. |
+| un color de bloque | prohibido por §4.2 regla 2: los cuatro categóricos ya tienen trabajo asignado y no se reutilizan como semántica. |
+| un token nuevo | la paleta está cerrada (§1.1–§1.2). |
+
+Las dos comparten el rojo porque comparten el mensaje de fondo — **«el material
+fuente falla aquí»** — y su diferencia la cargan el **rótulo** y el **icono**
+(`Scale` vs `CircleX`), que es donde debe estar: en texto y en forma, no en dos
+matices de rojo que nadie distinguiría.
+
+### 6.5 Que la aclaración comparta ámbar con `<Ojo>` es virtud, no colisión
+
+Los dos dicen lo mismo — *«no hay error, pero aquí te vas a equivocar»* — y en el
+sistema el ámbar significa exactamente eso. Lo que evita la ambigüedad es §6.1: la
+aclaración llega con **marco completo, un id, tres campos etiquetados y un
+enlace**; el `<Ojo>` con **barra lateral y prosa**. Nadie los confunde.
+
+**Alternativa evaluada y descartada: neutro** (`bg-muted`, marco `border-border`,
+rótulo y icono en `foreground`). Es la lectura más literal de «no hay nada mal», y
+resuelve el contraste sin esfuerzo. Se descarta porque **miente por omisión**: X-03
+existe porque confundir «ATP almacenado, 2–3 s» con «sistema fosfágeno, 10–15 s»
+es una trampa real de examen, y un cuadro gris dentro de la teoría se lee como
+nota al pie. El brief pide honestidad, no tibieza: el ámbar dice «no hay error,
+pero cuidado», que es el mensaje entero.
+
+**No confundir con el veto de §5.1.1.** `bg-aviso/10` en claro compone `#f2ede4`,
+cerca del crema `#F4F1EA` que está vetado. El veto es al **fondo de la
+aplicación**; aquí es el relleno de un recuadro de ~60 px de alto sobre un lienzo
+azulado. No hay conflicto, y queda dicho para que nadie lo «arregle».
+
+### 6.6 Contrastes medidos — AA en los dos temas, sobre los dos fondos base
+
+El recuadro aparece sobre `background` (teoría MDX y `/erratas`) y sobre `card`
+(panel de retroalimentación del Paso 9). **Se miden los cuatro escenarios.**
+Fondo del cuadro: el token compuesto al **10 %** sobre la base.
+
+Método: `oklch` → sRGB (Björn Ottosson) + fórmula de contraste WCAG 2.1, con
+composición alfa previa. Los valores de entrada son los de `globals.css` tras D-1
+a D-6.
+
+**Tipos `contradiccion` y `errata` — `bg-destructive/10`**
+
+| Escenario | Fondo compuesto | Rótulo + id (`foreground`) | `<dt>` (`muted-foreground`) | Enlace (`primary`) | Icono (`destructive`) |
+|---|---|---|---|---|---|
+| claro · sobre `background` | `#f6e8e9` | **14.68** | **4.71** | **5.48** | **4.44** |
+| claro · sobre `card` | `#faeaea` | **15.05** | **4.83** | **5.61** | **4.55** |
+| oscuro · sobre `background` | `#23181d` | **13.79** | **5.64** | **6.48** | **5.09** |
+| oscuro · sobre `card` | `#2b2127` | **12.49** | **5.11** | **5.87** | **4.61** |
+
+**Tipo `aclaracion` — `bg-aviso/10`**
+
+| Escenario | Fondo compuesto | Rótulo + id (`foreground`) | `<dt>` (`muted-foreground`) | Enlace (`primary`) | Icono (`aviso`) |
+|---|---|---|---|---|---|
+| claro · sobre `background` | `#f2ede4` | **15.03** | **4.82** | **5.61** | **4.09** |
+| claro · sobre `card` | `#f5f0e5` | **15.40** | **4.94** | **5.74** | **4.19** |
+| oscuro · sobre `background` | `#23201b` | **13.02** | **5.33** | **6.12** | **7.96** |
+| oscuro · sobre `card` | `#2a2925` | **11.68** | **4.78** | **5.49** | **7.14** |
+
+| Umbral | Peor caso medido | Margen |
+|---|---|---|
+| Texto normal (4.5) — rótulo, id, `<dd>` | **11.68** (oscuro · `card` · aviso) | +7.18 |
+| Texto normal (4.5) — `<dt>` de 12px | **4.71** (claro · `background` · destructive) | +0.21 |
+| Texto normal (4.5) — enlace | **5.48** (claro · `background` · destructive) | +0.98 |
+| Objeto gráfico (3.0) — icono | **4.09** (claro · `background` · aviso) | +1.09 |
+
+**16 pares, 0 fallos.** El caso más ajustado es el `<dt>` a 4.71:1: es la
+consecuencia aceptada de tintar el fondo, y por eso **el alfa del fondo queda
+fijado en 10 % y no sube**. A `/12` el peor `<dt>` baja a 4.57 y a `/15` rompe AA.
+
+⚠ **Subir el `<dt>` de 11 a 12px (A-16, §2.5) no mueve ni una de estas cifras, y
+tampoco mueve el umbral.** Conviene dejarlo escrito porque la intuición dice lo
+contrario. WCAG 2.1 SC 1.4.3 tiene **exactamente dos umbrales**: 4.5 para texto
+normal y 3.0 para texto grande, y «grande» empieza en **24px, o 18.66px en
+negrita**. No existe un tercer umbral para texto pequeño del que 11px se pudiera
+estar alejando. 12px semibold sigue siendo texto normal, igual que 11px:
+
+| | 11px semibold | 12px semibold |
+|---|---|---|
+| Umbral que aplica | 4.5 | **4.5 — el mismo** |
+| Peor par medido | 4.71 | **4.71 — el mismo** |
+| Margen | +0.21 | **+0.21 — el mismo** |
+
+De ahí dos consecuencias operativas:
+
+1. El cambio de tamaño es **ganancia de legibilidad a coste de contraste cero**.
+   No hay nada que recalcular ni que volver a medir.
+2. **No compra holgura para nada.** El alfa del fondo sigue clavado en 10 %, la
+   prohibición de §6.8 sigue en pie, y el `<dt>` sigue siendo el par más justo de
+   la paleta. Que ahora se lea mejor no lo aleja del límite: lo deja donde
+   estaba, con +0.21.
+
+El mismo razonamiento cubre el pie de atribución al pasar de 12 a 13px: sigue
+siendo texto normal, sigue midiendo **5.49 claro · 6.18 oscuro**, sigue pasando
+AA con holgura. Ningún umbral cambia de lado.
+
+**El marco.** `border-{token}/60` da 2.70:1 (claro) y 2.60–3.99:1 (oscuro) contra
+la base. **Está por debajo de 3:1 y es correcto**, por el mismo criterio con que
+§1.3 exime a `--border`: es un delimitador decorativo, no identifica un control ni
+porta información — la información va en rótulo, icono y `<dd>`. Sube de `/40`
+(1.90:1, prácticamente invisible en claro) a `/60` porque a `/40` el recuadro no
+llega a definirse contra un tinte del 10 %. Coste: cero.
+
+### 6.7 Clases exactas — esto es lo que se escribe
+
+Tailwind **no genera clases dinámicas**: `border-${token}/60` no existe. Mismo
+motivo por el que §1.2 obliga a `CLASES_BLOQUE`. Va un mapa estático, en el propio
+archivo del componente:
+
+```tsx
+// src/components/mdx/alerta-contradiccion.tsx — Server Component. SIN "use client".
+import { CircleAlert, CircleX, Scale } from 'lucide-react';
+import type { TipoErrata } from '@/lib/tipos';
+
+/** Un tratamiento por tipo. Ver DISENO.md §6.
+ *  Clases completas y literales: Tailwind no genera `border-${x}/60`. */
+const ESTILO: Record<
+  TipoErrata,
+  { rotulo: string; Icono: typeof Scale; marco: string; fondo: string; tinte: string }
+> = {
+  contradiccion: {
+    rotulo: 'Las cartillas se contradicen',
+    Icono: Scale,
+    marco: 'border-destructive/60',
+    fondo: 'bg-destructive/10',
+    tinte: 'text-destructive',
+  },
+  errata: {
+    rotulo: 'Errata de la cartilla',
+    Icono: CircleX,
+    marco: 'border-destructive/60',
+    fondo: 'bg-destructive/10',
+    tinte: 'text-destructive',
+  },
+  aclaracion: {
+    rotulo: 'Aclaración: no es un error',
+    Icono: CircleAlert,
+    marco: 'border-aviso/60',
+    fondo: 'bg-aviso/10',
+    tinte: 'text-aviso',
+  },
+};
+```
+
+Y el marcado, con cada clase justificada:
+
+| Pieza | Clases | Por qué |
+|---|---|---|
+| `<aside>` | `my-6 rounded-lg border p-4` + `marco` + `fondo` | marco completo (§6.1) · `rounded-lg` y `p-4` de §3 |
+| Icono | `mt-0.5 size-4 shrink-0` + `tinte` + `aria-hidden` | el color vive aquí (§6.3) · `size-4` iguala al rótulo |
+| Rótulo | `text-[0.9375rem] font-semibold text-foreground` | Inter 600 15px (§2.3, «Cuerpo de interfaz»). **Nunca `font-titulo`**: a 14px violaría §2.3 regla 1 |
+| Id | `font-mono text-[0.875rem] font-medium text-foreground` | JB Mono 500 14px (§2.3, «Dato / valor») · mismo registro que `C5-014` |
+| `tema` | `mt-2 text-[0.9375rem] font-medium text-foreground` | cuerpo de interfaz, medio para separarlo del `<dl>` |
+| `<dt>` | `text-[0.75rem] font-semibold uppercase leading-[1.1] tracking-[0.08em] text-muted-foreground` | fila **«Clave de campo»** de §2.3 (12px), literal. **A-16, 2026-07-30:** iba a `text-[0.6875rem]` por la fila «Eyebrow», que era la fila equivocada — ver §2.5. Del resto de la clase no cambia nada: mismo peso, mismas versalitas, mismo `leading-[1.1]`, mismo tracking, mismo token de color |
+| `<dd>` | `text-[0.9375rem] text-foreground` · el de `comoResponder` añade `font-medium` | cuerpo de interfaz. Sustituye a `text-sm` (14px), que no está en la escala |
+| Enlace | `mt-3 inline-block text-[0.9375rem] font-medium text-primary underline underline-offset-2` | se conserva de §12.4, con el tamaño llevado a la escala |
+
+**No cambia nada más de §12.4:** ni el `<dl>` de tres campos, ni el orden («Dice la
+cartilla» → «Lo correcto» → «Cómo responder»), ni el enlace a `/erratas#{id}`, ni
+el `if (!errata) return null`.
+
+**Los tres archivos que toca A-16.** El `<dt>` sale de una única constante, así que
+las 42 instancias de `/erratas` más las de la teoría se arreglan en un sitio:
+
+| Archivo | Qué | Cómo queda |
+|---|---|---|
+| `src/components/mdx/alerta-contradiccion.tsx` | `CLASES_DT_ERRATA` (exportada; la importa también `erratas/page.tsx`, de ahí que cubra las 42 fichas) | `text-[0.6875rem]` → **`text-[0.75rem]`**. El resto de la cadena, idéntico |
+| `src/components/layout/pie.tsx` | `<footer>`, hoy `text-xs` (12px) | **`text-[0.8125rem]`** (13px, §2.5). El `py-3.5` del enlace **no se toca** |
+| — | `tabla-clave.tsx`, `dato.tsx`, `rotulo-bloque.tsx`, `nav-inferior.tsx` y los antetítulos de `/`, `/modulos`, `/erratas`, `error.tsx`, `not-found.tsx` | **sin cambio.** Son antetítulos: se quedan en `text-[0.6875rem]` (§2.5) |
+
+**Nota de accesibilidad para el Paso 7 (a confirmar por el auditor).** Un `<aside>`
+es landmark *complementary*; la teoría de C5 monta cinco recuadros y ninguno tiene
+nombre accesible, así que un lector de pantalla anuncia cinco «complementario»
+idénticos. Se recomienda `aria-labelledby` en el `<aside>` apuntando al `id` del
+`<p>` del rótulo — cambio de dos líneas que nombra el landmark sin tocar el
+aspecto. **Aplica igual al `<Ojo>`**, por el mismo motivo.
+
+### 6.8 Prohibiciones que nacen de esta sección
+
+| Prohibido | Por qué |
+|---|---|
+| Pintar una `'aclaracion'` en `destructive` | `destructive` afirma «algo está mal» y en una aclaración no lo hay. ADR-012 lo fija: **no puede ser rojo** |
+| Poner el rótulo de la alerta en el color del tipo | 4.09:1 medido para `aviso`. Falla AA. §6.3 |
+| Usar `font-titulo` en el rótulo | Barlow Condensed a 14px viola la regla dura 1 de §2.3 |
+| Subir el fondo del recuadro por encima del 10 % | a `/12` el `<dt>` cae a 4.57 y a `/15` rompe AA. §6.6 |
+| Darle marco completo al `<Ojo>` o barra lateral a la alerta | es la única señal estructural que los distingue. §6.1 |
+| Volver a `TriangleAlert` para los tres tipos | el icono genérico borra la distinción que §6.2 acaba de introducir |
+| Inventar un token para diferenciar `contradiccion` de `errata` | la paleta está cerrada; la diferencia la cargan rótulo e icono. §6.4 |
+
+---
+
+## 7. Registro de cambios
 
 | Fecha | Qué | Estado |
 |---|---|---|
 | 2026-07-29 | Versión inicial. Paleta con contraste verificado (59 pares, 0 fallos), escala tipográfica, instrumento de umbral, 7 desviaciones del blueprint marcadas. | **Aprobada** (ver encabezado; ADR-009) |
 | 2026-07-30 | **§2.4 nuevo — el rótulo de bloque pasa a ser regla del sistema**, derivada de §1.2: toda ruta con exactamente un bloque en contexto lo nombra en texto encima de su `h1`, con `RotuloBloque` (Server, props `{ bloque }`). Cierra el hueco que el Paso 5 dejó abierto y la decisión pendiente de `COMPONENTES.md`. Enlazado desde §1.2, §4.3 y §5.2. | Vigente |
 | 2026-07-30 | **§4.6 nuevo — A-04 resuelto: se acepta la muesca del contorno de foco sobre la lengüeta activa.** Sin cambio de código; la lengüeta se queda en `top-0` y 4px. Con las tres condiciones que obligarían a revisarlo. | Vigente |
+| 2026-07-30 | **§3.1 nueva — A-15 (auditoría del Paso 7): dos medidas dentro de la columna.** El texto que se lee renglón a renglón se capa a **38rem / 608px** (74,8 caracteres por línea, contra 88,5); tablas, `<TablaClave>` y `<Formula>` se quedan a 720px porque estrecharlas adelantaría A-11. **Corrige la propuesta del auditor en un punto:** `<Ojo>` y `<AlertaContradiccion>` pasan también a medida de lectura, porque a 720px su texto interior corría a 91–96 cpl. Una regla CSS en `globals.css` (selector de hijo directo) más una clase en `erratas/page.tsx`. Queda escrito que `ch` no sirve por `tabular-nums`. A 375px no cambia nada. Toca §3. | Vigente |
+| 2026-07-30 | **§2.5 nueva — A-16 (auditoría del Paso 7) y la observación heredada del Paso 5 sobre el pie.** La fila «Eyebrow / etiqueta» de §2.3 se parte en **«Antetítulo» (11px)** y **«Clave de campo» (12px)**: el `<dt>` de las fichas estaba en la fila equivocada, no en el tamaño equivocado. Se conservan las versalitas, con argumento. El **pie legal sube de 12 a 13px y la regla 4 de §2.3 pierde su última excepción de lectura**. Verificado en §6.6: el umbral aplicable (4.5) y el peor par (4.71, margen +0.21) **no se mueven** — WCAG solo tiene dos umbrales y «grande» empieza en 24px. Toca §2.3, §2.4, §6.6 y §6.7. | Vigente |
 | 2026-07-30 | **§1.3 corregido — A-06.** El párrafo de foco describía un `focus-visible:outline-1 outline-ring` de shadcn que la versión instalada no trae. Ahora describe lo instalado (`outline-none` + `border-ring` + `ring-ring/50`, que no pinta nada sin clase `border`) y deja explícito que la regla de `@layer utilities` de `globals.css` es el **único portador** del foco y no se toca. Con los números medidos y la nota del artefacto de `transition-all`. | Vigente |
+| 2026-07-30 | **§3.2 nueva — reverificación del Paso 7, A-11 cerrado de verdad.** El degradado avisa de que la tabla sigue pero **no restituye el dato**: a 375px la tabla de zonas oculta 177px (34 %) y se lee «95 % / 5» donde el valor es «95 % / 5 %». **Por debajo de `sm` (640px), toda tabla de 4+ columnas se presenta como una ficha por fila**, con la clave de cada campo encima de su valor; de `sm` para arriba no cambia nada y el degradado se conserva. El umbral se cuenta con `:has(thead th:nth-child(4))`, así que se aplica solo en los 29 módulos sin que el autor escriba nada. Exige **roles explícitos** en las seis piezas de la tabla (cambiar el `display` borraría la semántica y con ella A-10 y A-12) y **recortar** el `<thead>`, nunca `display:none`. Apagar el degradado abajo devuelve a axe la medición de contraste de 31 celdas que A-18 daba por perdida. Se declina el texto de ayuda «Se desplaza en horizontal»: en la ficha sería falso. CSS en `globals.css` y mapeo en `componentes.tsx`, los dos literales. | Vigente **salvo en el degradado**: la fila de A-22 lo retira entero, también de `sm` para arriba |
+| 2026-07-30 | **§3.1 corregida — reverificación del Paso 7: el margen de 38rem era más justo de lo que el documento afirmaba.** «Cinco caracteres de margen» valía para la teoría de 17px (74,4 cpl medidos) pero **no para las tres superficies de 15px**, que salían en **79,2–79,6 cpl**: 0,4 a 0,8 caracteres bajo el 80 de 1.4.8. La medida pasa a definirse **en caracteres (≈75 cpl)** y el píxel a ser su implementación: **38rem para 17px, 36rem para 15px** — los dos recuadros de prosa y la ficha de `/erratas`, que quedan en 74,6–75,0 cpl. Se descarta aceptar el 0,4 (con el ancho de carácter mínimo medido, 6,81px, el texto futuro de los pasos 15–17 cruzaría los 80 sin que nadie lo note) y se descarta 34rem (sobrecorrige a ~70 cpl y abre un escalón visible de 64px). Toca la regla de `globals.css` y la raíz de `FichaErrata`. | Vigente |
+| 2026-07-30 | **§3 — retirada la excepción del enlace de licencia del pie al piso táctil de 44px.** Con el pie a 13px (§2.5) el enlace mide **44,0 px exactos** medidos, no 43: cumple por derecho propio y la excepción sobra. La única válvula del piso vuelve a ser `data-compacto` (D-7). Sin cambio de código — el `py-3.5` de `pie.tsx` es lo que produce los 44,0 px y no se toca. De paso se limpia la frase de §2.5 que había quedado colgando de la estimación errónea de «~49 px». | Vigente |
+| 2026-07-30 | **§6 nuevo — los recuadros de contenido.** Cierra la decisión que ADR-012 delegó: `'aclaracion'` va en `aviso` (no rojo), `contradiccion` y `errata` siguen en `destructive`, y los tres estrenan icono propio (`Scale` · `CircleX` · `CircleAlert`, se retira `TriangleAlert`). El rótulo pasa a `foreground` **por medición** — `text-aviso` sobre `bg-aviso/10` da 4.09:1 y falla AA — y de paso se corrigen dos usos tipográficos fuera de la escala de §2.3 (`font-titulo` a 14px, `text-sm`/`text-xs`). 16 pares medidos en los dos temas sobre `background` y `card`, 0 fallos. Fija además la regla de forma que separa `<AlertaContradiccion>` de `<Ojo>`: marco completo vs barra lateral. El antiguo §6 (registro de cambios) pasa a §7; §5.1 y §5.2 **no se renumeran** porque hay código y documentos que las citan. | Vigente |
+| 2026-07-30 | **§3.2 corregida — A-22: el degradado de A-11 se retira entero, no solo por debajo de `sm`.** §3.2 lo conservaba de 640px para arriba «porque una tabla de 6 columnas todavía puede desbordar a 700px»; medido, **ninguna de las cuatro tablas del fixture desborda en ocho anchos de 640 a 1280px, la de 7 columnas incluida** — `width: 100%` + `table-layout: auto` hacen que las celdas envuelvan. Tampoco desbordan a 375px las de 2 y 3 columnas, que el umbral `:has(...nth-child(4))` dejaba con degradado. Sin ningún viewport donde ayude, conservarlo es CSS muerto que **ciega la comprobación automática de contraste de toda tabla** (49 celdas incompletas a 1280px, 24 a 375px) justo antes de que los pasos 15–17 escriban 28 módulos de tablas. Se retiran los dos bloques de `globals.css` —la regla base y la variante `.dark`, que solo cambiaba el color de la sombra— y el `background-image: none` de la media query, que queda sin objeto. En su lugar, `.prose-idoneo table` estrena **`overflow-wrap: anywhere`**: el caso residual (cadena inquebrable) se **previene** en vez de señalarse; sobre el contenido actual es un no-op. **No se toca nada de accesibilidad:** `overflow-x: auto`, `tabIndex={0}`, `role="group"` y el `aria-labelledby` de A-19 se quedan. Resultado: `/modulos` 49 → 0 incompletas a 1280px y 25 → 1 a 375px. | Vigente |

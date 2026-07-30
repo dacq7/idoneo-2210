@@ -281,6 +281,304 @@
 }
 
 /* ══════════════════════════════════════════════════════════════════
+   .prose-idoneo — la teoría MDX (Paso 7)
+
+   §12.1 descarta @tailwindcss/typography a propósito: son 30 líneas de CSS y
+   ahorra otra dependencia con su propia migración a v4 (ADR-002).
+
+   Esta clase pone RITMO, no tipografía de encabezado. Los tamaños de h2 y h3
+   NO se repiten aquí: ya los fija @layer base desde la escala de DISENO.md §2.3
+   (22→24px y 18px), y los `text-2xl`/`text-xl` que proponía §12.1 los sacarían
+   de esa escala. El MDX de un módulo empieza en `##` porque el <h1> lo pone la
+   página desde content/estructura.ts (§14.1): h2 es el primer nivel del
+   contenido y la jerarquía queda h1 → h2 → h3, sin salto.
+   ══════════════════════════════════════════════════════════════════ */
+
+@layer components {
+  .prose-idoneo {
+    /* Fila «Cuerpo de teoría» de DISENO.md §2.3: Inter 17px / 1.65. Es el único
+       lugar de la app que sube desde los 15px del cuerpo de interfaz, y es
+       deliberado: aquí se lee largo, de noche y en un teléfono. */
+    font-size: 1.0625rem;
+    line-height: 1.65;
+  }
+
+  /* DISENO.md §3.1 · dos medidas dentro de la columna: LECTURA (38rem) y
+     CONSULTA (el ancho completo).
+     A 768 px la teoría corría a 88,5 caracteres por línea, y los recuadros a
+     91–96, peor todavía. 1.4.8 pide ≤80 y es AAA, pero el interlineado de 1.65
+     compensa a medias: reduce el error de retorno de línea, no la distancia de
+     barrido, que es lo que cansa.
+
+     38rem = 608 px = 74,8 cpl, cinco caracteres de margen bajo el 80. Con 40rem
+     el margen sería 1,3, que no es margen. A 375 px no cambia nada: la caja ya
+     mide 343. Muerde desde ~656 px de viewport, con una regla y sin breakpoints.
+
+     Selector de HIJO DIRECTO a propósito: los <p> dentro de un recuadro no se
+     capan por su cuenta (dejarían hueco muerto dentro del marco), y cualquier
+     componente MDX futuro entra por defecto a medida de consulta.
+
+     Quedan FUERA tabla, <TablaClave> y <Formula>: estrecharlas adelantaría el
+     desplazamiento horizontal y con él A-11, que hoy no aparece en escritorio —
+     sería fabricar un Moderado para arreglar un Menor. El saliente resultante es
+     deseable y significa una sola cosa: «esto es un dato que se consulta, no
+     prosa». Refuerza por geometría lo que §6.1 distingue por marco vs. barra.
+
+     PROHIBIDO: `max-w-[65ch]` (tabular-nums infla 1ch a 11 px → 65ch ≈ 88 cpl,
+     o sea no arregla nada), centrar con `mx-auto`, y bajar el line-height de
+     1.65 «ahora que la línea es corta»: son mitigaciones de problemas distintos. */
+  .prose-idoneo > :is(p, ul, ol, h2, h3, hr) {
+    max-width: 38rem;
+  }
+
+  /* Los recuadros van a 15 px dentro de un marco con padding, así que a 38rem
+     corrían a 79,2–79,6 cpl: pasaban el 80 de 1.4.8 por menos de un carácter.
+     36rem los deja en 74,4–75,0, el mismo margen real que la teoría de 17 px.
+     La medida se define en caracteres (~75 cpl); el píxel es su implementación. */
+  .prose-idoneo > aside {
+    max-width: 36rem;
+  }
+
+  /* El primer y el último bloque no separan del contenedor: el espacio lo pone
+     la página, no el contenido. */
+  .prose-idoneo > *:first-child {
+    margin-top: 0;
+  }
+
+  .prose-idoneo > *:last-child {
+    margin-bottom: 0;
+  }
+
+  .prose-idoneo h2 {
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .prose-idoneo h3 {
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .prose-idoneo p {
+    margin-block: 1rem;
+  }
+
+  .prose-idoneo ul,
+  .prose-idoneo ol {
+    margin-block: 1rem;
+    padding-left: 1.25rem;
+  }
+
+  .prose-idoneo ul {
+    list-style-type: disc;
+  }
+
+  .prose-idoneo ol {
+    list-style-type: decimal;
+  }
+
+  .prose-idoneo li + li {
+    margin-top: 0.25rem;
+  }
+
+  .prose-idoneo li::marker {
+    color: var(--muted-foreground);
+  }
+
+  .prose-idoneo strong {
+    font-weight: 600;
+    color: var(--foreground);
+  }
+
+  .prose-idoneo em {
+    font-style: italic;
+  }
+
+  .prose-idoneo code {
+    border-radius: var(--radius-sm);
+    background-color: var(--muted);
+    padding: 0.125rem 0.375rem;
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+  }
+
+  .prose-idoneo a {
+    color: var(--primary);
+    text-decoration-line: underline;
+    text-underline-offset: 2px;
+  }
+
+  .prose-idoneo hr {
+    margin-block: 2rem;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Tablas. El desplazamiento horizontal lo da `.tabla-desliz`, el envoltorio
+     que componentes.tsx pone alrededor de TODA tabla del MDX: sin él, una tabla
+     de 5 columnas de la Cartilla 3 desplaza la página entera a 375 px.
+     Dentro de <TablaClave> el margen lo pone el marco, así que el envoltorio lo
+     cede — dos reglas de la misma capa, la más específica gana, sin depender del
+     orden en que Tailwind ordene dos utilidades de margen. */
+  .prose-idoneo .tabla-desliz {
+    margin-block: 1.5rem;
+    overflow-x: auto;
+
+    /* Red de seguridad, no afordancia. A-22 midió las cuatro tablas del fixture
+       —la de 7 columnas incluida— en ocho anchos de 640 a 1280 px: ninguna
+       desborda, porque `width: 100%` con `table-layout: auto` hace que las
+       celdas repartan y envuelvan. Por eso aquí NO hay degradado: no señalaba
+       nada y cegaba la medición de contraste de axe en toda tabla (49 celdas a
+       1280 px). Se queda `overflow-x`: sostiene el `role="group"` enfocable de
+       A-10/A-19 y cubre el caso residual. */
+  }
+
+
+  .prose-idoneo .marco-tabla .tabla-desliz {
+    margin-block: 0;
+  }
+
+  /* 15px (fila «Cuerpo de interfaz») y no los 17 del cuerpo: una tabla de 5
+     columnas necesita ese aire para no desplazarse en cuanto se abre. */
+  .prose-idoneo table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+    line-height: 1.45;
+
+    /* A-22 · una cadena inquebrable ENVUELVE en vez de desbordar. Sobre el
+       contenido actual no cambia un píxel —todas las palabras ya caben— y
+       elimina el único escenario que el degradado decía cubrir: se PREVIENE el
+       caso residual en vez de señalarlo, que es la misma tesis de §3.2. Es
+       heredada: basta declararla aquí para que llegue a `th` y `td`. */
+    overflow-wrap: anywhere;
+  }
+
+  .prose-idoneo th {
+    border-bottom: 2px solid var(--border);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    vertical-align: bottom;
+    font-weight: 600;
+  }
+
+  .prose-idoneo td {
+    border-bottom: 1px solid var(--border);
+    padding: 0.5rem 0.75rem;
+    vertical-align: top;
+  }
+
+  /* Sin línea al final: dentro del marco de <TablaClave> chocaría con el borde. */
+  .prose-idoneo tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  /* ── §3.2 · La tabla ancha se apila en ficha por debajo de `sm` ──────────
+     Cierra A-11 de verdad. El degradado avisaba de que la tabla seguía, pero no
+     devolvía el dato: a 375 px la tabla de zonas oculta 177 px (34 %) y el corte
+     cae a mitad de celda, así que se lee «95 % / 5» donde el valor es
+     «95 % / 5 %». El problema no es que el usuario ignore que la tabla sigue —
+     es que CREE QUE YA LEYÓ EL VALOR, y ningún aviso perimetral arregla eso.
+
+     Solo tablas de 4 columnas o más. Las de 2 y 3 caben a 375 px y comparan
+     mejor en retícula. El umbral se CUENTA, no se mide: CSS sabe cuántas
+     columnas hay, y eso se comporta igual en los 29 módulos de los pasos 15–17
+     sin que el autor tenga que hacer nada. */
+  @media (max-width: 39.9375rem) {
+    .prose-idoneo .tabla-desliz:has(thead th:nth-child(4)) {
+      /* Aquí iba `background-image: none`, para apagar el degradado de A-11.
+         Sobra desde que A-22 lo retiró de la hoja entera: no hay degradado que
+         apagar. `overflow-x: auto` se queda como está: quitarlo no aporta nada
+         y el contenedor sigue siendo el mismo elemento que el teclado ya conoce. */
+
+      & table {
+        display: block;
+        width: 100%;
+      }
+
+      /* El encabezado sigue en el árbol de accesibilidad: es el origen de los
+         `columnheader` que A-12 dejó en 8 de 8. Se recorta, NUNCA
+         `display: none`, que sí los borraría. */
+      & thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+
+      & tbody {
+        display: block;
+      }
+
+      /* Una fila = una ficha. */
+      & tbody tr {
+        display: block;
+        padding: 0.75rem;
+        border-bottom: 1px solid var(--border);
+      }
+
+      & tbody tr:last-child {
+        border-bottom: 0;
+      }
+
+      /* Una celda = clave arriba, valor debajo. */
+      & tbody td {
+        display: block;
+        padding: 0;
+        border: 0;
+      }
+
+      & tbody td + td {
+        margin-top: 0.625rem;
+      }
+
+      /* La clave, fila «Clave de campo» de §2.3. El texto lo pone
+         componentes.tsx en `--et-N` leyendo el <thead>; si faltara, la ficha se
+         degrada a valores sin clave, nunca a una ficha rota.
+         `font-family` explícita: la primera celda pasa a Barlow Condensed y el
+         ::before heredaría 12 px condensados, que viola §2.3 regla 1. */
+      & tbody td::before {
+        display: block;
+        margin-bottom: 0.125rem;
+        font-family: var(--font-sans);
+        font-size: 0.75rem;
+        font-weight: 600;
+        line-height: 1.1;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted-foreground);
+        content: var(--et-1, "");
+      }
+
+      & tbody td:nth-child(2)::before { content: var(--et-2, ""); }
+      & tbody td:nth-child(3)::before { content: var(--et-3, ""); }
+      & tbody td:nth-child(4)::before { content: var(--et-4, ""); }
+      & tbody td:nth-child(5)::before { content: var(--et-5, ""); }
+      & tbody td:nth-child(6)::before { content: var(--et-6, ""); }
+      & tbody td:nth-child(7)::before { content: var(--et-7, ""); }
+
+      /* A-19: apaga el sufijo del nombre accesible con la MISMA media query
+         que crea la ficha. El algoritmo de nombre accesible excluye los
+         descendientes ocultos, así que el grupo pasa a llamarse solo «Tabla»
+         justo donde ya no hay nada que desplazar. */
+      & .pista-desliz {
+        display: none;
+      }
+
+      /* La primera celda es la identidad de la fila: hace de título de ficha.
+         18 px es además el mínimo que §2.3 regla 1 permite a Barlow Condensed. */
+      & tbody td:first-child {
+        font-family: var(--font-titulo);
+        font-size: 1.125rem;
+        font-weight: 600;
+        line-height: 1.25;
+      }
+    }
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════
    Foco de teclado, una sola vez para toda la app.
 
    DISENO.md §1.3 describe el indicador como «contorno sólido a --ring completo»

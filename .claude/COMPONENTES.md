@@ -311,6 +311,116 @@ editan a mano». Mientras el barrel entre por una sola ruta secundaria, no urge.
 
 ---
 
+## Teoría MDX y registro de erratas (Paso 7)
+
+| Componente | Archivo | S/C | Props | Quién lo usa |
+|---|---|---|---|---|
+| `PaginaModulo` | `src/app/modulos/[slug]/page.tsx` | Server | `params: Promise<{ slug }>` | ruta `/modulos/[slug]` · los 29 slugs se prerenderizan |
+| `PaginaErratas` | `src/app/erratas/page.tsx` | Server | — | ruta `/erratas`, enlazada desde el pie de todas las rutas |
+| `FichaErrata` | `src/app/erratas/page.tsx` (local) | Server | `errata: Errata` | `PaginaErratas` |
+| `RenderizadorMdx` | `src/components/mdx/renderizador.tsx` | Server **async** | `fuente: string` | `PaginaModulo` |
+| `componentesMdx` | `src/components/mdx/componentes.tsx` | mapa | — | `RenderizadorMdx` |
+| `Dato` | `src/components/mdx/dato.tsx` | Server | `etiqueta`, `valor`, `nota?` | el MDX de teoría |
+| `Formula` | `src/components/mdx/formula.tsx` | Server | `children`, `nota?` | el MDX de teoría |
+| `TablaClave` | `src/components/mdx/tabla-clave.tsx` | Server | `titulo?`, `children` | el MDX de teoría |
+| `Ojo` | `src/components/mdx/ojo.tsx` | Server | `children` | el MDX de teoría |
+| `AlertaContradiccion` | `src/components/mdx/alerta-contradiccion.tsx` | Server | `id: string` | el MDX de teoría · Paso 9 (panel de retroalimentación) |
+| `ESTILO_ERRATA`, `CLASES_DT_ERRATA` | `src/components/mdx/alerta-contradiccion.tsx` | data | — | `AlertaContradiccion`, `PaginaErratas`, `PaginaModulo` |
+| `leerTeoria`, `existeTeoria` | `src/lib/contenido.ts` | **server-only** | `slug: string` | `PaginaModulo` |
+
+**Ninguno lleva `"use client"`.** El Paso 7 no añade ni una alta a §10.3: siguen
+siendo 6 clientes. Todo lo de esta tabla se renderiza en el servidor y viaja
+como HTML.
+
+### Contratos de este paso
+
+- **`src/lib/contenido.ts` es `server-only` y no está en `package.json`.** Next 15
+  alias `server-only` a `next/dist/compiled/server-only` en su configuración de
+  webpack, así que la directiva funciona sin instalar el paquete y sin añadir una
+  dependencia (ADR-002). Importarlo desde un Client Component rompe el build con
+  un mensaje explícito, que es exactamente para lo que está.
+- **El vocabulario de las erratas vive en un solo sitio: `ESTILO_ERRATA`.** Mapea
+  los tres tipos de ADR-012 a su rótulo, icono, marco, fondo y tinte, según
+  DISENO.md §6.2 y §6.7. Lo consumen los tres sitios que muestran una errata
+  —la alerta de la teoría, `/erratas` y la lista del pie de un módulo—. Si un
+  paso futuro necesita un cuarto, **importa el mapa, no lo reescribe.** Las
+  clases son literales a propósito: Tailwind no genera `border-${x}/60`.
+- **La regla de forma de §6.1 es la que separa los dos recuadros:** el `<Ojo>`
+  lleva **barra lateral de 4px y nunca marco**; `<AlertaContradiccion>` lleva
+  **marco completo y nunca barra lateral**. Es la única señal estructural entre
+  ellos, y es lo que permite que una `'aclaracion'` comparta el ámbar del `<Ojo>`
+  sin ambigüedad. Intercambiarlas borra la distinción.
+- **`.prose-idoneo` solo pone ritmo, no tamaños de encabezado.** Los de `h2` y
+  `h3` ya los fija `@layer base` desde la escala de DISENO.md §2.3; §12.1 proponía
+  `text-2xl`/`text-xl`, que los sacaría de esa escala. **Si un paso futuro añade
+  una regla a `.prose-idoneo`, no repite tamaños de encabezado.**
+- **El MDX de un módulo empieza en `##`.** El `<h1>` lo pone la página desde
+  `content/estructura.ts` (§14.1). Verificado en las dos rutas nuevas:
+  `/modulos/[slug]` es `h1 → h2` (objetivos, teoría, conceptos clave, erratas del
+  módulo) `→ h3` (los del MDX); `/erratas` es `h1 → h2` (los tres tipos) `→ h3`
+  (el tema de cada ficha). Sin saltos y con un solo `h1`.
+- **Toda tabla del MDX se envuelve en `.tabla-desliz`,** un `<div>` con
+  `overflow-x: auto` y **`tabIndex={0}`**. Lo pone el mapeo de `table` en
+  `componentes.tsx`, así que aplica también a las tablas sueltas: el autor del
+  contenido no tiene que acordarse de envolverlas. El `tabIndex` no es opcional
+  —un contenedor con `overflow` no es alcanzable con el teclado en Chromium, y
+  sin él la mitad derecha de la tabla de zonas queda fuera del alcance de quien
+  no usa ratón (WCAG 2.1.1)—. Dentro de `<TablaClave>` el marco (`.marco-tabla`)
+  le cede el margen al envoltorio, con dos reglas de la misma capa CSS y no con
+  dos utilidades de margen compitiendo, cuyo orden Tailwind decide.
+- **Los `<p>` estructurales de `<AlertaContradiccion>` llevan `my-0` / `mb-0`
+  explícitos.** El cuadro vive dentro de `.prose-idoneo`, que da `margin-block:
+  1rem` a todo `<p>`. El `<Ojo>` **no** los lleva, y es deliberado: su contenido
+  sí es prosa del autor y debe conservar el ritmo de párrafo.
+- **Los dos recuadros van a 15px / 1.5** («Cuerpo de interfaz» de §2.3), con
+  `leading-[1.5]` explícito en la alerta: sin él heredaría 1.65 dentro de un
+  módulo y 1.5 en `/erratas`, y el mismo componente se vería distinto en cada
+  sitio.
+- **Los `<aside>` llevan nombre accesible.** Es la nota de §6.7: un módulo con
+  cinco recuadros anunciaría cinco landmarks *complementary* idénticos. La alerta
+  usa `aria-labelledby` sobre el `<p>` del rótulo (`alerta-{id}`), que es único
+  por errata; el `<Ojo>` usa `aria-label="Ojo con esto"` porque su título es fijo
+  y no tiene ninguna clave con la que construir un `id` sin arriesgar colisiones.
+- **Las fichas de `/erratas` son `<article>`, no `<aside>`.** Ahí son el contenido
+  principal, no una interrupción de la lectura. Conservan el ancla `id={errata.id}`
+  —`<AlertaContradiccion>` enlaza a `/erratas#X-02` y `DD-001` llega a `#X-03`— y
+  compensan el encabezado pegajoso con
+  `scroll-mt-[calc(var(--alto-encabezado)+1rem)]`. Verificado: al abrir
+  `/erratas#E-09` la ficha queda a 76px del borde, con el encabezado de 60px
+  encima.
+- **`/modulos/[slug]` monta `RotuloBloque`; `/erratas` no.** Regla de DISENO.md
+  §2.4: exactamente un bloque en contexto. Las erratas tocan módulos de los
+  cuatro.
+- **Ninguna de las dos rutas lee el progreso del usuario.** Las etapas del módulo
+  (tarjetas, práctica, quiz) y el marcador de lectura llegan en los Pasos 8 y 9;
+  el estado vacío de hoy no debe rellenarse con nada de eso por conveniencia.
+- **El estado vacío de la teoría se corrige solo.** El texto ofrece un módulo
+  publicado cuando lo hay (`MODULOS.find(estadoContenido === 'completo')`) y dice
+  la verdad cuando no lo hay, que es lo de hoy: los 29 están en preparación.
+  Cuando el Paso 8 voltee C5, la línea empieza a ofrecerlo sin tocar código.
+
+### Peso — las dos métricas, medidas al cerrar el paso
+
+| | gz |
+|---|---|
+| **`/layout` js — MÉTRICA OFICIAL** | **132.0 kB** (idéntico al Paso 6) |
+| `/layout` css | 12.5 kB → **13.0 kB** |
+| `/layout` total | 144.4 kB → **145.0 kB** |
+
+| Ruta | js gz | chunks | Tipo |
+|---|---|---|---|
+| `/erratas/page` | **106.9 kB** | 6 | servidor puro |
+| `/modulos/[slug]/page` | **106.9 kB** | 6 | servidor puro |
+
+Las dos rutas nuevas caen dentro del piso de servidor puro (103–107 kB), así que
+no hay nada que investigar. Los +0.5 kB del CSS son `.prose-idoneo`; el js del
+armazón **no se movió**, que es lo esperado de un paso sin un solo componente
+cliente. El `grep` de ADR-010 sigue sin encontrar nada, y tampoco aparece
+contenido de erratas (`diceLaCartilla`, «Las cartillas se contradicen») en
+`.next/static/chunks/`.
+
+---
+
 ## Ayudantes de UI en `src/lib/utils.ts`
 
 | Función | Qué hace | Test |
@@ -348,7 +458,6 @@ note.
 
 | Qué | Paso |
 |---|---|
-| `.prose-idoneo` y los 5 componentes MDX (`Dato`, `Formula`, `TablaClave`, `Ojo`, `AlertaContradiccion`) | 7 |
 | `EtapasModulo`, `MarcadorLectura`, `MazoTarjetas` | 8 |
 | Los 7 componentes de ítem, `EnvoltorioItem`, `Retroalimentacion`, `ControladorSesion` | 9 |
 | `ControladorRepaso` | 10 |

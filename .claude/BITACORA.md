@@ -1449,3 +1449,205 @@ Descartadas: `tipo: 'errata'` (cambia un rótulo falso por otro menos falso — 
 **Lo que hereda el Paso 7:** §12.4 no se copia literal (tres ramas, y para `'aclaracion'` el rótulo es «Aclaración: no es un error»); el tratamiento visual **no puede ser el destructivo**, porque `border-destructive` codifica «algo está mal» y aquí no lo hay — el token coherente es `aviso`, el que ya usa `<Ojo>`; `/erratas` agrupa por tres tipos y conserva el ancla `id="X-03"`, porque `DD-001` llega por ahí.
 
 ---
+
+## [2026-07-30 12:05] · accessibility-auditor · Paso 7 — Renderizado MDX
+
+**Qué audité:** `/modulos/[slug]` (estado vacío y con teoría MDX real) y `/erratas` (14 fichas, 3 grupos de ADR-012, 14 anclas), en la rama `paso-7-mdx`. Los siete componentes nuevos —`renderizador`, `componentes`, `dato`, `formula`, `tabla-clave`, `ojo`, `alerta-contradiccion`— y la clase `.prose-idoneo` de `globals.css`. Sin comitear y con el árbol devuelto tal cual estaba.
+
+**Cómo lo probé:** los 29 módulos están en preparación, así que monté un `content/teoria/c5-umbrales-zonas.mdx` **temporal** con los cinco componentes, tres `<Ojo>`, una alerta de cada uno de los tres tipos (`E-09` · `X-02` · `X-03`), dos tablas dentro de `<TablaClave>` y una suelta, listas, `code` y enlaces en prosa. **Borrado al terminar: `content/teoria/` vuelve a tener solo su `.gitkeep`.** Servidor en el **3117** (el 3000 lo ocupa un proceso ajeno; ni lo toqué), cerrado al acabar y sin dejar logs en el proyecto. Playwright + Chromium en un venv del scratchpad: **cero dependencias nuevas en el proyecto**.
+
+axe-core 4.x en 6 corridas (3 rutas × 2 temas, 49/44/42 reglas pasadas) · **126 pares de contraste** medidos sobre el DOM renderizado, no sobre el CSS leído a mano —con lectura de píxel en canvas, porque Chromium devuelve `oklch()` sin resolver y un parser de `rgb()` revienta ahí— · barrido de **23 `Tab`** con **espera de 460 ms por parada**, por encima del umbral de ~420 ms del `transition-all` que ya quedó anotado en el Paso 5 · árbol de accesibilidad por CDP · anchos 1440 · 1280 · 1024 · 834 · 768 · 640 · 414 · **375** · **320** (referencia de 1.4.10 para el 400 %) · **187** (375 al 200 %) · `prefers-reduced-motion` · longitud de línea con rectángulos reales de `Range` y ancho de carácter medido con `canvas.measureText`.
+
+**Hallazgos:** Crítico 0 · Serio 0 · **Moderado 2** (A-10, A-11) · **Menor 6** (A-09, A-12, A-13, A-14, A-15, A-16).
+
+**Bloqueantes:** ninguno. El paso se puede cerrar; los dos Moderados son de calidad de lectura y de anuncio, no impiden ningún flujo.
+
+**Contraste:** **todos AA en los dos temas.** Confirmo `DISENO.md` §6, no lo refuto: los 16 pares de §6.6 remedidos en navegador coinciden dentro de **±0,10** y dan 0 fallos. El peor par de texto es el `<dt>` a **4.71** (§6.6 decía 4.71 exacto) y el peor de objeto gráfico es el icono `aviso` a **4.05** sobre un umbral de 3.0 (§6.6 decía 4.09). La decisión de §6.3 se sostiene con mi número: en `text-aviso` ese rótulo mediría 4.05 y fallaría; en `foreground` mide 14.91. También cierro el «reauditar en runtime en el Paso 7» de `RotuloBloque`: los 4 bloques × 2 temas, peor caso **C 4.84 claro** frente a los 4.85 que el Paso 5 había predicho por código.
+
+**Lo que respondo a las dos preguntas abiertas del implementador.** (1) La tabla que desliza sin señal **sí es hallazgo, Moderado**: a 375 px oculta **177 px, el 34 % de la tabla**, la quinta columna entera es invisible y la cuarta se corta a mitad de dato —se lee «95 % / 5» donde el valor es «95 % / 5 %»—, con **cero** afordancia: barra superpuesta de 0 px, sin `::after`, sin `box-shadow`, sin `mask-image`. No falla ningún criterio (1.4.10 exime a las tablas de datos) y lo digo así de claro; el arreglo es un degradado con `background-attachment: local` en `globals.css`, sin JS. El `tabIndex={0}` **es correcto y hay que conservarlo**, no es trampa de foco —`Tab` sale, `Shift+Tab` vuelve, las flechas desplazan (`scrollLeft` 80 tras dos `ArrowRight`)— pero el contenedor **no tiene nombre ni rol** (A-10, 4.1.2): se arregla con `role="group"` y un `aria-label`, y **no** con `role="region"`, que volvería a llenar la lista de landmarks. (2) Los nombres accesibles: **0 ids duplicados** con tres alertas y tres `<Ojo>` en el mismo módulo, y ningún `<aside>` anónimo — las tres alertas salen con nombre propio. Pero el `aria-label` fijo del `<Ojo>` produce **tres landmarks `complementary` idénticos** (A-09, la única violación de axe del paso). El fondo es que ninguno de los dos recuadros es contenido complementario: son apartes dentro del hilo de lectura, y `role="note"` en los dos los saca de la lista de landmarks conservando el nombre.
+
+**Sobre la longitud de línea, que es lo que pediste con números.** Confirmo al `frontend-developer` y confirmo su diagnóstico de origen: **42,2 caracteres a 375 px** (correcto, y es donde se lee esta app) y **88,5 desde 768 px**, con la línea más larga en 87,7. Viene de `max-w-3xl` del `Shell` con el cuerpo a 17 px, no del Paso 7. **Es hallazgo real y es Menor**: 1.4.8 pide ≤80 y es **AAA**, no AA, y el contexto declarado del producto es el móvil de una mano. El interlineado de 1.65 **compensa a medias y hay que decir en qué**: reduce el error de retorno de línea, no la distancia de barrido, que es justo lo que cansa a los 88 caracteres. **Trampa medida que hay que darle al `ui-designer` antes de que la pise:** `max-w-[65ch]` no arregla nada aquí, porque `font-variant-numeric: tabular-nums` ensancha el «0» de Inter a **11 px** y `65ch = 715 px ≈ 88 caracteres` — casi los 720 de ahora. Hay que capar en px o rem: **640 px → 78,7 · 608 px → 74,8 · 600 px → 73,8**. Propuesta concreta: capar solo `p, ul, ol, h2, h3` de `.prose-idoneo` a `38rem` y dejar tablas, fórmulas y recuadros a 720 px. A 375 px no cambia nada.
+
+**Lo que quedó bien y hay que conservar:** la jerarquía de encabezados es correcta en las dos rutas —sin saltos y con un solo `h1`—, y la decisión de que el MDX empiece en `##` con `RotuloBloque` como `<p>` es lo que la sostiene. El envoltorio de tabla cumple su razón de ser: **no hay scroll horizontal a 375, 320 ni 187 px** aunque la tabla mida 518 px en un hueco de 341. Las anclas de `/erratas` funcionan en carga directa y desde la teoría, el `scroll-margin-top` de 76 px atado a `--alto-encabezado` impide que el encabezado pegajoso tape la ficha, y **el foco no se pierde**: tras el salto, el primer `Tab` cae dentro de la ficha de destino. `prefers-reduced-motion` deja 0 elementos animados. Los 23 enfocables salen con foco de 2 px sólido a `--ring` completo. Y la `min-height: 44px` de `@layer base` no deforma los enlaces en línea de la teoría porque no aplica a cajas `inline`: la válvula funciona exactamente como se diseñó.
+
+**Pendiente:** A-09 a A-13 son del `frontend-developer` (cinco arreglos, ninguno pasa de unas líneas). A-14 queda **aceptado y documentado**, no se arregla: saber si una tabla desborda exige medirla en el navegador y no vale convertir un Server Component en cliente por dos paradas de tabulación; anotado que Chromium ≥127 ya hace enfocables los contenedores desplazables y que el `tabIndex` explícito seguirá haciendo falta solo mientras Firefox y Safari no lo hagan. **A-15 y A-16 son del `ui-designer`** y van a `DISENO.md`: no toco la escala tipográfica ni el ancho de columna por mi cuenta. Queda anotado como observación heredada que el pie de atribución va a **12 px**, por debajo del listón de 13 —es del Paso 5, y si se toca la escala por A-16 es el mismo movimiento—. Reauditar `/modulos/[slug]` con teoría **de verdad** cuando el Paso 8 publique C5.
+
+---
+
+## Paso 7 — Renderizado MDX — 2026-07-30
+
+**Estado:** ⚠️ Completado con ajustes · auditoría **APROBADO con reservas**
+
+**Qué se construyó**
+
+`src/lib/contenido.ts` (§9.7, `server-only`) · los siete componentes de `src/components/mdx/` · `.prose-idoneo` en `globals.css` · `src/app/modulos/[slug]/page.tsx` (29 prerenderizados) · `src/app/erratas/page.tsx` (las 14 entradas agrupadas en los tres tipos de ADR-012).
+
+**Decisión de diseño previa — `DISENO.md` §6.** El `ui-designer` fijó los tokens de `<AlertaContradiccion>` para los tres tipos, y encontró lo que reordenó el diseño: **`text-aviso` sobre `bg-aviso/10` mide 4.09:1 y falla AA**, y no se arregla bajando el alfa porque D-1 ya dejó `--aviso` en 4.65:1, el mínimo viable. Salida: **el rótulo va en `foreground` en los tres tipos** y el color queda en el icono (umbral 3:1) y el marco. El `<dt>` de 11 px a 4.71:1 es lo que **fija el fondo en 10 % y prohíbe subirlo** — a `/12` cae a 4.57 y a `/15` rompe.
+
+Compartir `aviso` con `<Ojo>` se aceptó como virtud, con una condición elevada a regla dura: **`AlertaContradiccion` lleva marco completo y nunca barra lateral; `<Ojo>` lleva barra lateral y nunca marco.** La forma carga la diferencia, el color carga la semántica. Y `contradiccion` y `errata` siguen compartiendo `destructive` porque no queda token honesto para el tercero: la diferencia la cargan el rótulo y el icono — `Scale` («dos versiones que se sopesan») frente a `CircleX` («esto es falso»).
+
+De paso se corrigieron tamaños del blueprint fuera de la escala de §2.3: el rótulo de §12.4 y el título de `<TablaClave>` usaban `font-titulo text-sm`, o sea **Barlow Condensed a 14 px, que viola la regla dura 1** (la condensada nunca baja de 18 px).
+
+**Peso** — ninguna sorpresa, y el paso **no añadió ni un Client Component** (siguen 6, coincidiendo con §10.3 + ADR-009):
+
+| | gz |
+|---|---|
+| `/layout` js — métrica oficial | **132.0 kB**, idéntico al Paso 6 |
+| `/layout` css | 12.5 → **13.0 kB** (`.prose-idoneo`) |
+| `/erratas/page` | **106.9 kB** |
+| `/modulos/[slug]/page` | **106.9 kB** |
+
+Las dos rutas nuevas caen en el piso de servidor puro (103–107). `grep` de ADR-010 limpio, y tampoco se filtró contenido de erratas al cliente.
+
+**Compuertas:** `typecheck` 0 · `lint` limpio · `test` **187** · `validar` 87 avisos, 0 errores · `build` 40 páginas estáticas.
+
+**Verificación del pipeline MDX.** Ninguna teoría existe hasta el Paso 8, así que se comprobó con un `.mdx` temporal que ejercitó los cinco componentes, `##`/`###`, listas, tabla dentro de `<TablaClave>` y tabla suelta, más los tres tipos de alerta contra §6, en claro y oscuro. Borrado después; `content/teoria/` volvió a quedar con solo su `.gitkeep`.
+
+---
+
+### Auditoría: 0 críticos · 0 serios · 2 moderados · 6 menores
+
+El auditor **confirmó §6 con sus propios números**, dentro de ±0,10 en los 16 pares: peor par de texto el `<dt>` a **4.71**, peor gráfico el icono `aviso` a **4.05** sobre umbral 3.0. Y validó la decisión de §6.3 midiendo la alternativa: ese rótulo en `text-aviso` daría **4.05 y fallaría**; en `foreground` da **14.91**. También cerró el «reauditar en runtime» que quedaba de `RotuloBloque`: peor caso **C 4.84 en claro**, contra los 4.85 predichos por código.
+
+**Los dos moderados**
+
+- **A-11 · la tabla desliza sin señal visual.** A 375 px oculta **177 px, el 34 % de la tabla**: la quinta columna entera invisible y la cuarta cortada a mitad de dato — en pantalla se lee **«95 % / 5»** donde el valor real es «95 % / 5 %». Afordancia medida en cero: sin barra, sin `::after`, sin `box-shadow`, sin `mask-image`. **No incumple ningún criterio** —1.4.10 exime a las tablas de datos— y el auditor lo dice así; es **comprensión sobre el dato que el examen pregunta con número exacto**, que es peor. Arreglo: degradado con `background-attachment: local`, sin JS.
+- **A-10 · el contenedor deslizable no tiene nombre ni rol.** `aria-label`, `role`, `aria-labelledby` y `title` los cuatro `null`; `generic` en el árbol. Arreglo: `role="group"` + `aria-label`. **No `role="region"`**, que volvería a llenar la lista de landmarks.
+
+El `tabIndex={0}` **se conserva y no es trampa**: `Tab` sale, `Shift+Tab` vuelve, las flechas desplazan.
+
+**Los menores**
+
+- **A-09**, la única violación de axe del paso: el `aria-label` fijo del `<Ojo>` produce **tres landmarks `complementary` idénticos**. El fondo es que ninguno de los dos recuadros es contenido complementario — son apartes en el hilo de lectura. `role="note"` en los dos los saca de la lista conservando el nombre.
+- **A-12** · `<th>` sin `scope="col"`. Y sin `rowheader`, «95 % / 5 %» llega con su columna pero sin decir de qué zona es; el `rowheader` es limitación real de GFM y el auditor propone aceptarlo documentado.
+- **A-13** · tres enlaces «Ver todas las erratas» con nombre idéntico y tres destinos. Cumple 2.4.4 en contexto, falla en la lista de enlaces. Un `sr-only` lo cierra.
+- **A-14** · aceptado sin arreglo: no vale convertir un Server Component en cliente por dos paradas de scroll.
+- **A-16** · el `<dt>` a 11 px en versalitas, 42 instancias en `/erratas`, con el contraste más justo de la paleta. Decide el `ui-designer`.
+- **Longitud de línea** · **42,2 cpl a 375 px** (correcto) y **88,5 desde 768 px**. Hallazgo real pero **menor**: 1.4.8 pide ≤80 y es **AAA**. El interlineado de 1.65 compensa **a medias** — reduce el error de retorno de línea, no la distancia de barrido, que es lo que cansa a 88. No lo introdujo este paso: sale de `max-w-3xl` del `Shell` (Paso 5).
+
+**Trampa medida, que hay que darle al `ui-designer` antes de que la pise:** `max-w-[65ch]` **no arregla nada**, porque `tabular-nums` ensancha el «0» de Inter a 11 px y `65ch = 715 px ≈ 88 cpl`, casi los 720 de ahora. Hay que capar en px/rem: **640 → 78,7 · 608 → 74,8 · 600 → 73,8**. Propuesta del auditor: capar solo `p, ul, ol, h2, h3` de `.prose-idoneo` a `38rem`, dejando las tablas al ancho completo. A 375 px no cambia nada.
+
+**Lo que quedó bien y hay que conservar:** jerarquía **sin saltos y con un solo `h1`** en las dos rutas — lo sostiene que el MDX empiece en `##` y que `RotuloBloque` sea un `<p>` —; **sin scroll horizontal a 375, 320 ni 187 px** aunque la tabla mida 518 en un hueco de 341; las anclas de `/erratas` funcionan en carga directa y desde la teoría, con `scroll-margin-top` atado a `--alto-encabezado` para que el encabezado no tape la ficha, y **el foco no se pierde**: el primer `Tab` cae dentro de la ficha de destino.
+
+**Observación heredada del Paso 5:** el pie de atribución va a **12 px**, bajo el listón de 13. Si se toca la escala por A-16, es el mismo movimiento.
+
+---
+
+## [2026-07-30 12:15] · accessibility-auditor · Paso 7 — reverificación de los nueve cambios
+
+**Qué audité:** los cinco arreglos de accesibilidad del Paso 7 (A-09 `role="note"` · A-10 `role="group"` + nombre · A-11 degradado de borde · A-12 `scope="col"` · A-13 sufijo `sr-only`) y los cuatro cambios de diseño de `DISENO.md` §2.5 y §3.1 (medida de lectura de 38rem · `<dt>` a 12 px · pie a 13 px · recuadros a medida de lectura). Rutas `/modulos/[slug]` con teoría MDX y `/erratas`; archivos `globals.css`, `componentes.tsx`, `ojo.tsx`, `alerta-contradiccion.tsx`, `tabla-clave.tsx`, `pie.tsx`, `erratas/page.tsx`.
+
+**Cómo lo probé:** axe-core 4.x en 4 corridas a 375 px (2 rutas × 2 temas) más 2 a 1280 px · barrido de `Tab` con **460 ms por parada** (el `transition-all` tarda ~420 ms en asentar el contorno; medir antes da un falso 3 px con alfa 0,5) · árbol de accesibilidad por CDP `Accessibility.getFullAXTree` · contraste sobre el DOM renderizado con canvas de 1×1 y composición alfa de la cadena de ancestros · **píxeles del degradado por mediana vertical de columna** sobre capturas del contenedor real, en tres posiciones de desplazamiento · anchos 187 (200 %) · 320 (400 %) · 375 · 768 · 1280 · cpl con `canvas.measureText` sobre el texto real de cada elemento · **A/B del pie**, 13 px real contra 12 px inyectado con `add_style_tag`. MDX temporal con los cinco componentes y una tabla de 5 columnas, **borrado al terminar** (`content/teoria/` vuelve a tener solo su `.gitkeep`). Servidor en el 3117, cerrado al acabar. Cero dependencias nuevas, cero cambios en el árbol.
+
+**Hallazgos:** Crítico 0 · Serio 0 · Moderado 1 (**A-17**) · Menor 1 (**A-18**). Siete de los nueve cambios quedan confirmados sin reservas; A-11 queda a medias y A-15/A-16 resueltos por diseño.
+
+**Bloqueantes:** ninguno.
+
+**Contraste:** todos AA en los dos temas. `<dt>` a 12 px: **4.71 claro / 5.61 oscuro** — la afirmación del `ui-designer` es exacta, el umbral no se movió porque WCAG empieza «texto grande» en 24 px. Pie a 13 px: **5.49 claro / 6.18 oscuro**, también exacto. Sigue siendo el `<dt>` el par con menos margen del paso: **0,21**.
+
+**Pendiente:**
+- **A-17 · Moderado, abierto.** El degradado de A-11 funciona en claro (**0 señal → 1.43:1**, ΔL 0.31, encendiendo y apagando en el lado correcto) y queda **invertido en oscuro dentro de `<TablaClave>`**: la señal real cae a **1.02:1** (invisible) y aparece una falsa banda de 1.09:1 **en el borde contrario**. Causa medida, no deducida: `.prose-idoneo .marco-tabla .tabla-desliz` (globals.css:461) empata en especificidad (0,3,0) con `.dark .prose-idoneo .tabla-desliz` (452) y va después, así que el tema oscuro nunca llega a la tabla enmarcada — y **toda tabla de teoría va enmarcada**. La tabla suelta, que sí recibe la variante oscura, mide **1.31:1** y funciona. Debajo hay un segundo error: el comentario afirma que «dentro de `<TablaClave>` el fondo lo pone el marco», pero `.marco-tabla` **no tiene `background`**; el recorrido de ancestros termina en `--background`. Arreglo propuesto: pintar la tapa con `var(--background)`, que ya cambia con el tema, y **borrar** el bloque de las líneas 461-467 (conservando el `margin-block: 0` de la 469). Las tres variantes colapsan en una y el `.dark` solo necesita el color de la sombra.
+- **A-18 · Menor, aceptado y documentado.** El degradado ciega a axe: las incompletas del módulo pasan de **1 a 32**, y **31 son celdas de tabla** con «background color could not be determined due to a background gradient». No hay fallo real detrás (texto de tabla 17.03 / 15.22), pero el contraste de tabla ya solo se puede verificar midiendo. Importa para el Paso 15, que mete 28 módulos de tablas: «0 violaciones» dejará de significar «tabla verificada».
+- **Cifra de `DISENO.md` §2.5 a corregir:** dice que el enlace del pie pasa «de ~43 a ~49 px». Medido: **44,0 px exactos**. Consecuencia buena — cierra el «1 px corto» que A-05/A-08 dejaron anotado como trade-off consciente: ahora cumple el piso interno de 44 de §3 y la excepción se puede borrar.
+- **Matiz de `DISENO.md` §3.1, decide el `ui-designer`:** el argumento de «cinco caracteres de margen bajo el 80» vale para la teoría de 17 px (mido **74,4 cpl**, contra los 74,8 previstos) pero **no para las superficies de 15 px**, que caen en **79,2–79,6 cpl** — margen real de 0,4 a 0,8 caracteres. §3.1 las estimó con 7,17 px de carácter; los reales van de 6,81 a 7,25 según el texto. Pasan, pero sin margen.
+- **Heredado del Paso 5, no de este paso:** a ≥`lg` queda **1 `complementary` sin nombre**, la barra lateral de escritorio. axe no lo marca por ser único. Anotado para el Paso 18.
+- **Lo que el arreglo de A-11 no podía arreglar y no arregló:** a 375 px la celda «95 % / 5 %» sigue mostrando `95 % / ` y cortando `5 %`, 45 px fuera del borde. El degradado es `background-image` del contenedor: se pinta detrás del texto, avisa pero no restituye. Tras desplazar al final la celda se lee completa. En claro el aviso llega; en oscuro, por A-17, no.
+
+**Lo que quedó bien y hay que conservar:** axe **0 violaciones** en las seis corridas (antes: 1) · **22 de 22** enfocables con contorno `2px solid --ring` y orden visual sin trampas · los 6 recuadros con `role="note"` **y nombre**, con los tres `aria-labelledby` apuntando a un destino existente · el `group` de A-10 **no añade landmarks**, confirmado contra `/erratas`, que no tiene tablas y declara los mismos 4 `region` · medida de lectura aplicada con precisión quirúrgica (`p·ul·ol·h2·h3·hr·aside` a 608 px; `<TablaClave>`, `<Formula>` y tabla suelta intactas a 720) · **a 375 px no cambió nada**, los nueve tipos de elemento siguen en 343 px · sin scroll horizontal en 187, 320, 375, 768 ni 1280 · el `py-3.5` del pie sigue funcionando: el párrafo mide **5 alturas de línea exactas** a 12 y a 13 px, y «Idóneo 2210», que a 12 px se partía a 375 px, ahora queda entero.
+
+---
+
+## [2026-07-30 13:40] · accessibility-auditor · Paso 7 — reverificación final (ficha por fila, `DISENO.md` §3.2)
+
+**Qué audité:** el cambio de **§3.2** —por debajo de `sm` (640 px) toda tabla de 4+ columnas deja de ser retícula y se presenta como una ficha por fila— sobre `/modulos/[slug]` y `/erratas`, rama `paso-7-mdx`. Piezas tocadas: `src/app/globals.css` (bloque de §3.2 dentro de `@layer components`, más el borrado de la variante `--card` que causaba A-17) y `src/components/mdx/componentes.tsx` (roles explícitos en las seis piezas de la tabla + las claves de columna como `--et-1 … --et-7` leídas del `<thead>` en el servidor). También los recuadros a **36rem** de §3.1 revisada.
+
+**Cómo lo probé:** árbol de accesibilidad por CDP `Accessibility.getFullAXTree` en las cuatro combinaciones de tema × ancho · axe-core 4.x en **8 corridas** (2 rutas × 2 temas × 375 y 1280 px) más un **A/B sobre el mismo MDX** con §3.2 neutralizada por inyección de CSS, que es la única forma honesta de aislar lo que recupera · celda «95 % / 5 %» medida **carácter a carácter** con `Range.getBoundingClientRect()` · barrido de `Tab` con **460 ms por parada** (el `transition-all` tarda ~420 ms en asentar el contorno) · contraste por píxel sobre el DOM renderizado con canvas de 1×1 y composición alfa de la cadena de ancestros · cpl con `canvas.measureText` sobre el texto real · barrido de frontera en **639/640/641** y de desbordamiento en 640–1280 · zoom **187 px (200 %)**, **320 px** (referencia de 1.4.10) y 94 px · `prefers-reduced-motion` · **prototipo del arreglo de A-19 inyectado y medido en runtime**, no propuesto a ciegas. MDX temporal con **cuatro tablas** (5 · 2 · 3 · **7** columnas) para cubrir los dos lados del umbral y el techo de `--et-7`, **borrado al terminar**: `content/teoria/` vuelve a tener solo su `.gitkeep`, verificado con `git status`. Servidor en el **3117**, cerrado al acabar. Cero dependencias nuevas, cero cambios en el árbol.
+
+**Hallazgos:** Crítico 0 · Serio 0 · Moderado 0 · **Menor 4** (A-19 · A-20 · A-21 · A-22). Y **dos cierres**: A-11 y A-17.
+
+**Bloqueantes:** ninguno.
+
+**Contraste:** todos AA en los dos temas. Clave de la ficha (12 px, `muted-foreground` sobre `background`): **5.49 claro / 6.18 oscuro**. Valores de la ficha: **17.03 / 15.22**. Ningún token nuevo, ningún par movido.
+
+**Las cuatro preguntas, con su cifra:**
+1. **La ficha NO deshizo A-10 ni A-12.** El árbol es **idéntico a 375 y a 1280 px**, en los dos temas: 3 `table` · 6 `rowgroup` · 14 `row` · **10 `columnheader`** · 37 `cell` · 3 `group` con nombre. Ni un nodo de diferencia. El `<thead>` se recorta (`position: absolute` + `clip-path: inset(50%)`, ancho 1 px), nunca `display: none`. **17 de 17** `<th scope="col" role="columnheader">` — el «8 de 8» de A-12 venía de un MDX de dos tablas; este trae cuatro, y el invariante se cumple entero.
+2. **«95 % / 5 %» se lee completo a 375 px**, en claro y en oscuro: **0 caracteres cortados** (antes: `5 %`), **0 px fuera** (antes: 45), quinta columna presente, 5 de 5 campos en la ficha de R2, y `scrollWidth == clientWidth` = 341 px dentro del contenedor. Los controles se comportan: las tablas de **2 y de 3 columnas siguen en retícula** con su degradado. La frontera cae exacta: **639 px ficha · 640 px retícula**.
+3. **El `aria-label` miente bajo `sm`, y lo confirma el propio axe**: la regla `scrollable-region-focusable` pasa de `passes` a **`inapplicable`** a 375 px. **Arreglo probado en runtime**: mover el nombre a un `<p class="sr-only">` con `aria-labelledby` y apagar el sufijo con la misma media query — el algoritmo de nombre accesible excluye los descendientes ocultos. Medido: **«Tabla» a 375 px** y **«Tabla · se desplaza en horizontal» a 1280 px**, sin JS, sin parada nueva y sin mover una sola caja.
+4. **axe recuperó las celdas a 375 px.** A/B sobre el mismo MDX: **42 → 25 incompletas**, y la tabla ancha pasa de **17 nodos ciegos a 0**. A 1280 px son **49** (25 de la tabla ancha), porque ahí el degradado sigue puesto por diseño. **0 violaciones en las ocho corridas.**
+
+**Pendiente:**
+- **A-19 · Menor, con arreglo probado.** Bajo `sm` el envoltorio sigue llamándose «Tabla, desplazable en horizontal» y ya no hay nada que desplazar. No falla 4.1.2 —tiene rol y nombre— pero miente en el viewport donde se usa la app. El arreglo está medido y no cuesta nada; lo aplica `frontend-developer` con una línea de CSS en el bloque de §3.2. **Y hace falta algo más que renombrar**, aunque no tenga salida barata: la parada de tabulación se queda sin trabajo a 375 px (**A-14 ampliado** — ahora incluye la tabla ancha, que era la que justificaba el `tabIndex={0}`) y el contenedor mide **1131 px de alto** contra 812 de viewport, así que su contorno de foco no cabe entero. `tabindex` no es estilable y medir el desbordamiento exigiría un Client Component, que §10.3 no admite: **se acepta y se documenta**.
+- **A-20 · Menor, decide el `ui-designer`.** La clave del `::before` llega al árbol **con las versalitas aplicadas**: una celda anuncia `AERÓBICO / ANAERÓBICO` + `95 % / 5 %`. La duplicación está prevista y aceptada por §3.2 (es la única pista de fila que llega, dado el límite de GFM de A-12). Las versalitas no lo estaban, y **me obligan a corregir una afirmación mía del Paso 5**: dije que `RotuloBloque` no llegaba en mayúsculas porque la transformación era de CSS. **Es falso en Chromium** — el árbol devuelve `BLOQUE`, `CIENCIAS APLICADAS`, `DICE LA CARTILLA`, `GRASAS` y el título de `<TablaClave>`, todos transformados. Es de toda la app, no de la ficha; la ficha añade **20 instancias por tabla de 5 columnas** y el Paso 15 mete 28 módulos. Alcance real acotado: Gecko y WebKit no lo hacen, y NVDA/JAWS leen mayúsculas con normalidad.
+- **A-21 · Menor, decide el `ui-designer`.** Recuadros a **576 px = 36rem exactos**, aplicado. Pero la banda «74,4–75,0 cpl» de §3.1 se cumple en 2 de 4 superficies: teoría **74,7** ✅ y `<Ojo>` **74,5** ✅, pero **alerta `<dd>` 78,3** (1,7 caracteres de margen, no cinco) y **ficha de `/erratas` 70,7**. Ninguna falla —las cuatro bajo los 80 de 1.4.8, que además es AAA— pero la banda publicada no describe lo medido.
+- **A-22 · Menor, decide el `ui-designer`.** Por encima de `sm` **ninguna** de las cuatro tablas desborda en 640 · 660 · 680 · 700 · 720 · 768 · 900 · 1280 px, **ni la de 7 columnas**: con `width: 100%` y `table-layout: auto` las celdas envuelven en vez de desbordar. §3.2 conserva el degradado arriba «porque una tabla de 6 columnas todavía puede desbordar a 700 px»; medido, no ocurre con este contenido. Beneficio arriba: ninguno medible. Coste arriba: **49 incompletas de axe**, es decir cero cobertura automática de contraste en tablas de escritorio justo antes del Paso 15. No propongo quitarlo —una tabla con contenido inquebrable sí desbordaría, y la afordancia vale más que una herramienta que cubre el 30 %— pero la decisión debe tomarse con los dos números delante.
+- **Techo del mapeo, antes del Paso 15:** el CSS declara hasta `--et-7`. Una tabla de **8 columnas** dejaría la octava sin clave en la ficha. Ninguna cartilla trae 8 hoy; conviene que esté escrito.
+- **Heredado del Paso 5, no de este paso:** a ≥`lg` sigue quedando **1 `complementary` sin nombre**, la barra lateral de escritorio. Anotado para el Paso 18.
+
+**Lo que quedó bien y hay que conservar:** los **roles explícitos** de `componentes.tsx` son la pieza que hace que todo esto funcione — sin ellos el cambio de `display` habría convertido la tabla en `generic` y tirado A-10 y A-12 por la borda; con ellos la semántica **dejó de depender de la presentación**, que es más robusto que lo que había antes · **A-17 cerrado y verificado en `getComputedStyle`**: la tapa computa `--background` en los dos temas **y dentro y fuera de `.marco-tabla`**, las tres variantes colapsaron en una · el umbral `:has(thead th:nth-child(4))` separa exactamente lo que dice separar, sin que el autor de contenido escriba nada · las claves como custom properties leídas **en el servidor** evitan un atributo por celda y un Client Component · **23 de 23** enfocables con contorno `2px solid --ring` y orden visual sin trampas · orden de lectura = orden del DOM en las **20 celdas**, 0 discrepancias · **0 solapamientos y 0 celdas fuera del contenedor** a 187, 320 y 94 px · `prefers-reduced-motion` con **0 elementos** en movimiento · tipografía de la ficha exacta contra las tres filas de §2.3 (12 px Inter versalitas · 18 px Barlow Condensed · 15 px Inter).
+
+---
+
+## [2026-07-30 07:40] · cierre del Paso 7 · ficha por fila y A-19
+
+**Veredicto final del `accessibility-auditor`: APROBADO.** Crítico 0 · Serio 0 · Moderado 0 · Menor 4. `/modulos/[slug]` con teoría pasa de PARCIAL a **APROBADA**, y se cierran **A-11** y **A-17**.
+
+**La decisión de fondo — `DISENO.md` §3.2.** Por debajo de `sm` (640 px), toda tabla de 4 columnas o más deja de ser retícula y se presenta como **una ficha por fila**, con la clave de cada columna encima de su valor. El `ui-designer` descartó todo lo que solo señala —envolver, sticky de primera columna, snap, máscara— con el argumento que zanja el asunto: **el daño no es que el usuario ignore que la tabla sigue, es que cree que ya leyó el valor.** «95 % / 5» no parece un dato cortado; parece un dato.
+
+Coincide además con lo que la app ya enseña: las tarjetas C5-T02 a C5-T05 están escritas exactamente así —una zona con todos sus campos—, así que la vista móvil deja de contradecir al mazo del mismo módulo.
+
+**Las cuatro respuestas medidas:**
+
+1. **La ficha NO deshizo A-10 ni A-12.** El árbol de accesibilidad es **idéntico a 375 y a 1280 px, en los dos temas, ni un nodo de diferencia**: 3 `table` · 6 `rowgroup` · 14 `row` · **10 `columnheader`** · 37 `cell` · 3 `group` con nombre. Son **17 de 17** `<th scope="col" role="columnheader">`. Los roles explícitos son la pieza que sostiene todo: sin ellos el cambio de `display` habría dejado la tabla como `generic`; con ellos **la semántica dejó de depender de la presentación**, que es más robusto que lo que había antes del cambio.
+2. **«95 % / 5 %» se lee completo a 375 px**, medido carácter a carácter: **0 cortados** (antes `5 %`), **0 px fuera** (antes 45), quinta columna presente, `scrollWidth == clientWidth`. Los controles funcionan: las tablas de 2 y 3 columnas **siguen en retícula**, con frontera exacta en 639 px ficha / 640 px retícula.
+3. **A-19, el `aria-label` que mentía** — y no por lectura: lo confirma axe, cuya regla `scrollable-region-focusable` pasa de `passes` a **`inapplicable`** bajo `sm`. Arreglado y aplicado.
+4. **axe recuperó las celdas.** A/B sobre el mismo fixture a 375 px: incompletas **42 → 25**, y las de la tabla ancha **17 → 0**. A 1280 px son 49, porque ahí el degradado sigue puesto por diseño. **0 violaciones en las ocho corridas.**
+
+**A-19 aplicado.** «CSS no puede reescribir un `aria-label`» es cierto, pero no hacía falta: **el algoritmo de nombre accesible excluye los descendientes ocultos** del elemento referenciado por `aria-labelledby`. Con el sufijo en su propio `<span class="pista-desliz">` y apagado por la misma media query que crea la ficha, el nombre queda **«Tabla»** a 375 px y **«Tabla · se desplaza en horizontal»** a 1280. Sin JS, sin parada de tabulación nueva, sin mover una caja.
+
+Detalle de implementación: el id no puede venir de `useId` —esto es Server Component y `useId` es un hook— ni de un contador de módulo, que se compartiría entre peticiones. Se deriva de forma determinista de las claves de columna. Dos tablas con encabezados idénticos en la misma página compartirían nombre, no romperían la página, y en el contenido real de las cartillas no ocurre.
+
+**Sin regresiones.** A ≥640 px no cambió nada: las cuatro tablas en `display:table`, `<thead>` estático, degradado intacto, sin desplazamiento nuevo en 640/641/768/1024/1280. **A-17 cerrado**, verificado en `getComputedStyle`: la tapa computa `--background` en los dos temas, dentro y fuera de `.marco-tabla`. Tipografía exacta contra §2.3, clave a 5.49 / 6.18, orden de lectura = DOM en 20/20 celdas, 23 enfocables con `2px solid`, 0 solapamientos a 187/320/94 px.
+
+**Compuertas:** `typecheck` 0 · `lint` limpio · `test` **187** · `validar` 87 avisos, 0 errores · `build` verde. `/layout` js **132.0 kB gz** sin moverse — la ficha es CSS más lectura del `<thead>` en el servidor, **cero JS de cliente**.
+
+---
+
+### Tres hallazgos que quedan abiertos, todos Menores
+
+- **A-20 · las versalitas llegan al árbol de accesibilidad en Chromium.** La clave del `::before` se anuncia `AERÓBICO / ANAERÓBICO`, y lo mismo `DICE LA CARTILLA`, `GRASAS` y el título de `<TablaClave>`. **El auditor se corrige a sí mismo**: en el Paso 5 afirmó que `RotuloBloque` no llegaba en mayúsculas porque la transformación era de CSS, y es falso en Chromium. **Es de toda la app, no de la ficha**; la ficha añade 20 instancias por tabla. Gecko y WebKit no lo hacen. Decide el `ui-designer`.
+- **A-21 · la banda de cpl publicada no describe lo medido.** §3.1 afirma 74,4–75,0 y se cumple en 2 de 4: teoría **74,7** ✅ y `<Ojo>` **74,5** ✅, pero el `<dd>` de la alerta va a **78,3** (1,7 caracteres de margen, no cinco) y la ficha de `/erratas` a **70,7**. Ninguna falla el 80; el número publicado no corresponde.
+- **A-22 · por encima de `sm` ninguna tabla desborda**, ni la de 7 columnas, en ocho anchos de 640 a 1280: con `width:100%` y `table-layout:auto` las celdas envuelven. §3.2 conserva el degradado arriba «porque una tabla de 6 columnas todavía puede desbordar a 700 px», y con este contenido no ocurre. Beneficio arriba: ninguno medible. Coste: **49 incompletas de axe**, o sea cero cobertura automática de contraste en tablas de escritorio **justo antes del Paso 15**.
+
+Y un apunte para antes del Paso 15: el CSS declara claves hasta `--et-7`; una tabla de **8 columnas** dejaría la octava sin clave.
+
+---
+
+## [2026-07-30 08:05] · A-22 cerrado · el degradado se retira entero · Paso 7
+
+**Decisión del `ui-designer`: el degradado de A-11 se retira de la hoja completa**, no solo por encima de `sm`, y en los dos temas. `grep -c linear-gradient src/app/globals.css` pasa de **8 a 0**.
+
+**La premisa que lo sostenía era una suposición, y no se sostuvo.** §3.2 conservaba el degradado arriba «porque una tabla de 6 columnas todavía puede desbordar a 700 px». El auditor lo midió: **cero desbordes en ocho anchos de 640 a 1280 px, con la tabla de 7 columnas incluida**. Y no es suerte del contenido, es estructura: `width: 100%` con `table-layout: auto` hace que las celdas repartan y envuelvan.
+
+Contra ese beneficio nulo, el coste eran **49 celdas incompletas de axe** a 1280 px — cobertura automática de contraste **cero** en toda tabla de escritorio, justo antes de que los pasos 15–17 escriban 28 módulos llenos de tablas.
+
+**El caso de 2 y 3 columnas cayó igual.** Ese era el único escenario que podía salvar el degradado, porque esas tablas no se apilan bajo `sm`. Están medidas: a 375 px siguen en retícula y **ninguna desborda**, que es justamente lo que promete el umbral de 4 columnas. Ahí el degradado también señalaba un desplazamiento inexistente, y costaba las otras 24 incompletas. Sin ningún viewport donde ayude, es CSS muerto que además ciega la única comprobación automática que hay: se retira, no se conserva «por si acaso».
+
+**Lo que se pierde y por qué se acepta.** Si algún día una celda llevara una cadena inquebrable, esa tabla desbordaría sin señal visual. Tres razones para aceptarlo: el degradado **nunca arregló A-11** —avisaba de que la tabla seguía y no restituía el dato; lo que lo cerró fue la ficha por fila—; el acceso no depende de él, porque `overflow-x: auto`, `tabIndex={0}`, `role="group"` y el `aria-labelledby` de A-19 se quedan intactos; y el caso residual se **previene en vez de señalarse**, con `overflow-wrap: anywhere` en `.prose-idoneo table` — no-op sobre el contenido actual (todas las palabras ya caben, por eso el barrido dio cero) y elimina el escenario a futuro.
+
+Es la tesis de §3.2 aplicada al caso residual: **restituir el dato vale más que advertir de que falta.**
+
+Resultado esperado, según la medición del auditor: `/modulos` pasa de **49 a 0** incompletas a 1280 px y de **25 a 1** a 375 px — la que queda es la del pie, ajena a esto.
+
+**Registrado en `DISENO.md` §3.2**, que gana además dos prohibiciones inversas: **volver a poner el degradado en cualquier ancho** (si algo desborda, el arreglo es que quepa) y **quitar `overflow-x: auto`** «ya que nada desborda».
+
+**Compuertas:** `typecheck` 0 · `lint` limpio · `test` **187** · `validar` 87 avisos, 0 errores · `build` verde. `/layout` js **132.0 kB gz** sin moverse; el css baja de 13.4 a **13.3 kB**.
+
+**Sin reverificación del auditor**, por indicación del usuario: el cambio es quitar un degradado y él ya midió el antes y el después.
+
+**Quedan anotadas para más adelante, cosméticas y no bloqueantes:** **A-20** (las versalitas llegan al árbol de accesibilidad en Chromium — es de toda la app, no de la ficha) y **A-21** (la banda de cpl publicada en §3.1 se cumple en 2 de 4 superficies).
+
+---
+
+**El Paso 7 queda cerrado.** Auditoría APROBADO, cinco rutas navegables, el pipeline MDX verificado de punta a punta, y `content/teoria/` con solo su `.gitkeep` a la espera del Paso 8.
+
+---
