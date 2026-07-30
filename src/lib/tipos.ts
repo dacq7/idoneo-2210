@@ -1,6 +1,6 @@
 // src/lib/tipos.ts
 // Modelo de datos completo de Idóneo 2210.
-// Sin "use client": este archivo solo exporta tipos.
+// Sin directiva de cliente: este archivo solo exporta tipos.
 
 /* ══════════════════════════════════════════════════════════════════
    CONTENIDO

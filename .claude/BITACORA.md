@@ -774,3 +774,573 @@ Segunda corrección al blueprint, mismo criterio que la del hook: **se edita cua
 Diff acumulado de `CLAUDE.md` en el Paso 4: **24 insertions(+), 9 deletions(-)** — 3 líneas por el hook (ADR-007) y 4 por la cuota (ADR-006), más la nota explicativa de §14.3. Registrado como enmienda en ADR-006 y actualizado en `PENDIENTES.md`.
 
 ---
+
+---
+
+## [2026-07-29 23:40] · ui-designer · Paso 5 (plan, sin código)
+
+**Qué diseñé:** el sistema de diseño completo del Paso 5 como **propuesta pendiente
+de aprobación** en `.claude/DISENO.md`. Alcance: paleta con contraste auditado en
+los dos temas, escala tipográfica de 15 roles, reglas de espaciado y radio,
+elemento firma, y el veto explícito de los tres *looks* por defecto. **No se
+escribió nada en `src/`**: el usuario aprueba antes de que se implemente.
+
+**Decisiones tomadas:**
+- **Paleta:** se conserva §11.3 en nombres y en 90 % de los valores. Seis valores
+  cambian por accesibilidad medida (D-1 a D-6 en `DISENO.md`): `--aviso` y
+  `--aviso-foreground`, `--bloque-a`, los cuatro `--bloque-*-suave`, `--input`, y
+  `--border` (este último por legibilidad, no por AA). Ningún token se renombra,
+  así que los 18 componentes de `src/components/ui/` no se tocan.
+- **Auditoría de contraste:** 59 pares medidos con conversión oklch→sRGB y fórmula
+  WCAG 2.1, claro y oscuro. §11.3 tal cual traía **6 violaciones AA en tema claro**
+  (`--aviso` como texto 3.11:1; `--bloque-a` 3.94:1 / 3.54:1 / 3.93:1 en sus tres
+  roles; `--bloque-c` y `--bloque-d` sobre su `-suave` a 4.42:1 y 4.47:1) y
+  `--input` fallando 1.4.11 en los dos temas (1.30:1 y 1.42:1). Con las seis
+  correcciones: **0 fallos**.
+- **Tipografía:** Barlow → **Barlow Condensed** para el rol display (D-7 en
+  `DISENO.md`, desviación de §11.2). Inter y JetBrains Mono se conservan. Token
+  `--fuente-titulo` intacto.
+- **Firma: el instrumento de umbral.** Bandas de intensidad + línea de umbral +
+  marcador de calibre, tomado de la gráfica de zonas R0/R1/R2/R3 del módulo C5.
+  Hallazgo que lo vuelve sistema: los cortes de `calcularVeredicto` (60/75/85) ya
+  son una gráfica de umbral de cuatro tramos. Dos manifestaciones de una misma
+  gramática de 7 reglas: el **riel de bloques** (Paso 5) y la **escala de umbral**
+  (Pasos 8/12/14).
+- **El riel de bloques es proporcional a `pesoExamen`** (A 20 · B 22 · C 33 · D 25),
+  no de segmentos iguales. Eso lo convierte en información y no en decoración.
+- **Layout:** encabezado no fijo (el alto vertical es escaso a 375px); la
+  orientación por bloque persistente vive en la lengüeta del destino activo de la
+  barra inferior, que sí está siempre visible y en zona de pulgar.
+
+**Qué descarté y por qué:**
+- **Oscurecer `--background`** a `oklch(0.972 0.004 250)` para separar la tarjeta
+  del fondo. Medido: la separación pasa de 1.03:1 a **1.08:1, sigue siendo
+  imperceptible**, y a cambio estrecha el margen AA de los diez tokens que se leen
+  encima. Se rechaza; la jerarquía se resuelve subiendo `--border` (D-6).
+- **Cuatro colores propios para las bandas R0/R1/R2/R3** (el reflejo tipo
+  Garmin/Strava). Habría producido un sistema de 8 colores categóricos sin
+  jerarquía, compitiendo con los 4 tokens de bloque. Sustituido por una rampa de
+  opacidad de un solo matiz (12/28/55/85 %), que hace el instrumento reutilizable
+  en cualquier contexto de color.
+- **Píldora de fondo** para el destino activo de la nav, **anillo/dona** para el
+  puntaje y **barra de progreso redondeada** para el avance: los tres son la
+  respuesta por defecto de cualquier app de estudio. Reemplazados por lengüeta,
+  escala de umbral y riel.
+- **Una cuarta familia tipográfica** más «marcador» (Azeret/Martian Mono) en lugar
+  de JetBrains Mono. JetBrains se queda porque distingue `0/O` y `1/l`, y la app
+  hace teclear valores exactos de biomarcadores. El carácter sale del tratamiento.
+
+**Riesgo estético que asumí:** convertir el cromo de navegación en un instrumento
+de medida. El riel del encabezado no es una barra de color: sus anchos codifican
+el peso de cada bloque en el examen, y más adelante se rellena con el dominio.
+Un riel proporcional puede leerse como asimetría accidental si el usuario no
+descubre qué significa — de ahí el `aria-label` que lo enuncia y el *eyebrow* de
+texto al lado. Se justifica desde el brief porque el trabajo declarado de la app
+es «decirle a un entrenador qué sabe, qué no sabe y qué estudiar hoy», y el peso
+de examen por bloque es exactamente el dato que ordena esa decisión.
+
+**Pendiente:**
+- **Aprobación del usuario de las 7 desviaciones** (D-1 a D-7). Sin ella,
+  §11.2 y §11.3 siguen siendo la fuente de verdad y `DISENO.md` no aplica.
+- **Ratificación del `software-architect`** y sus ADR: valores de paleta (D-1…D-6),
+  Barlow Condensed (§11.2), válvula `data-compacto` del piso táctil de 44px (D-7),
+  y tres archivos que amplían la lista cerrada de §10.3 (`riel-bloques.tsx` y
+  `app/error.tsx` como cliente; `encabezado.tsx` como servidor).
+- **Decidir la línea `manifest:` de la metadata**: §11.2 apunta a
+  `/manifest.webmanifest`, que no existe hasta el Paso 18.1 y produce un 404 en
+  consola desde el Paso 5.
+- **Auditoría del `accessibility-auditor`** después de implementar, sobre los
+  números ya calculados en `DISENO.md` §1.3.
+
+---
+
+## [2026-07-30 00:07] · frontend-developer · Paso 5 (layout y navegación)
+
+**Estado:** ✅ Completado · rama `paso-5-layout`, **sin commit** (el usuario revisa el diff)
+
+**Qué construí:**
+
+| Archivo | Server / Client | Qué es |
+|---|---|---|
+| `src/app/globals.css` | — | Reemplazo completo. §11.3 con D-1…D-6 y D-8 de ADR-009 |
+| `src/app/layout.tsx` | Server | §11.2 con Barlow Condensed (D-7) y sin la línea `manifest:` |
+| `src/components/layout/shell.tsx` | Server | Armazón: enlace de salto, encabezado, columna, pie, dos barras |
+| `src/components/layout/encabezado.tsx` | Server | Identidad + interruptor de tema + riel, pegajoso |
+| `src/components/layout/pie.tsx` | Server | §11.7 **literal**, atribución COLEF/COCED |
+| `src/components/layout/proveedores.tsx` | Client | `ThemeProvider` + `Toaster` |
+| `src/components/layout/riel-bloques.tsx` | Client | Elemento firma, anchos proporcionales a `pesoExamen` |
+| `src/components/layout/nav-inferior.tsx` | Client | 5 destinos, `h-16`, hasta `lg` |
+| `src/components/layout/barra-lateral.tsx` | Client | Los mismos 5 destinos, 240px, desde `lg` |
+| `src/components/layout/interruptor-tema.tsx` | Client | Ciclo sistema → claro → oscuro |
+| `src/components/layout/destinos.ts` | data | Los 5 destinos y `destinoActivo`, en un solo lugar |
+| `src/app/not-found.tsx` | Server | 404 honesto, con una acción |
+| `src/app/error.tsx` | Client | Límite de error (Next lo exige) |
+| `src/app/page.tsx` | Server | **Provisional**, solo para verificar el armazón. La portada es del Paso 14.4 |
+| `src/lib/utils.ts` | — | `bloqueDeRuta()` y `claseAcentoBloque()`, puras, con 14 tests nuevos |
+
+**Server o Client, y por qué:** todo lo que no necesita `usePathname`, `useTheme`
+ni un handler quedó en el servidor — `Shell`, `Encabezado` y `Pie` no envían
+JavaScript. Las cuatro piezas cliente son cliente por una sola razón cada una:
+las dos barras y el riel leen la ruta con `usePathname`; el interruptor lee y
+escribe el tema. Se respetó §10.3 con las tres altas de ADR-009, y `destinos.ts`
+se añadió como **data sin `"use client"`**: no lleva hooks, así que se bundlea con
+quien lo importa y evita que las dos barras se desincronicen.
+
+**Las cinco compuertas:** `npm run typecheck` 0 errores y cero `any` ·
+`npm run lint` limpio · `npm test` **183 pasan** (169 previos + 14 nuevos) ·
+`npm run validar` «Todo en orden» · `npm run build` exitoso, `/` y `/_not-found`
+estáticas, 103 kB de First Load JS.
+
+**Estado de `npm run dev`:** compila y renderiza sin errores ni advertencias de
+consola. Verificado en el puerto 3117 (el 3000 lo ocupa un proceso ajeno en
+`/app`, que no se tocó) y dejado cerrado.
+
+**Verificado a 375 px:** sí, con Chromium headless, en claro y en oscuro, y
+también a 1280 px. Medido, no estimado:
+- Cero desbordamiento horizontal a 375 px (`scrollWidth === clientWidth`).
+- Riel: 75.4 · 82.8 · 123.8 · 93.0 px = **375.0 exactos**, o sea 20/22/33/25 %.
+  El segmento de C es visiblemente el más ancho porque C es un tercio del examen.
+- Destinos de la barra inferior: **75 × 64 px** cada uno.
+- El pie termina 31 px por encima de la barra inferior: no queda tapado.
+- A 1280 px, el fondo del encabezado (60 px) y el techo de la barra lateral
+  coinciden al píxel, y la barra mide 240 px.
+
+**Teclado y aria-live:**
+- Orden de tabulación completo y en orden visual: saltar al contenido → identidad
+  → tema → contenido → enlaces del pie → barra inferior (en móvil la nav es lo
+  último porque visualmente está abajo; desde `lg` la barra lateral va antes del
+  contenido, como se ve).
+- **Foco visible en los 9 elementos enfocables, en los dos temas**, medido con
+  `getComputedStyle`: 2 px sólidos a `--ring` completo (6.37:1 claro · 7.15:1
+  oscuro). En la barra inferior el contorno se mete hacia dentro para no
+  recortarse contra el borde de la barra fija.
+- El destino activo **no se comunica solo por color**: lleva `aria-current="page"`,
+  `text-foreground`, peso 600 y la lengüeta de 4 px.
+- El riel es `role="img"` con el peso de los cuatro bloques y el bloque activo
+  **en palabras**: «Peso de cada bloque en el examen: A 20 %, B 22 %, C 33 %,
+  D 25 %. Estás en el bloque C, Ciencias Aplicadas.»
+- El interruptor de tema anuncia estado y consecuencia: «Tema sistema. Cambiar a
+  tema claro.»
+- `aria-live` no aplica en este paso: no hay retroalimentación dinámica. Entra en
+  el Paso 9 con `retroalimentacion.tsx`.
+
+**Dos hallazgos medidos que cambiaron el código:**
+
+1. **El foco de shadcn no cumplía 1.4.11.** DISENO.md §1.3 asume que shadcn
+   compone «`focus-visible:outline-1 outline-ring` + halo de 3 px a ring/50», con
+   el halo como refuerzo y no como portador. La versión instalada **ya no trae
+   ese contorno**: sus 18 componentes usan `outline-none` +
+   `focus-visible:ring-[3px] ring-ring/50`, así que el único portador queda a
+   media opacidad, por debajo del 3:1 exigido. Verificado: el botón del
+   interruptor salía con `outline-style: none`.
+   Arreglo en `globals.css`, una sola regla, **en `@layer utilities` y con
+   selector de elemento + pseudoclase (0,1,1)**: las capas ganan por orden y no
+   por especificidad, así que en `@layer base` habría perdido contra el
+   `.outline-none` (0,1,0) de shadcn. A igual capa, gana la especificidad. Los
+   componentes que sí traen su contorno (`focus-visible:outline-1`, 0,2,0) siguen
+   mandando. Beneficio lateral: ningún componente futuro necesita clases de foco.
+2. **`text-muted-foreground` sobre `bg-accent` en tema oscuro mide 4.47:1**, corto
+   de AA. No está en los 59 pares de DISENO.md §1.3 porque es un par de *estado*,
+   no de reposo. Las dos barras suben el texto a `text-foreground` en el mismo
+   `hover:bg-accent`, y queda anotado como contrato en `COMPONENTES.md`.
+
+**Verificación independiente de la paleta:** convertí los 33 tokens de los dos
+temas de `oklch` a sRGB y calculé WCAG 2.1 sobre 43 pares antes de escribir una
+línea de CSS. Los hex coinciden exactamente con DISENO.md §1.1 y §1.2
+(`#fbfcfd`, `#141a22`, `#9f6700`, `#966000`, `#0c1117`, `#151b22`…), y **cero
+fallos** más allá del par de estado del punto 2.
+
+**Decisiones menores que tomé, todas dentro de lo aprobado:**
+- **`--alto-encabezado: 3.75rem`** en `:root`. Es mecánica de layout, no token de
+  diseño: la barra lateral necesita saber dónde termina el encabezado pegajoso
+  para no quedar tapada. Medido en navegador (60 px), no calculado a ojo — mi
+  primera estimación de 61 px estaba mal por 1 px y el navegador lo delató.
+- **La escala tipográfica de DISENO.md §2.3 vive en `@layer base`**, no repetida
+  en cada componente: se escribe `<h1>` y sale a 1.75rem / 2.25rem en `lg`.
+  Consecuencia buscada: una página no puede desalinearse de la escala por olvido.
+- **La barra lateral aparece en `lg` y la inferior desaparece en `lg`.** §11.7
+  usaba `md:hidden` para el hueco de la nav y §11.5 pone la barra lateral en `lg`:
+  con las dos literales, entre `md` y `lg` no habría ninguna navegación. Se unificó
+  en `lg`.
+- **El encabezado no rotula la sección** (§17 paso 5 decía «barra superior con
+  título de sección»): el título de cada pantalla es su `<h1>`, así que la
+  jerarquía de encabezados no se duplica ni salta. Queda anotado en
+  `COMPONENTES.md` como contrato para las páginas.
+
+**Deuda que dejo:**
+- **Cuatro de los cinco destinos apuntan a rutas que aún no existen** (`/modulos`
+  Paso 6, `/repaso` Paso 10, `/simulacros` Paso 11, `/ajustes` Paso 18.5) y hoy
+  caen en el 404, que está diseñado y dice que el progreso no se tocó. Igual pasa
+  con los dos enlaces del pie (`/erratas` es del Paso 7). No es arreglable en este
+  paso sin construir rutas de otros pasos.
+- **Decisión de diseño pendiente, registrada en `COMPONENTES.md`:** ¿el *eyebrow*
+  de texto del bloque va en el encabezado, junto al riel, o en la página? La
+  bitácora del `ui-designer` lo menciona «al lado» del riel; DISENO.md §4.3 no lo
+  incluye en el componente. Lo dejé como responsabilidad de la página, que es
+  donde estará en el Paso 7. Hoy no se nota: ninguna ruta con bloque existe.
+- **`transition-all` en las variantes de los 18 componentes de shadcn**, que
+  DISENO.md §5.2 prohíbe. No lo toqué: son archivos generados y arreglarlo es un
+  barrido de 18 archivos que merece su propia decisión.
+- La segunda manifestación del elemento firma (**escala de umbral**, DISENO.md
+  §4.4) queda especificada y sin construir, como estaba previsto: Pasos 12 y 14.
+- Los 5 SVG de create-next-app siguen en `public/` y ya no los referencia nadie:
+  `page.tsx` dejó de usarlos. Anotado en `PENDIENTES.md` → Paso 14.4.
+
+**Lo que este paso cierra de `PENDIENTES.md`:** las cuatro obligaciones del Paso 5
+—`@custom-variant dark`, el `lang="es-CO"` con la metadata real, el pie de
+atribución en todas las rutas y los componentes de shadcn sin estilo— quedan
+cumplidas y marcadas allí.
+
+---
+
+## [2026-07-30 00:29] · accessibility-auditor · Paso 5
+
+**Qué audité:** el armazón completo del Paso 5 sobre `paso-5-layout` — `/` y el 404,
+que son las dos únicas rutas que existen. `src/app/{layout,page,not-found,error}.tsx`,
+`src/app/globals.css` y los nueve archivos de `src/components/layout/`
+(`shell`, `encabezado`, `riel-bloques`, `nav-inferior`, `barra-lateral`,
+`interruptor-tema`, `proveedores`, `pie`, `destinos`), más las clases de foco y
+piso táctil que los 18 componentes de `src/components/ui/` heredan. No auditué los
+cuatro destinos que caen en 404 a propósito, ni ítems, cronómetro, gráficas o
+glosario: no existen.
+
+**Cómo lo probé:** contraste con script propio parseando `globals.css` y
+convirtiendo `oklch()` → sRGB → WCAG 2.1 (80 pares, los dos temas, incluidos los
+estados con alfa `bg-accent/60` y `ring/50`) · Playwright + Chromium headless en
+venv del scratchpad, **cero dependencias nuevas en el proyecto** · 375 px y
+1280 px · claro y oscuro · zoom simulado a 200 % y 400 % · recorrido completo por
+teclado con medición del estado de foco **asentado** (esperando el fin de la
+transición) · CDP `CSS.getMatchedStylesForNode` para zanjar la cascada del foco ·
+CDP `Accessibility.getFullAXTree` para landmarks y nombres accesibles ·
+axe-core 4.x con `wcag2a,wcag2aa,wcag21aa,wcag22aa,best-practice`. `dev` en el
+puerto 3117 (el 3000 lo ocupa un proceso ajeno), cerrado al terminar.
+
+**Hallazgos:** Crítico 0 · Serio 1 · Moderado 2 · Menor 3. Detalle completo, con
+mediciones y arreglo en código, en `.claude/ACCESIBILIDAD.md`.
+
+- **A-01 · Serio** — 1.4.4 / 2.5.8. A 200 % de zoom en un móvil de 375 px (188 px
+  CSS) el quinto destino de la barra inferior queda con **3 px visibles de 44** y
+  su centro fuera de pantalla, sin scroll horizontal que lo recupere: `Ajustes`
+  deja de ser pulsable. Causa: los `<li className="flex-1">` conservan
+  `min-width:auto` y no encogen por debajo de `min-content` («Simulacros» = 63 px).
+  Arreglo verificado en navegador (`min-w-0` en el `<li>` + `truncate` con
+  `max-[22rem]:sr-only` en la etiqueta): a 188 px pasa a cinco celdas iguales de
+  38 px, todas visibles, y el nombre accesible se conserva.
+- **A-02 · Moderado** — 3.1.2. La región viva de sonner se anuncia
+  **«Notifications alt+T»**, en inglés, dentro de `lang="es-CO"`. Es la región que
+  anunciará todos los avisos desde el Paso 9. Arreglo: `containerAriaLabel="Avisos"`
+  en `proveedores.tsx`.
+- **A-03 · Moderado** — 2.4.1. «Saltar al contenido» no mueve el foco: `<main>` no
+  lleva `tabindex="-1"`. Funciona en Chromium (verificado: el `Tab` siguiente
+  continúa desde `main` y se salta la barra lateral completa), pero en
+  Safari/VoiceOver —el iPhone del Paso 18.10— el punto de partida secuencial no es
+  fiable. Arreglo: `tabIndex={-1}` en el `<main>` de `shell.tsx`.
+- **A-04 · Menor** — 1.4.11. `focus-visible:-outline-offset-2` mete los 2 px
+  superiores del contorno encima de la lengüeta de 4 px del destino activo, y
+  `--ring` es el mismo azul que `--primary`: **1.00:1** en ese borde (1.02–1.31:1
+  sobre los cuatro colores de bloque). No es fallo AA: los otros tres lados van a
+  6.37:1 / 7.15:1 y el foco se lee sin ambigüedad, confirmado por captura.
+  Decisión cosmética para `ui-designer`.
+- **A-05 · Menor** — 2.5.8 (exento por destino en línea). El enlace de la licencia
+  CC BY-NC-SA mide **108 × 15 px**: `min-height` no aplica a cajas `inline`, como
+  DISENO.md §3 anticipa. Cumple la norma pero está por debajo del piso propio de
+  44 px, y es el enlace que ADR-001 vuelve requisito de licencia. Arreglo:
+  `inline-block py-2`.
+- **A-06 · Menor (documentación)** — DISENO.md §1.3 afirma que shadcn compone
+  `focus-visible:outline-1 outline-ring`. **La versión instalada no lo trae**:
+  `button`, `badge`, `switch`, `input`, `select` y `accordion` solo llevan
+  `outline-none` + `border-ring` + `ring-ring/50`, y `border-ring` no dibuja nada
+  sin clase `border`. Riesgo real de regresión: un agente que lea DISENO.md puede
+  creer que la regla de `globals.css` es redundante y borrar con ella el foco de
+  toda la app. Corregir el párrafo (tarea de `ui-designer`).
+
+**Bloqueantes:** ninguno. Ningún Crítico. A-01 es el único que impide completar una
+acción, y solo bajo zoom al 200 %, con rodeo por el pie y por teclado.
+
+**Contraste:** **todos AA en los dos temas.** Los 23 tokens de `globals.css`
+coinciden **hex por hex** con DISENO.md §1.1 y §1.2 en claro y en oscuro: cero
+discrepancias. Los mínimos de §1.3 se reproducen exactamente con mi propio cálculo
+(`muted-foreground`/`muted` 4.93 · 5.06 — `aviso`/`background` 4.65 —
+`bloque-c`/`-suave` 4.64 — `input` 3.03). Las seis correcciones de ADR-009 (D-1
+a D-6) hacen lo que dicen. **`--border` por debajo de 3:1 queda confirmado como
+exento y no es deuda:** verifiqué en el código que solo dibuja separadores y filos,
+y que los bordes que sí identifican un control usan `--input`, que cumple 3:1.
+Único par por debajo del umbral: `ring` sobre la lengüeta de color (A-04), que no
+es un fallo AA por las razones anotadas.
+
+**Los dos hallazgos que el implementador reportó arreglados: los dos confirmados
+de forma independiente.**
+1. El foco de shadcn: diagnóstico correcto y arreglo efectivo. CDP demuestra que
+   `.outline-none` (0,1,0) y la regla propia (0,1,1) están **en la misma capa
+   `utilities`**, donde decide la especificidad, y que el `*{outline-color:ring/50}`
+   de `@layer base` pierde por orden de capa. Estado asentado en los 9 enfocables y
+   los dos temas: `2px solid` a `--ring` **completo**, 6.37:1 / 7.15:1. Matiz que
+   encontré y que no es fallo: `transition-all` anima `outline-color` desde
+   `ring/50` durante ~150 ms, así que una medición sin esperar la transición lee el
+   contorno a media opacidad. Es argumento adicional para saldar la deuda de
+   `transition-all` ya registrada en `COMPONENTES.md`.
+2. `text-muted-foreground` sobre `bg-accent`: **4.47:1 en oscuro, cifra exacta**
+   (4.72 en claro). Falla AA y las dos barras lo suben a `text-foreground` en el
+   mismo `hover`, con lo que pasa a 14.71 / 10.92. Barrí además los otros cinco
+   estados de hover y activo del paso: ninguno por debajo de AA.
+
+**En orden y sin necesidad de revisar otra vez:** `lang="es-CO"` · jerarquía de
+encabezados sin saltos en las dos rutas · `banner`/`main`/`contentinfo` únicos y
+los dos `nav` con nombres distintos · la barra lateral oculta está realmente fuera
+del árbol de accesibilidad y del orden de tabulación (**cero enfocables fantasma**,
+que es el patrón que el Paso 11 va a necesitar para ocultar el pie) · estado activo
+de la nav con `aria-current` + lengüeta + peso, **no solo color** · el riel de
+bloques expuesto como `image` con su alternativa textual completa en español ·
+`data-compacto` sin usar en ningún elemento · sin scroll horizontal a 200 % ni
+400 % · el pie deja 31 px de holgura sobre la barra fija ·
+`prefers-reduced-motion` respetado · consola limpia · **axe: 0 violaciones y 0
+incompletas en los dos temas** — que no es una aprobación, porque los seis
+hallazgos son justamente lo que axe no ve.
+
+**Pendiente:**
+- Arreglar A-01, A-02, A-03 y A-05 (`frontend-developer`); decidir A-04 y corregir
+  A-06 en DISENO.md (`ui-designer`).
+- **`error.tsx` quedó sin verificar en runtime:** en `dev` el overlay de Next
+  intercepta el límite de error. Usa el mismo `<Button>` + `<Link>` que el 404, que
+  sí quedó verificado, pero hay que ejercitarlo con build de producción en el
+  Paso 18.10.
+- Cuando exista la primera ruta con bloque (Paso 7), verificar que el *eyebrow* de
+  texto acompaña al color del riel: hoy el bloque activo se distingue
+  visualmente solo por `opacity-100` frente a `opacity-25`, y la alternativa
+  textual vive únicamente en el `aria-label` del riel. Es la decisión que
+  `COMPONENTES.md` deja abierta.
+- Re-auditar tras los Pasos 9, 11 y 12, como manda el ciclo.
+
+---
+
+## [2026-07-30 01:40] · accessibility-auditor · Paso 5 — reverificación de los arreglos
+
+**Qué audité:** los cuatro arreglos del Paso 5 sobre el armazón —
+`src/components/layout/nav-inferior.tsx` (A-01), `proveedores.tsx` (A-02),
+`shell.tsx` (A-03), `pie.tsx` (A-05)— más la aceptación documental de A-04
+(`DISENO.md` §4.6) y la corrección de A-06 (`DISENO.md` §1.3). Reverifiqué las
+rutas `/` y 404, y audité **por código** el componente nuevo
+`src/components/layout/rotulo-bloque.tsx`, que implementa la regla §2.4 y que
+todavía ninguna ruta consume.
+
+**Cómo lo probé:** Playwright + Chromium headless en el venv aislado del
+scratchpad (**cero dependencias nuevas en el proyecto**), `next dev` en el puerto
+**3117** — el 3000 lo ocupa un proceso ajeno que no toqué, y dejé el 3117 cerrado
+al terminar. Anchos 375, 352, 220, 188 y 94 px, más 640, 320 y 1280; `color-scheme`
+claro y oscuro en cada medición. Árbol de accesibilidad con CDP
+`Accessibility.getFullAXTree`; cascada CSS con `CSS.getMatchedStylesForNode` y
+`forcePseudoState`; axe-core 4.x inyectado desde el scratchpad. Contraste con mi
+script propio que parsea `globals.css` y convierte `oklch` → sRGB. Barridos de
+`Tab` de 22 pasos dejando **420 ms** tras cada salto para que `transition-all`
+asiente el contorno — sin esa espera se lee un falso 3 px a alfa 0.5.
+
+**Hallazgos:** Crítico 0 · Serio 0 · Moderado 0 · Menor 2 (**A-07** y **A-08**,
+los dos nacidos de los propios arreglos). Los seis originales quedan cerrados:
+A-01, A-02, A-03, A-05 y A-06 arreglados; A-04 aceptado por §4.6.
+
+**Cifras, antes → después:**
+- **A-01** · a 188 px (200 % de zoom sobre 375) las celdas pasan de
+  31/49/43/63/44 px con `Ajustes` **al 6 % de visibilidad y su centro fuera del
+  viewport**, a **cinco celdas iguales de 37,6 px, todas al 100 % y con los cinco
+  centros dentro**. A 375 px sin cambio: 5 × 75 px, sin recorte. Nombres
+  accesibles idénticos a 375, 188 y 94 px — `sr-only` conserva los cinco.
+- **A-02** · nombre de la región viva `"Notifications alt+T"` → **`"Avisos
+  alt+T"`**. La palabra inglesa desapareció; el sufijo `alt+T` lo concatena sonner
+  y es notación de tecla, no prosa. 3.1.2 satisfecho.
+- **A-03** · `document.activeElement` tras el salto: `<body>` → **`MAIN#contenido`**.
+  Funciona con teclado y con ratón. El `main` **no** entró en el orden de
+  tabulación (22 `Tab`, nunca lo toca).
+- **A-04** · sin cambio y sin fallo: lengüeta 4 px en `top-0`, contorno 2 px a
+  −2 px de offset, y los tres marcadores redundantes (`aria-current`, peso 600,
+  `text-foreground`) intactos. Las tres premisas de §4.6 se sostienen.
+- **A-05** · enlace de la licencia **108 × 15 px → 108 × 44 px**, y la holgura
+  sobre la barra fija **30,9 px → 31,4 px** sin ningún elemento del pie tapado.
+
+**Bloqueantes:** ninguno.
+
+**Contraste:** todos AA en los dos temas, sin cambios respecto a la auditoría
+original (`globals.css` no se tocó). Reconfirmé el par que necesita el componente
+nuevo: `text-bloque-{a,b,c,d}` sobre `--background` da 5.16 / 5.73 / **4.85** /
+5.04 en claro y 8.68 / 7.30 / 8.02 / 7.57 en oscuro — **el peor caso es C a
+4.85:1, exactamente lo que declara `DISENO.md` §1.3**. Los dos pares que siguen por
+debajo de 3:1 son los de A-04 (`--ring` sobre `--primary` y sobre los bloques), ya
+aceptados y documentados.
+
+**Regresiones buscadas expresamente, y su resultado:**
+- Nombre accesible completo cuando la etiqueta pasa a `sr-only` → **sin regresión**.
+- `tabIndex={-1}` metiendo el `main` en el orden de tabulación → **no lo metió**.
+- `py-2` del pie descuadrando el bloque legal → **sí descuadra**: el párrafo de
+  atribución pasa de 97,5 a **122 px** y una caja de línea de 15 a 44 px, así que
+  el texto se lee en tres trozos y parte «Idóneo / 2210». Es **A-08**.
+- Foco de 2 px vivo en los enfocables → **sin regresión**, y **son 11 por ancho, no
+  9**: corrijo mi propio número. 44 medidas (2 anchos × 2 temas × 11), todas
+  `2px solid` a `--ring` completo, sin alfa.
+- Enfocables fantasma → **ninguno**, recontado. Las celdas de la barra oculta dan
+  caja de 0 px porque su ancestro es `display:none`; están fuera del árbol y fuera
+  del `Tab`. Un detector por tamaño de caja las marca como falso positivo.
+
+**Lo nuevo que encontré:**
+- **A-07 · Menor.** El `focus-visible:outline-none` que el arreglo de A-03 puso en
+  el `<main>` **es código muerto**: pierde la cascada. Confirmado con
+  `getMatchedStylesForNode` — `.focus-visible\:outline-none:focus-visible` y
+  `[tabindex]:focus-visible` están en la misma capa `utilities` con la misma
+  especificidad (0,2,0), y el bloque de `globals.css` va después, así que gana. El
+  `main` **sí** pinta `2px solid --ring` alrededor de la columna de 375 × 505 px al
+  usar el salto. No infringe nada —2.4.7 quiere un indicador visible— pero el
+  código afirma hacer algo que no hace.
+- **A-08 · Menor.** El descuadre del párrafo legal descrito arriba. Probé cuatro
+  variantes y la buena está medida: conservando `display:inline` con `py-3.5` el
+  objetivo queda en **108 × 43 px** y el párrafo vuelve **exacto a 97,5 px**,
+  porque el padding vertical de una caja `inline` agranda el área de toque sin
+  tocar la caja de línea. 43 px superan de sobra el 24 × 24 de 2.5.8 AA.
+
+**axe-core** (`wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, `wcag22aa`,
+`best-practice`): **0 violaciones y 0 incompletas** en `/` y en el 404, en los dos
+temas, 40 reglas pasadas por corrida. Y lo digo otra vez porque esta ronda lo
+prueba dos veces: axe dio 0 **antes y después**. No vio ninguno de los seis
+hallazgos originales ni ve los dos nuevos.
+
+**Zoom:** sin scroll horizontal a 640 px (1280 al 200 %), a **320 px** (el ancho de
+referencia de 1.4.10 para el 400 %) ni a 188 px (375 al 200 %), en los dos temas. A
+94 px (375 al 400 %, muy por debajo de lo que exige cualquier criterio AA) sí
+desborda, por el botón `shrink-0` del encabezado: anotado, no es hallazgo.
+
+**Pendiente:**
+- Decidir **A-07** y **A-08** (`ui-designer`): los dos son Menores y cosméticos, y
+  los dos tienen el arreglo medido en `ACCESIBILIDAD.md`. Ninguno bloquea el cierre
+  del Paso 5.
+- **`RotuloBloque` queda aprobado solo por código.** Reauditarlo en runtime en el
+  Paso 7, cuando exista la primera ruta con bloque: comprobar que va encima del
+  `<h1>` sin romper la jerarquía y que el rótulo, no el color del riel, es lo que
+  comunica el bloque. Esto **cierra** el pendiente que dejé abierto sobre el
+  *eyebrow* de texto: §2.4 lo resolvió.
+- `error.tsx` sigue sin verificar en runtime — necesita build de producción,
+  Paso 18.10.
+- Re-auditar tras los Pasos 9, 11 y 12, como manda el ciclo.
+
+## [2026-07-30 01:15] · cierre de los hallazgos de accesibilidad · Paso 5
+
+Los seis hallazgos de la auditoría del Paso 5, más los dos que salieron al reverificar. Ninguno bloqueaba el cierre; los ocho quedan cerrados.
+
+**Arreglados en código** (A-01 a A-03 y A-05 con las soluciones que el propio auditor había verificado antes de proponerlas):
+
+| | Antes | Después |
+|---|---|---|
+| **A-01** Serio · barra inferior a 200 % de zoom | celdas 31/49/43/63/44 px; **`Ajustes` visible al 6 %**, su centro fuera del viewport y `scrollWidth` intacto, o sea sin scroll con el que recuperarlo | **cinco celdas iguales de 37,6 px**, las cinco al 100 %, los cinco centros dentro. A 375 px sin cambio |
+| **A-02** Moderado · región viva en inglés | `"Notifications alt+T"` dentro de `lang="es-CO"` | `"Avisos alt+T"` |
+| **A-03** Moderado · el salto no movía el foco | `activeElement` = `<body>` | `MAIN#contenido`, con teclado y con ratón, y **sin** entrar al orden de tabulación |
+| **A-05** Menor · enlace de la licencia | 108 × 15 px | 108 × 43 px, con el párrafo legal intacto |
+
+**Resueltos por el `ui-designer` en `DISENO.md`:**
+
+- **§2.4, nueva REGLA DEL SISTEMA — el rótulo de bloque.** Cierra el hueco que el auditor señaló: el riel comunica el bloque **solo por color**, contra §1.2. Toda pantalla con exactamente un bloque en contexto lleva `BLOQUE C · CIENCIAS APLICADAS` encima de su `<h1>`, en el color del bloque. Las dos partes son necesarias: la letra empareja con el color, el título lo hace legible para quien no memorizó las letras. Asignado a la **página** y no al encabezado, porque la página ya resolvió su `Modulo` desde `params` y el encabezado tendría que pasar a cliente para deducir con `usePathname` un dato que la página tiene exacto — y eso habría añadido una cuarta alta a §10.3, que ADR-009 aprobó justo por lo contrario.
+- **A-04 aceptado sin cambio de código** (§4.6): la lengüeta se queda en `top-0`. Tres de los cuatro lados del foco van a 6.37/7.15:1, ocurre solo en el destino ya activo y solo con foco, y ahí `aria-current` + peso 600 + `text-foreground` ya lo marcan de forma redundante. Quedaron escritas las tres condiciones que obligan a reabrirlo.
+- **A-06, §1.3 reescrito.** Era el hallazgo con más riesgo a futuro: el documento describía un foco de shadcn que no existe, así que un agente podía concluir que la regla de `globals.css` era redundante y **borrar con ella el foco visible de toda la app**. Ahora describe lo instalado y declara que esa regla es el portador único: no se borra, no se mueve a `@layer base`, no se "simplifica". Tres filas nuevas en §5.2 lo blindan.
+
+**Nuevo componente:** `src/components/layout/rotulo-bloque.tsx`, Server Component, implementa §2.4. Al no llevar `"use client"` no añade altas a §10.3. Todavía ninguna ruta lo consume — las rutas con bloque llegan en el Paso 7 —, así que quedó **aprobado solo por código**: es un `<p>` y no un encabezado, sin `aria-hidden`, y las mayúsculas las hace `uppercase` en CSS y no el string, así que el lector recibe «Bloque C · Ciencias Aplicadas» y no lo deletrea. Contraste sobre el fondo: A 5.16/8.68 · B 5.73/7.30 · **C 4.85**/8.02 · D 5.04/7.57 — el peor caso es C a 4.85:1 en claro, exactamente lo que declara §1.3.
+
+**Los dos hallazgos que salieron al reverificar, residuo de mis propios arreglos:**
+
+- **A-07** · el `focus-visible:outline-none` que añadí con A-03 era **código muerto**: misma capa y misma especificidad que la regla de `globals.css`, que va después y gana. El `<main>` sí pinta el contorno al recibir el salto, y eso es deseable (2.4.7) y transitorio. Se borra la clase y se documenta, porque dejar código que afirma hacer algo que no hace es peor que el contorno.
+- **A-08** · mi `inline-block py-2` de A-05 sí agrandó el objetivo, pero **infló la caja de línea del párrafo de atribución**: 97,5 → 122 px, partiendo «Idóneo / 2210». Es el párrafo que ADR-001 vuelve requisito de licencia. Arreglo medido entre cuatro variantes: conservar `display: inline` con `py-3.5` → objetivo de 108 × 43 px y párrafo **exacto a 97,5 px**, porque el padding vertical de una caja `inline` no altera la caja de línea. Los 43 px superan el 24×24 de 2.5.8; el piso de 44 de §3 es norma interna, y queda 1 px corto a cambio de que el texto legal se lea de un tirón.
+
+**Dos cosas del método que vale la pena conservar:**
+
+- **axe-core dio 0 violaciones antes y después de los ocho hallazgos.** No vio ninguno. Es la mejor evidencia de por qué el verde automático no aprueba nada.
+- El foco tarda ~420 ms en asentarse porque `transition-all` anima `outline-color`: una medición instantánea lo lee a 3 px y alfa 0.5 y parece un fallo que no existe. Queda anotado como método en `ACCESIBILIDAD.md`, y es argumento extra para la deuda de `transition-all` ya registrada.
+
+**Corrección de un número propio del auditor:** los elementos enfocables son **11 por ancho, no 9**. Las 44 medidas (2 anchos × 2 temas × 11) dan `2px solid` a `--ring` completo, sin alfa.
+
+**Compuertas:** `typecheck` 0 · `lint` limpio · `test` **183 en verde** · `validar` verde · `build` verde.
+
+**Anotado en `PENDIENTES.md` → Paso 18.10:** `src/app/error.tsx` no se ha ejercitado nunca en runtime, porque en `dev` el overlay de Next intercepta el límite de error. Hay que forzar un error con build de producción y comprobar el mensaje, el `reset()` y el foco de los dos botones.
+
+---
+
+## [2026-07-30 02:10] · frontera server/client y fuga de bundle · Paso 5
+
+El usuario reportó que `encabezado.tsx` y `pie.tsx` llevaban `"use client"` y que 9 de 10 componentes del shell eran cliente. **Era un artefacto de medición**: la línea 1 de varios archivos servidor contenía la cadena literal `"use client"` dentro del comentario que decía no usarla, y `grep "use client"` la cuenta como directiva. El reparto real es **6 clientes y 8 servidores**, y `pie.tsx` **es Server Component**, así que **no hay desviación de §11.7 que registrar**.
+
+Pero la pregunta de fondo abrió el hallazgo con más consecuencias del paso.
+
+**1 · La fuga de bundle — ADR-010**
+
+`riel-bloques.tsx` es cliente e importaba `BLOQUES` de `@/content/estructura`. Parecía gratis: son 4 objetos pequeños. **No lo era:** los 29 módulos completos —con `objetivos`, `conceptosClave`, `subtitulo`— viajaban al navegador. Confirmado buscando `"osteomuscular"` en `static/chunks/app/layout-*.js`.
+
+La causa no es obvia: `content/estructura.ts:593` evalúa `MODULOS_POR_SLUG = new Map(MODULOS.map(...))` en el ámbito del módulo, lo que **ancla `MODULOS`** y bloquea el tree-shaking aunque solo se importe `BLOQUES`. `"sideEffects": false` **no lo arregla** (medido: 149.9 → 149.6 kB, ruido).
+
+Arreglo: `Encabezado` (servidor) proyecta `BLOQUES` a `SegmentoRiel[]` —`{ id, peso, titulo }`— y lo pasa por prop. El riel ya no conoce `content/`.
+
+| | `/layout` gz | chunk `app/layout` raw |
+|---|---|---|
+| Antes | 149.9 kB | 28 100 B |
+| **Después** | **144.3 kB** | **8 717 B** (−69 %) |
+
+**Por qué esto importa mucho más de lo que parece hoy:** con 29 módulos y 0 ítems cuesta 5,6 kB. En los pasos 15–17 `content/` llega a ~750 ítems, cada uno con enunciado, opciones, explicación de ≥200 caracteres y pasos. Un solo import descuidado desde un cliente metería el banco entero en el bundle inicial de una app que debe cargar en <3 s en 4G y funcionar offline. **El daño escala con el contenido, no con el código**, así que la regla se fija ahora, cuando cumplirla cuesta un `map` de tres campos.
+
+No contradice la asimetría de §2.2 («el banco es importable desde el cliente»): ahí se busca `import()` **dinámico** bajo interacción, con code splitting real. ADR-010 prohíbe el import **estático** en el grafo del bundle inicial.
+
+**2 · La cifra de peso con la que estábamos razonando era falsa**
+
+El `First Load JS` que imprime `npm run build` **no incluye el chunk del layout raíz**, así que subestima la primera carga en ~30 kB: reportaba **103 kB** cuando la real era **149.9 kB**. La métrica del armazón es el `/layout` gz calculado desde `.next/app-build-manifest.json`. **Referencia: 144.3 kB.** Registrado como contrato en `COMPONENTES.md` para que ningún paso siguiente use los 103 kB.
+
+**3 · La frontera está bien puesta**
+
+Los seis clientes son necesarios, ninguno redundante ni innecesario: `proveedores` (contexto de tema), `interruptor-tema` (`useTheme`, `useState`, `useEffect`, `onClick`), `nav-inferior`, `barra-lateral` y `riel-bloques` (`usePathname`), y `app/error.tsx` (lo exige Next, y recibe `reset`, no serializable). **Cero desvíos** de §10.3 + ADR-009.
+
+Dos cosas que se evaluaron y se descartaron con número:
+
+- **Volver el riel a servidor** recibiendo el bloque por prop, como hace `RotuloBloque`. **No se puede:** `Shell` lo monta en el layout raíz, y **el layout raíz no recibe los `params` de las rutas hijas**. §2.4 funciona para el rótulo porque lo pone la *página*, que sí los tiene. La salida con `data-bloque` + CSS `:has()` acopla el riel a un atributo que 19 rutas deben recordar poner, y vale 1,9 kB. Descartada.
+- **Aislar la parte dependiente de la ruta en las dos barras.** El ahorro tras arreglar el import es ~1,9 kB gz para las dos juntas, y no es limpiamente aislable: `aria-current` y la clase del activo van en el **mismo** `<Link>` que el marcado, así que habría que envolver cada uno de los 5 destinos en un cliente — más JS, no menos. Además `next/link` ya monta el runtime del router, así que `usePathname` solo lee un contexto que ya existe.
+
+**4 · El comentario que causó el error, reescrito**
+
+`SIN "use client"` → `sin directiva de cliente` en 8 archivos (los 5 del shell más `tipos.ts`, `esquemas.ts` y `destinos.ts`). Verificado: **ningún comentario fuera de `src/components/ui/` contiene ya la cadena**, así que una auditoría futura no puede volver a contar mal. La forma correcta de medir quedó documentada en `COMPONENTES.md`:
+
+```bash
+grep -rlE "^\s*['\"]use client['\"];?\s*$" src/
+```
+
+**5 · El contrato del Paso 11 para el pie, especificado sin construirlo**
+
+El contrato que tenía `COMPONENTES.md` era **inviable**: decía ocultar el pie con `hidden` desde `Shell`, que es servidor y no puede leer `localStorage`. El correcto es un envoltorio cliente que reciba el pie como `children` — `<OcultaEnSimulacro><Pie /></OcultaEnSimulacro>` —, con lo que `Pie` se renderiza en el servidor y viaja como payload RSC: **el componente que lleva la atribución de ADR-001 nunca entra al bundle cliente**. Descartado mutar `document.body.dataset` (exige limpieza al desmontar y se rompe en silencio si dos componentes compiten por el atributo) y descartado volver `Pie` cliente. Especificado en `COMPONENTES.md`, **no construido**: es del Paso 11 y suma una alta a §10.3.
+
+**6 · Correcciones documentales**
+
+`COMPONENTES.md`: fila de `RotuloBloque` añadida · sección «Decisión de diseño pendiente» reemplazada por «Decisiones ya cerradas», porque §2.4 la resolvió · el bullet del rótulo pasa a regla del sistema · contrato del pie reescrito · dos contratos nuevos (ADR-010 y la métrica de peso) · nota de que `bloqueDeRuta` es la única vía de conocer el bloque en el encabezado.
+
+**Enmienda contable a ADR-009:** decía «tres altas» a §10.3. Son **dos** (`riel-bloques.tsx`, `app/error.tsx`); lo de `encabezado.tsx` fue aclarar que es servidor, y §10.3 lista los archivos que **sí** llevan la directiva. No cambia ninguna decisión.
+
+**Compuertas:** `typecheck` 0 · `lint` limpio · `test` **183 en verde** · `validar` verde · `build` verde · `/layout` **144.3 kB gz** · `grep` de contenido en el chunk del layout: limpio.
+
+---
+
+## [2026-07-30 02:35] · aclaración de la métrica de peso · Paso 5
+
+El usuario detectó una inconsistencia real: el diagnóstico reportó **134.4 kB** de `/layout` gz y la remedición **149.9 → 144.3 kB**. El delta (~5,6 kB) y el −69 % del chunk eran consistentes, la cifra base no.
+
+**Causa, encontrada midiendo:** ninguna de las dos cifras fijaba su método, y el número esconde dos decisiones.
+
+| Decisión | Efecto |
+|---|---|
+| ¿solo `.js`, o también el `.css`? | el CSS son **12.3 kB** de los 144.3 |
+| ¿gzip por archivo y sumado, o gzip de la concatenación? | concatenar comprime ~2 % mejor y **subestima** — el navegador descarga los archivos por separado |
+
+Mi script no filtraba por extensión, así que contaba 9 archivos (8 js + 1 css) = 144.3 kB. El diagnóstico contaba solo js, ~132–134 kB. Las dos estaban "bien"; medían cosas distintas.
+
+**Métrica oficial fijada:** `/layout`, **solo `.js`**, **gzip por archivo y sumado** — lo que de verdad viaja por la red. El CSS se reporta aparte.
+
+| | gz |
+|---|---|
+| **`/layout` js — OFICIAL** | **132.0 kB** |
+| `/layout` css | 12.3 kB |
+| `/layout` total | 144.3 kB |
+| chunk `app/layout` | 3.2 kB (8 717 B raw) |
+
+`COMPONENTES.md` queda con **la cifra y el comando exacto que la produce**, en una sola línea copiable, con la salida esperada para que la comparación sea válida. ADR-010 queda con las cifras **etiquetadas por alcance** y una advertencia: el valor «antes» de la columna js es **derivado, no medido** —solo se midió el total antes del arreglo, y recomputarlo exigiría revertir el cambio—, así que **la evidencia dura del arreglo es el chunk `app/layout`, medido en las dos corridas: 28 100 → 8 717 B raw.**
+
+Registrado también que la comprobación preferida **no es la cifra sino el `grep`** de una cadena de contenido en el chunk del layout: es binaria y no depende del método de medición.
+
+Sin cambios de código. Compuertas sin tocar: `typecheck` 0 · `lint` limpio · `test` 183 · `validar` verde · `build` verde.
+
+---
