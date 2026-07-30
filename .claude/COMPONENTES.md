@@ -9,8 +9,10 @@ frontera está en §10.2 del blueprint, y la lista cerrada de archivos con
 `"use client"` en §10.3, **ampliada por ADR-009 con dos altas** —
 `riel-bloques.tsx` y `app/error.tsx`—. Lo de `encabezado.tsx` **no fue un alta**:
 fue aclarar que es Server Component, y §10.3 lista archivos que sí llevan la
-directiva. Verificado el 2026-07-30: la lista real son 6 clientes y coincide
-exactamente con §10.3 + ADR-009, sin desvíos.
+directiva. Verificado al cerrar el Paso 8: la lista real son **9 clientes** —los
+6 del Paso 5 más `etapas-modulo.tsx`, `marcador-lectura.tsx` y
+`mazo-tarjetas.tsx`, los tres previstos por §10.3— y coincide exactamente con
+§10.3 + ADR-009, sin desvíos.
 
 > **Cómo contar los clientes sin equivocarse.** `grep "use client"` da falsos
 > positivos: varios comentarios mencionaban la cadena para decir que **no** la
@@ -20,6 +22,15 @@ exactamente con §10.3 + ADR-009, sin desvíos.
 >
 > ```bash
 > grep -rlE "^\s*['\"]use client['\"];?\s*$" src/
+> ```
+>
+> Ese comando devuelve **22** al cerrar el Paso 8, no 9: cuenta también los 12
+> componentes de `src/components/ui/` (shadcn, generados por el CLI y ajenos a
+> §10.3) y `src/hooks/usar-estado.ts`. La cuenta de «clientes» de este documento
+> es la de código propio de aplicación, excluyendo `ui/` y `hooks/`:
+>
+> ```bash
+> grep -rlE "^\s*['\"]use client['\"];?\s*$" src/ | grep -v "src/components/ui/\|src/hooks/"
 > ```
 
 ---
@@ -139,7 +150,7 @@ exactamente con §10.3 + ADR-009, sin desvíos.
   ninguna cifra** y por eso es la comprobación preferida:
 
   ```bash
-  grep -l "osteomuscular\|conceptosClave" .next/static/chunks/app/layout-*.js
+  grep -rl "osteomuscular" .next/static/chunks/   # ← ver la nota de más abajo: `conceptosClave` ya NO sirve
   ```
 
   Si devuelve algo, un componente cliente volvió a importar `content/`.
@@ -421,6 +432,176 @@ contenido de erratas (`diceLaCartilla`, «Las cartillas se contradicen») en
 
 ---
 
+## Etapas del módulo y mazo de tarjetas (Paso 8)
+
+| Componente | Archivo | S/C | Props | Quién lo usa |
+|---|---|---|---|---|
+| `PaginaTarjetas` | `src/app/modulos/[slug]/tarjetas/page.tsx` | Server | `params: Promise<{ slug }>` | ruta `/modulos/[slug]/tarjetas` · los 29 slugs se prerenderizan |
+| `EtapasModulo` | `src/components/modulo/etapas-modulo.tsx` | **Client** | `datos: DatosEtapas`, `etapaActual?: 1\|2\|3\|4` | `PaginaModulo` (etapa 1) y `PaginaTarjetas` (etapa 2) |
+| `DatosEtapas` | idem (tipo) | tipo | `{ slug, bloque, hayTeoria, totalTarjetas }` | las dos páginas lo construyen en el servidor |
+| `MarcadorLectura` | `src/components/modulo/marcador-lectura.tsx` | **Client** | `slug: string` | `PaginaModulo`, justo después del MDX |
+| `MazoTarjetas` | `src/components/modulo/mazo-tarjetas.tsx` | **Client** | `slug`, `bloque`, `tarjetas: readonly TarjetaEnMazo[]` | `PaginaTarjetas` |
+| `TarjetaEnMazo` | idem (tipo) | tipo | `{ id, frente, reverso, tipo }` | la página proyecta ahí el `Tarjeta[]` de `cargarTarjetas` |
+
+**Tres altas a la lista cerrada de §10.3**, las tres previstas por el blueprint
+(`etapas-modulo.tsx`, `marcador-lectura.tsx`, `mazo-tarjetas.tsx`). Con ellas la
+app pasa de **6 a 9 clientes**. Comprobación:
+`grep -rlE "^\s*['\"]use client['\"];?\s*$" src/`.
+
+### Contratos de este paso
+
+- **La página carga el contenido; el cliente lo recibe proyectado.** `cargarTarjetas(slug)`
+  se llama **en el servidor**, desde `PaginaTarjetas` y desde `PaginaModulo` (esta
+  última solo para el `.length`). `MazoTarjetas` recibe `TarjetaEnMazo[]` sin el
+  campo `modulo`, que la ruta ya conoce. Ningún cliente importa `content/`
+  (ADR-010): verificado con el canario, ver más abajo.
+- **`useEstado()` devuelve `null` en dos situaciones distintas y hay que
+  distinguirlas.** Además del primer render (servidor e hidratación), devuelve
+  `null` **de forma permanente mientras el usuario no tenga nada guardado**:
+  `obtenerSnapshot` lee `localStorage` y no escribe. Un componente que trate
+  `null` como «cargando» deja el esqueleto puesto **para siempre** en todo
+  usuario nuevo — que son todos, la primera vez. `EtapasModulo` lo resuelve con
+  una bandera `montado` (`useState` + `useEffect` vacío): antes del efecto,
+  esqueleto; después, `estado?.modulos[slug] ?? estadoModuloInicial()`. Eso **no**
+  es «un valor por defecto que luego salta»: cero progreso guardado es cero
+  progreso. **Todo componente que lea el progreso en los Pasos 9–14 tiene el
+  mismo problema y debe copiar este patrón.**
+- **El esqueleto solo cubre lo que depende del estado.** Los nombres de las
+  cuatro etapas y sus enlaces son estáticos y se pintan desde el servidor; lo
+  único que se sustituye por una barra es la celda de estado. Sin salto de
+  layout y sin pantalla en blanco.
+- **Las etapas 3 y 4 no enlazan a ninguna parte.** Sus rutas nacen en el Paso 9;
+  enlazarlas hoy daría un 404. La fila es un `<div>`, no un botón deshabilitado,
+  y dice su estado en palabras («Todavía no está lista»), con una nota debajo que
+  explica qué sí se puede hacer hoy. Verificado en navegador: cero `href` hacia
+  `/practica` o `/quiz`. **Cuando el Paso 9 cree las rutas, basta con darles
+  `href` en `construirFilas`.**
+- **La flecha de las filas enlazadas es afordancia, no adorno.** Sin ella, en
+  táctil —donde no hay hover— una fila que navega y una que no se ven idénticas.
+  Va **solo** en las filas con `href`, así que la señal no depende del color.
+- **`MarcadorLectura` no marca la teoría si el usuario salta al final.** El
+  centinela se observa con `rootMargin: '0px 0px -10% 0px'`, de modo que tiene
+  que entrar de verdad en pantalla. Un salto instantáneo al pie (tecla `Fin`,
+  arrastrar la barra) va de «debajo del viewport» a «encima» en un solo frame,
+  el ratio nunca cambia de 0 y el observador no dispara. **Es deliberado, no un
+  fallo:** quien salta el texto no lo leyó. Verificado en navegador en los dos
+  sentidos: lectura gradual marca `teoriaLeida`, salto directo no.
+- **El mazo registra `tarjetasVistas` y nada más.** La cola de repaso espaciado
+  es del Paso 10. Verificado en navegador: tras recorrer las 15 tarjetas,
+  `colaRepaso` sigue en `{}` y `practicaCompletada`/`mejorQuiz` sin tocar. En la
+  pasada de repaso de las falladas **no** se registra: el mazo es un
+  subconjunto y `Math.max` no bajaría el valor, pero la escritura no aporta nada.
+- **El progreso se registra tarjeta a tarjeta, no al final.** Cerrar la pestaña a
+  mitad del mazo conserva lo visto.
+- **Cero aleatoriedad.** El mazo va en el orden en que el autor escribió las
+  tarjetas, que es pedagógico. Barajar exigiría `crearRng(semilla)` y una semilla
+  que aquí no significa nada (§22 regla 5).
+- **Foco explícito en las tres transiciones del mazo.** Al revelar, al avanzar y
+  al terminar, el elemento que tenía el foco desaparece del DOM y el foco caería
+  al `<body>`. Se mueve a mano: revelar → la caja del reverso (`tabIndex={-1}`,
+  para que el lector de pantalla lea la respuesta y los dos botones queden justo
+  después); avanzar → el botón «Ver la respuesta»; terminar → el resumen. Las
+  tres verificadas en navegador.
+- **Teclado completo, sin listener global.** `Enter`/`Espacio` son nativos de los
+  botones; `1` y `2` los captura un `onKeyDown` **en el contenedor**, no en
+  `window`, así que solo actúan cuando el foco ya está dentro del mazo y no le
+  roban teclas al resto de la app. El atajo se anuncia en pantalla desde `sm`.
+- **El contador es `role="status"`.** Es lo que anuncia el avance sin recargar y
+  sin robar el foco. La banda de avance es `aria-hidden`: relleno puro,
+  `rounded-none`, sin tipografía encima y **sin transición** — `width` es
+  propiedad de layout y DISENO.md §3 no la admite (§4.2 regla 6: movimiento, uno
+  o ninguno).
+- **El resumen no felicita.** Tres mensajes según el resultado, y el de cero
+  fallos es el más severo: reconocer una respuesta al verla no es producirla en
+  el examen (§22 regla 10).
+- **El botón del mazo es marcado propio, no `Button` de shadcn.** Misma decisión
+  que la insignia del Paso 6 y por la misma razón: `button.tsx` importa el barrel
+  `radix-ui` (77.5 kB gz, ADR-011) y esta es una ruta de estudio diaria. Las
+  clases son las de `buttonVariants`, menos el `transition-all` que §5.2 prohíbe.
+  `Skeleton` sí sería gratis (no importa radix), pero el esqueleto son cuatro
+  celdas y se resolvió con un `<span>` y `animate-pulse`.
+- **El enlace al módulo del subtítulo de `/tarjetas` mide 41,5 px, y es correcto.**
+  Es una caja `inline` dentro de un párrafo, el caso que DISENO.md §3.1 declara
+  exento (`min-height` no aplica a cajas inline), igual que los prerequisitos que
+  el Paso 7 ya envió. No es la única vía de vuelta: están también la fila
+  «Esencial» de las etapas y el «Volver al módulo» del resumen.
+- **Jerarquía verificada en las dos rutas.** `/modulos/[slug]`: un solo `h1` y
+  `h2` para etapas, objetivos, teoría, conceptos y erratas. `/modulos/[slug]/tarjetas`:
+  `h1` «Tarjetas» → `h2` «Las cuatro etapas». **El frente de la tarjeta es un
+  `<p>`, no un encabezado**: es una pregunta, y como `h3` metería un salto antes
+  del primer `h2`.
+
+### ⚠ El canario de ADR-010 tiene un falso positivo desde este paso
+
+El comando que documenta este archivo es:
+
+```bash
+grep -l "osteomuscular\|conceptosClave" .next/static/chunks/app/layout-*.js
+```
+
+**`conceptosClave` ya no sirve como canario.** Es también un campo de `esqModulo`
+en `src/lib/esquemas.ts`, y `esquemas.ts` entra legítimamente al bundle cliente
+desde el Paso 8: `almacenamiento.ts` importa `esqEstadoProgreso` para
+`intentarMigrar`, que corre en `obtenerSnapshot` en cada cliente que usa
+`useEstado()`. Lo mismo pasa con `diceLaCartilla`, `estadoContenido` y
+`minutosEstimados`: son **nombres de campo de esquemas**, no datos.
+
+**El canario fiable es `osteomuscular`** — texto de un título de módulo real, que
+solo existe en `content/estructura.ts`:
+
+```bash
+grep -rl "osteomuscular" .next/static/chunks/    # limpio al cerrar el Paso 8
+```
+
+### Peso — las dos métricas, medidas al cerrar el paso
+
+| | gz |
+|---|---|
+| **`/layout` js — MÉTRICA OFICIAL** | **131.9 kB** (132.0 en los Pasos 6 y 7: sin cambio real) |
+| `/layout` css | 13.0 kB → **13.5 kB** |
+| `/layout` total | 145.0 kB → **145.4 kB** |
+
+| Ruta | js gz | chunks | Antes |
+|---|---|---|---|
+| `/modulos/[slug]/page` | **134.0 kB** | 9 | 106.9 kB (Paso 7) |
+| `/modulos/[slug]/tarjetas/page` | **135.8 kB** | 9 | — (nueva) |
+
+**+27 kB gz sobre el piso de servidor puro. Investigado antes de cerrar, como
+manda la regla, y explicado — no es un import accidental.** Diferencia de chunks
+contra `/modulos/page`, con el gzip por archivo:
+
+| Chunk | gz | Qué es | Quién lo trae |
+|---|---|---|---|
+| `565-*` | **13.0 kB** | **Zod** (`ZodError`, `invalid_type`) | `almacenamiento.ts` → `esquemas.ts` → `esqEstadoProgreso.safeParse` en `intentarMigrar` |
+| `5-*` | **9.3 kB** | **tailwind-merge** (26,9 kB en crudo, export `QP`) + el runtime de los iconos de lucide | `cn()` de `src/lib/utils.ts` |
+| `571-*` | 5.0 kB | `almacenamiento.ts` + `usar-estado.ts` + los tres componentes del paso + **todas** las definiciones de esquema | este paso |
+| `page-*` | 0.5 kB | la propia ruta | este paso |
+
+**Los dos grandes son un escalón de una sola vez, no un coste por ruta.** Zod y
+`tailwind-merge` los paga **el primer Client Component que lee el progreso**, y
+el Paso 8 es ese momento: `useEstado()` no puede funcionar sin `almacenamiento.ts`,
+y `almacenamiento.ts` valida el estado guardado con Zod al leerlo, que es el
+diseño de §6 del blueprint. `cn()` es el ayudante estándar del proyecto y lo usan
+los 6 clientes que ya existían. Los Pasos 9–14 añaden clientes **sin volver a
+pagar estos 22 kB**: ya están en chunks compartidos.
+
+**Lo que sí queda como deuda medible, con dueño y con cifra:** `esquemas.ts` es
+**un solo módulo** y los esquemas de Zod se construyen en el ámbito del módulo,
+así que importar `esqEstadoProgreso` arrastra también `esqItem`, `esqTarjeta`,
+`esqErrata`, `esqModulo`, `esqDatoDuro` y `esqEntradaGlosario` —los siete tipos
+de ítem incluidos— al navegador, donde **ninguno se usa**: solo los consume
+`scripts/validar-banco.ts`, que corre en Node. Partirlo en
+`esquemas-progreso.ts` (lo que el navegador necesita) y `esquemas-contenido.ts`
+(lo que solo necesita el validador) recortaría buena parte de los 5,0 kB del
+chunk `571` y podría reducir el árbol de Zod que sobrevive al tree-shaking.
+**No se hace en este paso:** §5 del blueprint dicta `src/lib/esquemas.ts` como un
+archivo único y §22 regla 2 manda copiarlo tal cual; partirlo es una desviación
+que necesita ADR. Decidirlo junto con la deuda del barrel de `radix-ui`
+(`PENDIENTES.md` → Pasos 9 y 11), que es el mismo tipo de problema y se toca en
+el mismo momento.
+
+---
+
 ## Ayudantes de UI en `src/lib/utils.ts`
 
 | Función | Qué hace | Test |
@@ -458,7 +639,6 @@ note.
 
 | Qué | Paso |
 |---|---|
-| `EtapasModulo`, `MarcadorLectura`, `MazoTarjetas` | 8 |
 | Los 7 componentes de ítem, `EnvoltorioItem`, `Retroalimentacion`, `ControladorSesion` | 9 |
 | `ControladorRepaso` | 10 |
 | `CronometroVisual`, `PanelNavegacion`, `DialogoReanudar` | 11 |

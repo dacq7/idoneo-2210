@@ -35,24 +35,13 @@ Se transcribieron §9.2–§9.5 (6 blueprints · 14 erratas · 70 datos duros ·
 - `/erratas` agrupa por **tres** tipos y conserva el ancla `id="X-03"`: `DD-001` de `datos-duros.ts` enlaza por ahí.
 - ~~Decidir el `tipo` de `X-03`~~ **resuelto en el Paso 6 (ADR-012)**: es `'aclaracion'`.
 
-## Paso 8 — Módulo piloto C5
+## Paso 8 — Módulo piloto C5 · ✅ CERRADO el 2026-07-30
 
-- **C5 lleva 28 ítems** (ADR-006). `CLAUDE.md` ya está corregido en las líneas 176, 5350, 6295 y 6319, así que la instrucción del paso y el árbol de directorios dicen 28. §14.3 sigue trayendo **25 ítems de código**: hay que escribir 3 más.
-- Los tres ítems adicionales **no son libres de nivel**: al pasar `n` de 25 a 28, los umbrales de `verificarCuotas` se mueven y dos quedan forzados.
-
-  | Id | Nivel | Dificultad | Tipo |
-  |---|---|---|---|
-  | `C5-026` | recuerdo | 1 | única |
-  | `C5-027` | comprensión | 2 | múltiple |
-  | `C5-028` | aplicación | 3 | cálculo |
-
-  Reparto final: **12 recuerdo · 9 comprensión · 7 aplicación**. Si al redactar uno sale de otro nivel, **no basta con reetiquetarlo**: recuerdo volvería a 11/28 y el build rompe.
-- `content/teoria/c5-umbrales-zonas.mdx` **debe existir** antes de voltear C5 a `'completo'`: desde ADR-005 el validador exige la teoría de todo módulo completo.
-- Registrar C5 en `content/banco/indice.ts` y `content/tarjetas/indice.ts`. **Cuidado con el typo en la clave**: desde ADR-005 una clave huérfana es error, no aviso.
-- El componente `etapas-modulo.tsx` consume el hook como **`useEstado`**, no `usarEstado` (ADR-007).
+C5 completo: teoría, 15 tarjetas y **28 ítems** con el reparto 12/9/7 de ADR-006, cableado en los dos índices y `estadoContenido: 'completo'`. Validador en 84 avisos y 0 errores.
 
 ## Pasos 9 y 11 — Hooks de sesión y cronómetro
 
+- **Decidir, EN EL MISMO MOMENTO, la deuda de `src/lib/esquemas.ts`.** Manda al navegador los siete esquemas de ítem, más tarjetas, erratas y glosario, donde **ninguno se usa**: en cliente solo hace falta `esqEstadoProgreso`, que `almacenamiento.ts` importa para validar el progreso al leerlo. Evidencia: `grep "diceLaCartilla" .next/static/chunks/` devuelve `571-*.js`. **No es violación de §5** —§5 sanciona ese import explícitamente—; lo no previsto es el coste. Partirlo en `esquemas-progreso.ts` / `esquemas-contenido.ts` sí es arquitectura y choca con §22 regla 2, así que se reportó en vez de hacerse. Misma deuda que el barrel, mismas rutas, mismo momento.
 - **Decidir la deuda del barrel de `radix-ui`: 77.5 kB gz.** `src/components/ui/badge.tsx` y `button.tsx` hacen `import { Slot } from "radix-ui"` —el paquete paraguas—, y como `Slot` es cliente, el barrel completo entra al bundle de la ruta. Medido: `/not-found` paga **183.8 kB js gz** contra los **106.2** de `/modulos`, y el chunk extra (`470-*.js`, 77.5 kB gz) contiene `Slot`, `Presence`, `DismissableLayer` y `FocusScope` — maquinaria de diálogos que un 404 no usa. **El `grep` de ADR-010 no lo detecta porque no es `content/`.** El arreglo son dos líneas (`import { Slot } from "@radix-ui/react-slot"`, ya presente como transitiva en `1.3.3`) más declararlo en `dependencies`, pero los otros 8 componentes de `ui/` importan el mismo barrel para primitivas que **sí** usan, así que conviene fijar el criterio completo de una vez. Se decide aquí porque es cuando entran `Dialog` (reanudar sesión) y `Tabs` (`/herramientas`) y el reparto de chunks cambia igual.
 
 - Los hooks se exportan como **`useSesion`** y **`useCronometro`**; los archivos siguen siendo `usar-sesion.ts` y `usar-cronometro.ts` (ADR-007). Con nombre en español, `react-hooks/rules-of-hooks` da error **y deja de auditar el interior de la función** — justo en el controlador de sesión y el auto-envío del cronómetro.

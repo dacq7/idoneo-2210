@@ -409,10 +409,22 @@ Esto **no contradice** la asimetría de §2.2 («el banco es importable desde el
 **Cómo verificarlo, y la cifra correcta a vigilar.** El `First Load JS` que imprime `npm run build` **no incluye el chunk del layout raíz**, así que subestima la primera carga en ~30 kB: reportaba 103 kB cuando la cifra real era 149.9 kB. La métrica del armazón es el **`/layout` gz** calculado desde `.next/app-build-manifest.json`, contando **solo los `.js`** y gzipeando **archivo por archivo**. Hoy: **132.0 kB js** (144.3 kB con el CSS). `COMPONENTES.md` fija el comando exacto, y usarlo sin variantes no es pedantería: durante el Paso 5 se reportaron 134.4 y 144.3 kB para el mismo build, y las dos eran correctas — cambiaba el alcance. Para detectar una regresión basta buscar una cadena de contenido en el chunk:
 
 ```bash
-grep -l "osteomuscular\|conceptosClave" .next/static/chunks/app/layout-*.js
+grep -rl "osteomuscular" .next/static/chunks/
 ```
 
-Si devuelve algo, un componente cliente volvió a importar `content/`. Esta comprobación es **preferible a la cifra**: es binaria y no depende de con qué método se midió el peso.
+Si devuelve algo, un componente cliente volvió a importar `content/`.
+
+> **Corrección del canario — 2026-07-30, Paso 8.** La versión original de este
+> comando buscaba también `conceptosClave`, y **desde el Paso 8 es un falso
+> positivo**: `conceptosClave` es además un campo de `esqModulo`, y
+> `src/lib/esquemas.ts` entra ahora al bundle de forma **legítima**, porque
+> `almacenamiento.ts` lo importa para validar el progreso al leerlo (§6,
+> `intentarMigrar`). Medido: `conceptosClave` devuelve 1 chunk y `osteomuscular`
+> devuelve 0, con el bundle sano.
+>
+> **El canario fiable es `osteomuscular`**: es una cadena de contenido puro, no
+> aparece en ningún esquema. Y el barrido va sobre `.next/static/chunks/` entero,
+> no solo sobre el chunk del layout: desde el Paso 8 hay rutas con cliente propio. Esta comprobación es **preferible a la cifra**: es binaria y no depende de con qué método se midió el peso.
 
 ### Enmienda contable — 2026-07-30
 

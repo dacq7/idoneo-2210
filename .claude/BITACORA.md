@@ -1651,3 +1651,126 @@ Resultado esperado, según la medición del auditor: `/modulos` pasa de **49 a 0
 **El Paso 7 queda cerrado.** Auditoría APROBADO, cinco rutas navegables, el pipeline MDX verificado de punta a punta, y `content/teoria/` con solo su `.gitkeep` a la espera del Paso 8.
 
 ---
+
+## [2026-07-30 14:45] · code-reviewer · Paso 8
+
+**Qué revisé:** el diff completo del Paso 8 en `paso-8-c5`. Contenido: `content/teoria/c5-umbrales-zonas.mdx`, `content/tarjetas/c5-umbrales-zonas.ts` (15), `content/banco/c5-umbrales-zonas.ts` (28 ítems). Cableado: los dos índices y el volteo de `estadoContenido` en `content/estructura.ts`. Interfaz: `etapas-modulo.tsx`, `marcador-lectura.tsx`, `mazo-tarjetas.tsx`, `app/modulos/[slug]/tarjetas/page.tsx` y el enganche en `app/modulos/[slug]/page.tsx`.
+
+**Compuertas:** typecheck ok (0 errores) · lint ok (limpio) · test ok (**187** en 6 archivos) · validar ok (**84 avisos, 0 errores**; los 84 son los esperados: 28 módulos en preparación + blueprints sin banco) · build ok (69 páginas estáticas, `prebuild` disparó el validador).
+
+**Invariantes verificados, con el comando:**
+
+- `grep -rn "Math.random" src/ content/ scripts/` → vacío ✅
+- `grep -rn "Date.now()\|new Date()" src/lib/` → solo dos comentarios en `fechas.ts`; ninguna llamada ✅
+- Reloj en toda `src/`: exactamente **dos** llamadas, las dos autorizadas por §10.4 — `marcador-lectura.tsx:40` dentro del `useEffect`/callback del observador y `mazo-tarjetas.tsx:100` dentro del handler `responder`. **Cero en cuerpo de render** (§22 regla 6) ✅
+- `localStorage` fuera de `lib/almacenamiento.ts` → solo comentarios y tests; ninguna escritura directa ✅
+- Tailwind v4: sin `tailwind.config.*`, sin `@tailwind` de v3, `components.json` con `"config": ""` ✅
+- `"use client"` real (directiva en línea 1, no la frase en comentarios): 22 archivos. Las **tres altas** del paso son exactamente las tres previstas por §10.3 ✅
+- Teoría server-only: `grep -rn "lib/contenido" src/components/` → vacío ✅
+- Banco en diferido: `grep -rn "from '@/content/banco/"` en `src/` → vacío; solo el índice, con `import()` ✅
+- Pie de atribución: `<Pie />` sigue montado en `shell.tsx:46` ✅
+- **Canario de ADR-010** `grep -rl "osteomuscular" .next/static/chunks/` → **vacío** ✅. Verifiqué además que el canario *discrimina*: la cadena sí está en `.next/server/` (chunk 536 y varios `.html`/`.rsc`), así que su ausencia en cliente es señal y no artefacto. Cero Client Components importan `content/` en todo el árbol. La corrección del canario está escrita en ADR-010 y en `COMPONENTES.md` §153/§549 ✅
+
+**Reparto de ADR-006, contado por mí:** 28 ítems · **12 recuerdo / 9 comprensión / 7 aplicación** · dificultad **8 / 12 / 8** (≥3 cada una) · **7 tipos distintos** (≥4) · `cuotasDelBloque('C').minimoItems` = **28**, con test. Ningún ítem reetiquetado: diff campo a campo de los 25 originales contra §14.3 → **byte-idénticos, cero diferencias**. Los tres nuevos aportan uno por nivel y uno por dificultad, que es exactamente el delta necesario. El reparto se alcanzó **escribiendo**, no retiquetando: la trampa que anticipó ADR-006 no se cayó en ella.
+
+**Fidelidad al blueprint:** teoría **byte-idéntica** a §14.1 (mismo MD5, 113 líneas, sin `#` de primer nivel, con los 5 componentes MDX y los ids E-09 / X-02 en su sitio). Tarjetas idénticas a §14.2 salvo **dos líneas de comentario de cabecera** añadidas, triviales y ciertas. Ítems literales: **cero `map()`, plantillas o generadores** en `content/`.
+
+**Peso (regla de `COMPONENTES.md`), confirmado y desglosado por mí** con `app-build-manifest.json` + gzip por chunk. Sobre el piso compartido de ~104 kB, las rutas de módulo suman **26,6 kB gz** en tres chunks que ninguna otra ruta carga: `795-*.js` **12,7 kB** = runtime de Zod · `5-*.js` **9,1 kB** = tailwind-merge **+ iconos lucide** (el implementador lo atribuyó entero a tailwind-merge; la magnitud es la suya, el reparto no) · `571-*.js` **4,9 kB** = código propio (`esquemas.ts` + `almacenamiento.ts`). **El escalón se paga una sola vez:** los tres son chunks compartidos numerados, no `page-*`, así que toda ruta de los Pasos 9–14 que lea progreso los reutiliza sin coste nuevo. Matiz de contabilidad: hoy no entran en «First Load JS shared by all» (102 kB) porque `/`, `/erratas` y `/modulos` no leen progreso; en el **Paso 14**, cuando la portada lea racha y progreso, pasarán a la línea base y el número reportado subirá a ~129 kB sin que el usuario descargue un byte más.
+
+**Hallazgo #8 del implementador: validado.** `obtenerSnapshot` lee `localStorage` y no escribe, así que `useEstado()` devuelve `null` también de forma **permanente** para todo usuario nuevo. `EtapasModulo` lo resuelve bien con la bandera `montado` (`useState` + `useEffect` vacío), y el contrato quedó escrito en `COMPONENTES.md` con el mandato explícito para los Pasos 9–14. Único hueco: el **JSDoc del propio hook** sigue enseñando el contrato viejo (ver 🟡 abajo).
+
+**Diagnóstico de `esquemas.ts` en el navegador: lo comparto, con evidencia dura.** `grep -rl "diceLaCartilla" .next/static/chunks/` devuelve `571-*.js`: `esqErrata` viaja al cliente, y con él los siete esquemas de ítem, tarjetas y glosario, donde nada de eso se usa —en navegador solo hace falta `esqEstadoProgreso`—. Son `export const` con llamadas a `z.object(...)` en tope de módulo, sin anotación `/*#__PURE__*/`: el tree-shaking no puede tocarlos. **Matiz importante: no es violación de §5.** §5 sanciona explícitamente que `almacenamiento.ts` importe `esquemas.ts` en el navegador («para el JSON importado»); lo que el blueprint no anticipó es el coste. Partir el archivo **sí** es cambio de arquitectura y choca con §22 regla 2, así que el implementador hizo bien en reportar en vez de hacerlo. Y sí, **conviene decidirlo junto con la deuda del barrel de `radix-ui` (ADR-011)**: son dos deudas de peso sobre las mismas rutas, y el Paso 9 es cuando esas rutas se cargan de verdad. Escalado al `software-architect`.
+
+**Hallazgos:** 🔴 1 · 🟡 2 · 💭 3
+
+- 🔴 **`C5-028` mezcla escalas de porcentaje y sitúa en R1 un valor que la teoría del propio módulo pone en R2.** El enunciado pide «el límite superior de la zona R1 al 75 % de la frecuencia cardíaca de reserva»; con Fox (FCmáx 185) y reposo 55, la respuesta 152,5 lpm es el **82,4 % de la FCmáx**, y la tabla de §14.1 —y el ítem C5-015— sitúan R1 en 65–75 % (120–139 lpm) y R2 en 80–90 % (148–167 lpm). El ítem etiqueta como techo de R1 un valor que cae dentro de R2. Es exactamente la ambigüedad que `C5-008` existe para enseñar a evitar («antes de aplicar un porcentaje, pregunta siempre porcentaje de qué») y que §14.4 prohíbe explícitamente. Pesa porque es la plantilla de oro: se replicaría 28 veces como modelo de ítem `calculo` / `aplicacion` / dificultad 3. **La aritmética y los `pasos` son correctos; lo que falla es el marco.** Arreglo de una línea, sin tocar nada más: quitar el marco de zona del enunciado → «…quiere prescribirle una intensidad del **75 % de la frecuencia cardíaca de reserva** con el método de Karvonen, estimando la FCmáx con Fox et al. (1971)». `respuesta`, `tolerancia`, `pasos` y explicación quedan válidos tal cual.
+- 🟡 **El JSDoc de `useEstado` enseña el contrato que el propio paso demostró falso.** `src/hooks/usar-estado.ts:11-14` dice «Devuelve null en el primer render … y el estado real a partir del segundo. Todo componente que lo use DEBE renderizar un esqueleto mientras sea null». Eso es literalmente el patrón que deja el esqueleto puesto **para siempre** en todo usuario nuevo. `COMPONENTES.md` lo corrigió; el hook no, y quien construya los Pasos 9–14 lee el hook en el punto de llamada, no el documento. Arreglo: reescribir el bloque con los **dos** casos de `null` y remitir al patrón `montado` de `EtapasModulo`.
+- 🟡 **`C5-026` atribuye a R2 un «5–10 % de grasas» que la fuente no da.** La cartilla dice de R2 «casi exclusivamente hidratos de carbono», sin cifra; la explicación presenta 5–10 % como el reparto de R2. En la plantilla de oro eso enseña a **inventar una cifra plausible para justificar un distractor**, que es el hábito más caro de replicar 28 veces. Derivado a `technical-writer`: o se quita la atribución numérica («ese reparto no corresponde a ninguna zona; en R2 el sustrato es casi exclusivamente hidrato»), o se cita la fuente que la respalde.
+- 💭 Karvonen entra al banco de C5 siendo concepto de C2. Es defendible —C2 es prerequisito, y la `referencia` apunta a la Tabla 2 de FCmáx igual que C5-011 y C5-017— y además juega bien con C5-011, que enseña a **no** usar Karvonen cuando el enunciado pide % de FCmáx. Queda anotado por si al escribir C2 en el Paso 16 se prefiere mover o duplicar.
+- 💭 Accesibilidad (no hay auditoría para este paso, así que lo digo yo). **Lo que está bien resuelto:** gestión de foco explícita en `MazoTarjetas` con `objetivoFoco` + `tabIndex={-1}` en reverso y resumen —el foco no cae nunca al `<body>` al desaparecer el botón pulsado—, `role="status"` en el contador de tarjeta, piso táctil de 44 px garantizado en `@layer base`, y el color nunca como único portador (el chip numérico siempre va con texto de estado). **Dos notas menores:** el manejador de teclas `1`/`2` vive en un `<div onKeyDown>` no focusable y funciona solo porque el foco está siempre en un descendiente —si el usuario pulsa una zona neutra, las teclas dejan de responder—; y la ayuda de teclado es `hidden sm:block`, así que un lector de pantalla en móvil con teclado externo no la anuncia. Ninguna de las dos bloquea.
+- 💭 Los dos comentarios de cabecera añadidos en `content/tarjetas/c5-umbrales-zonas.ts` son la única desviación de §14.2: triviales y ciertas (DD-040…DD-044 son en efecto los datos duros del módulo).
+
+**Veredicto:** **APROBADO CON CAMBIOS.** Las cinco compuertas están en verde y **todos** los invariantes del blueprint se sostienen —incluidos los dos que este paso ponía a prueba de verdad, el canario de ADR-010 y el reloj fuera del render—. La ingeniería del paso es sólida: el reparto de ADR-006 se ganó escribiendo tres ítems y no retiquetando ninguno, la teoría es byte-idéntica al blueprint, y el doble `null` de `useEstado` se detectó, se resolvió bien y se documentó. Lo que impide darlo por cerrado es un defecto de contenido en la plantilla que se copia 28 veces.
+
+**Pendiente antes de cerrar el paso:**
+1. Corregir el enunciado de `C5-028` (🔴) — una línea; `npm run validar` debe seguir en verde.
+2. Reescribir el JSDoc de `useEstado` con los dos casos de `null` (🟡).
+3. Resolver el «5–10 % de grasas» de `C5-026` con el `technical-writer` (🟡).
+4. Escalado al `software-architect`, **no bloquea el Paso 8**: decidir el troceado de `esquemas.ts` junto con el barrel de `radix-ui` (ADR-011), en el Paso 9.
+
+
+## Paso 8 — Módulo piloto C5 — 2026-07-30
+
+**Estado:** ⚠️ Completado con ajustes · revisión **APROBADO CON CAMBIOS**, con el bloqueante ya resuelto
+
+Ejecutado en **una sola pasada** por indicación del usuario: sin consultas intermedias, con las decisiones tomadas y registradas sobre la marcha, y **una única** revisión al final. Sin auditoría de accesibilidad — el Paso 7 ya validó las superficies de lectura.
+
+**Qué se entregó**
+
+- `content/teoria/c5-umbrales-zonas.mdx` — §14.1, **byte-idéntico** (mismo MD5).
+- `content/tarjetas/c5-umbrales-zonas.ts` — 15 tarjetas, §14.2.
+- `content/banco/c5-umbrales-zonas.ts` — **28 ítems**: los 25 de §14.3 verificados **byte-idénticos campo a campo**, más 3 escritos para este paso.
+- C5 registrado en los dos índices y `estadoContenido` volteado a `'completo'`: **las cuotas del bloque C empezaron a correr de verdad**.
+- `src/components/modulo/{etapas-modulo,marcador-lectura,mazo-tarjetas}.tsx`, `src/app/modulos/[slug]/tarjetas/page.tsx` y el enganche en la página de módulo. Tres altas a §10.3, las tres previstas por el blueprint: 6 → 9 clientes propios.
+
+**El reparto de ADR-006 se ganó escribiendo, no reetiquetando** — el revisor lo comprobó: 12 recuerdo · 9 comprensión · 7 aplicación (42,9 / 32,1 / 25,0 %), dificultad 8/12/8, los 7 tipos, y `cuotasDelBloque('C')` exigiendo 28. Los tres nuevos aportan exactamente uno por nivel y uno por dificultad: el delta justo.
+
+**Validador:** 29 módulos (**1 completo**), 28 ítems, 15 tarjetas, 14 erratas, 22 términos. **84 avisos, 0 errores.**
+
+---
+
+### El bloqueante, y por qué importaba más que un ítem
+
+**`C5-028` mezclaba escalas.** Preguntaba por «el límite superior de la zona R1 al 75 % de la frecuencia cardíaca de reserva», y su respuesta —152,5 lpm— es el **82,4 % de la FCmáx**, que la tabla de §14.1 y el propio `C5-015` sitúan en **R2**. La aritmética y los cuatro `pasos` estaban bien; fallaba el marco.
+
+Es exactamente la ambigüedad que `C5-008` existe para enseñar a evitar: *«antes de aplicar un porcentaje, pregunta siempre porcentaje de qué»*. Y pesaba porque **C5 es la plantilla de oro**: ese ítem sería el modelo de todo `calculo` / `aplicacion` / dificultad 3 en los 28 módulos restantes.
+
+**Arreglo:** se retira el marco de zona del enunciado —queda «una intensidad del 75 % de la frecuencia cardíaca de reserva con el método de Karvonen»— y la etiqueta `R1`, que ya no describe el ítem. `respuesta`, `tolerancia`, `pasos` y explicación quedan válidos tal cual.
+
+### Los dos 🟡, también arreglados
+
+- **El JSDoc de `useEstado` enseñaba el contrato que este paso demostró falso.** Decía «todo componente que lo use DEBE renderizar un esqueleto mientras sea null», que es **literalmente el patrón que deja el esqueleto puesto para siempre**. Reescrito para distinguir los dos casos y remitir al contrato de `COMPONENTES.md`. Importa porque los pasos 9–14 leen el hook en el punto de llamada, no la documentación.
+- **`C5-026` atribuía a R2 un «5–10 % de grasas» que la cartilla no da** — dice «casi exclusivamente hidratos», sin porcentaje. Cifra inventada para justificar un distractor, en la plantilla de oro. La explicación ahora dice que ese reparto no corresponde a ninguna zona con cifra propia.
+
+---
+
+### El hallazgo que cambia el patrón de los Pasos 9–14
+
+**`useEstado()` devuelve `null` en dos situaciones distintas**, y confundirlas tiene consecuencias: el primer render —transitorio— y **el usuario que no tiene nada guardado, que es permanente**, porque `obtenerSnapshot` lee `localStorage` y no escribe. Tratar `null` como «cargando» deja el esqueleto puesto **para siempre en todo usuario nuevo**, que es justo la primera visita.
+
+Es el tipo de bug que no aparece en desarrollo —donde siempre hay estado— y se descubre con el primer usuario real. `etapas-modulo.tsx` lo resuelve con una bandera de montaje, y el contrato quedó escrito en `COMPONENTES.md` y ahora también en el JSDoc del hook.
+
+### Peso — la regla de `COMPONENTES.md` se aplicó antes de cerrar
+
+| Ruta | js gz | Antes |
+|---|---|---|
+| `/layout` | **131.9 kB** | 132.0 — sin moverse |
+| `/modulos/[slug]/page` | **134.0 kB** | 106.9 |
+| `/modulos/[slug]/tarjetas/page` | **135.8 kB** | nueva |
+
++26,6 kB sobre el piso de servidor puro, **investigado antes de cerrar** como manda la regla. No es un import accidental: es el escalón de una sola vez del **primer cliente que lee progreso** — Zod 12,7 kB + tailwind-merge y lucide 9,1 kB + 4,9 kB propio. El revisor lo confirmó y añadió el dato que importa: **son chunks compartidos numerados, no `page-*`**, así que toda ruta de los pasos 9–14 que lea progreso los reutiliza sin coste nuevo. Y un matiz de contabilidad: en el **Paso 14**, cuando la portada lea la racha, pasarán a «shared by all» y la cifra reportada subirá a ~129 kB **sin que nadie descargue un byte más**.
+
+### El canario de ADR-010 tenía un falso positivo, corregido
+
+`conceptosClave` **dejó de servir**: es también campo de `esqModulo`, y `esquemas.ts` entra ahora al bundle de forma **legítima**, porque `almacenamiento.ts` lo importa para validar el progreso al leerlo. Medido: `conceptosClave` devuelve 1 chunk y `osteomuscular` 0, con el bundle sano.
+
+El canario fiable es **`grep -rl "osteomuscular" .next/static/chunks/`**, sobre el árbol entero y no solo el chunk del layout. Corregido en **ADR-010** y en los dos sitios de `COMPONENTES.md`. El revisor comprobó además que **discrimina**: «osteomuscular» sí está en `.next/server/`, así que su ausencia en cliente es señal y no artefacto.
+
+### Deuda registrada, no ejecutada
+
+**`esquemas.ts` manda al navegador los siete esquemas de ítem, tarjetas, erratas y glosario, donde ninguno se usa** — solo `esqEstadoProgreso` hace falta en cliente. Evidencia dura: `grep "diceLaCartilla" .next/static/chunks/` devuelve `571-*.js`.
+
+No es violación de §5, que sanciona el import explícitamente; lo no previsto es el coste. Partirlo en `esquemas-progreso.ts` / `esquemas-contenido.ts` **sí es arquitectura** y choca con §22 regla 2, así que el implementador lo reportó en vez de hacerlo — y el revisor comparte el diagnóstico. **Se decide junto con la deuda del barrel de `radix-ui` (ADR-011) en el Paso 9 u 11**: misma deuda, mismas rutas, mismo momento. Escalado al `software-architect`.
+
+### Dos decisiones de contenido tomadas sin consultar, y registradas
+
+- **`C5-028` es de Karvonen**, elegido sobre gasto cardíaco, MET y conversión de pulso porque es el único de los cuatro con cuatro pasos reales —dificultad 3 de verdad— y porque **`C5-011` nombra a Karvonen como el error clásico sin hacerlo ejecutar nunca**: este ítem cierra ese lazo y muestra los 14 latidos de diferencia contra el %FCmáx ingenuo.
+- **Su `referencia` apunta a `Subtema 2.1 — Tabla 2`, no a 2.6.x**, porque la frecuencia de reserva vive en el material de FCmáx y esa es **la misma cadena que ya usan `C5-011` y `C5-017`** en §14.3. Reutilizar una referencia sostenible antes que inventar un subtema no visto en la cartilla.
+
+### Dos notas menores de accesibilidad, del revisor
+
+La gestión de foco de `MazoTarjetas` está bien resuelta —`objetivoFoco` + `tabIndex={-1}` evitan que el foco caiga al `<body>` cuando desaparece el botón pulsado—. Sin bloquear: las teclas `1`/`2` viven en un `<div onKeyDown>` no enfocable, así que dejan de responder si se pulsa una zona neutra; y la ayuda de teclado es `hidden sm:block`.
+
+**Compuertas finales:** `typecheck` 0 · `lint` limpio · `test` **187** · `validar` 84 avisos / 0 errores · `build` **69 páginas**.
+
+---

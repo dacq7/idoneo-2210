@@ -18,9 +18,13 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { ArrowRight } from 'lucide-react';
 import { BLOQUES_POR_ID, MODULOS, MODULOS_POR_SLUG } from '@/content/estructura';
 import { erratasDelModulo } from '@/content/erratas';
+import { cargarTarjetas } from '@/content/tarjetas/indice';
 import { RotuloBloque } from '@/components/layout/rotulo-bloque';
+import { EtapasModulo } from '@/components/modulo/etapas-modulo';
+import { MarcadorLectura } from '@/components/modulo/marcador-lectura';
 import { ESTILO_ERRATA } from '@/components/mdx/alerta-contradiccion';
 import { RenderizadorMdx } from '@/components/mdx/renderizador';
 import { leerTeoria } from '@/lib/contenido';
@@ -52,7 +56,7 @@ export default async function PaginaModulo({ params }: Props) {
   if (!modulo) notFound();
 
   const bloque = BLOQUES_POR_ID.get(modulo.bloque);
-  const mdx = await leerTeoria(slug);
+  const [mdx, tarjetas] = await Promise.all([leerTeoria(slug), cargarTarjetas(slug)]);
   const erratas = erratasDelModulo(slug);
 
   const prerequisitos = modulo.prerequisitos
@@ -112,6 +116,19 @@ export default async function PaginaModulo({ params }: Props) {
         ) : null}
       </header>
 
+      {/* Las etapas van arriba: son el índice del módulo y la única forma de
+          llegar a las tarjetas. Es Client Component porque lee el progreso del
+          usuario, pero recibe los datos ya proyectados (ADR-010). */}
+      <EtapasModulo
+        datos={{
+          slug,
+          bloque: modulo.bloque,
+          hayTeoria: mdx !== null,
+          totalTarjetas: tarjetas.length,
+        }}
+        etapaActual={1}
+      />
+
       <section aria-labelledby="objetivos" className="space-y-3">
         <h2 id="objetivos">Al terminar este módulo vas a poder</h2>
         <ul className="list-disc space-y-1.5 pl-5 marker:text-muted-foreground">
@@ -122,7 +139,30 @@ export default async function PaginaModulo({ params }: Props) {
       </section>
 
       {mdx ? (
-        <RenderizadorMdx fuente={mdx} />
+        <>
+          <RenderizadorMdx fuente={mdx} />
+          {/* Sensor, no contenido: marca `teoriaLeida` cuando el final de la
+              teoría entra en pantalla. Va DESPUÉS del MDX, nunca antes. */}
+          <MarcadorLectura slug={slug} />
+          {tarjetas.length > 0 ? (
+            <nav aria-label="Siguiente etapa">
+              <Link
+                href={`/modulos/${slug}/tarjetas`}
+                className="flex min-h-11 items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3 transition-colors duration-150 hover:bg-accent sm:px-6"
+              >
+                <span>
+                  <span className="text-[0.6875rem] font-semibold uppercase leading-[1.1] tracking-[0.08em] text-muted-foreground">
+                    Etapa 2
+                  </span>
+                  <span className="block font-medium">
+                    Repasar las {tarjetas.length} tarjetas del módulo
+                  </span>
+                </span>
+                <ArrowRight className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              </Link>
+            </nav>
+          ) : null}
+        </>
       ) : (
         <section aria-labelledby="sin-teoria" className="space-y-3 rounded-lg border border-border bg-card p-4 sm:p-6">
           <h2 id="sin-teoria">La teoría todavía no está escrita</h2>
