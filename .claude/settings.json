@@ -2,8 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(npm:*)",
-      "Bash(npx:*)",
+      "Bash(npx shadcn:*)",
+      "Bash(npx shadcn@2:*)",
+      "Bash(npx tsx:*)",
       "Bash(mkdir:*)",
+      "Bash(git:*)",
       "Read",
       "Write",
       "Edit",
