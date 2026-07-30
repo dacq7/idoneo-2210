@@ -1,5 +1,29 @@
+# dependencias
 node_modules/
+.pnp
+.pnp.*
+
+# build
 .next/
 out/
+build/
+*.tsbuildinfo
+
+# pruebas
+coverage/
+
+# entorno — .env.example SÍ se versiona
+.env
+.env.local
 .env*.local
+
+# despliegue
+.vercel
+
+# logs
+*-debug.log*
+*-error.log*
+
+# varios
+*.pem
 .DS_Store
