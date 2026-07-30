@@ -40,11 +40,13 @@ Los usuarios son el autor de la app y un grupo de amigos entrenadores. Adultos, 
 | **Simulacros escalonados** | Quiz de módulo → simulacro de bloque → simulacro final cronometrado | `/simulacros/*` + `lib/simulacro.ts` |
 | **Informe diagnóstico** | % de dominio por bloque, módulo y nivel cognitivo + 5 temas prioritarios | `/resultados/[intentoId]` + `lib/informe.ts` |
 
-### El diferenciador: `AlertaContradiccion`
+### El diferenciador: el contenido enseña el dato verdadero
 
-Las cuatro cartillas oficiales **se contradicen entre sí y contienen erratas**. La app las marca explícitamente e indica qué responder según el bloque evaluado. Son 3–5 ítems del examen real: la diferencia entre pasar y no pasar. Ver §9.3 (`content/erratas.ts`) y §12.4 (el componente).
+Las cuatro cartillas oficiales **se contradicen entre sí y contienen erratas**. Idóneo 2210 no las reproduce ni las cataloga: **enseña el dato verdadero, investigado y verificado**. Las cartillas son la guía del temario —qué entra en el examen y con qué profundidad—, **no la fuente de verdad de cada cifra**.
 
-Ninguna otra app de preparación hace esto, porque requiere haber leído las cuatro cartillas con lápiz en mano. Es el activo defendible del producto.
+Eso obliga a un estándar de redacción que ninguna otra app de preparación paga: cada número que entra al banco está comprobado contra la bibliografía real, y donde la cartilla se equivoca, el contenido dice lo cierto **sin anunciar la discrepancia**. El usuario no tiene que aprenderse la bibliografía de las erratas del material oficial: tiene que aprenderse la fisiología.
+
+Es el activo defendible del producto, porque requiere haber leído las cuatro cartillas con lápiz en mano **y haber ido a verificar lo que no cuadraba**. Ver ADR-014 y `.claude/CONTENIDO.md`, donde vive la investigación ya verificada que los módulos nuevos reutilizan en vez de volver a derivar.
 
 ### Objetivos
 
@@ -62,7 +64,7 @@ Ninguna otra app de preparación hace esto, porque requiere haber leído las cua
 
 ### Alcance v1
 
-**Se construye:** los 4 pilares, diagnóstico inicial, plan por días, glosario, registro de erratas, exportar/importar JSON, PWA offline, modo claro/oscuro, **calculadora médico-deportiva** (`/herramientas`) y **modo última noche** (`/ultima-noche`).
+**Se construye:** los 4 pilares, diagnóstico inicial, plan por días, glosario, exportar/importar JSON, PWA offline, modo claro/oscuro, **calculadora médico-deportiva** (`/herramientas`) y **modo última noche** (`/ultima-noche`).
 
 **No se construye (puertas abiertas, ver §24):** backend, cuentas, sincronización, pagos, contenido generado por IA en runtime, y las actividades originales de las cartillas (crucigramas / sopa de letras / completar espacios) — quedan documentadas como v1.1.
 
@@ -168,7 +170,6 @@ idoneo-2210/
 ├── content/                        ← TODO el contenido. Ningún componente vive aquí.
 │   ├── estructura.ts               ← 4 bloques + 29 módulos (metadatos)          §9.1
 │   ├── blueprint-examen.ts         ← los 4 blueprints de examen                  §9.2
-│   ├── erratas.ts                  ← contradicciones X-* y erratas E-*           §9.3
 │   ├── datos-duros.ts              ← los valores exactos que caen (modo última noche) §9.4
 │   ├── glosario.ts                 ← conceptos clave con definición y módulo      §9.5
 │   ├── banco/
@@ -206,7 +207,6 @@ idoneo-2210/
 │   │   ├── resultados/[intentoId]/page.tsx
 │   │   ├── progreso/page.tsx
 │   │   ├── glosario/page.tsx
-│   │   ├── erratas/page.tsx
 │   │   ├── herramientas/page.tsx   ← calculadora médico-deportiva               §15.1
 │   │   ├── ultima-noche/page.tsx   ← datos duros en tarjetas rápidas            §15.2
 │   │   ├── ajustes/page.tsx
@@ -216,7 +216,7 @@ idoneo-2210/
 │   ├── components/
 │   │   ├── ui/                     ← shadcn/ui (generado por CLI)
 │   │   ├── layout/                 ← shell, nav inferior, barra lateral, tema, pie  §11.7
-│   │   ├── mdx/                    ← Dato, Formula, TablaClave, AlertaContradiccion, Ojo  §12
+│   │   ├── mdx/                    ← Dato, Formula, TablaClave, Ojo               §12
 │   │   ├── items/                  ← un componente por tipo de ítem (7)          §13
 │   │   ├── sesion/                 ← controladores de práctica/quiz/simulacro/diagnóstico
 │   │   ├── informe/                ← veredicto, barras, top-5, revisión
@@ -344,8 +344,6 @@ export interface ItemBase {
   /** Formato: 'Cartilla N, Tema M, Subtema M.X — Título'. */
   referencia: string;
   etiquetas: string[];
-  /** Id de una entrada de content/erratas.ts (X-01, E-09, …). */
-  contradiccion?: string;
 }
 
 export interface ItemUnica extends ItemBase {
@@ -417,7 +415,7 @@ export type Item =
   | ItemCaso;
 
 /* ══════════════════════════════════════════════════════════════════
-   TARJETAS, GLOSARIO, ERRATAS, DATOS DUROS
+   TARJETAS, GLOSARIO, DATOS DUROS
    ══════════════════════════════════════════════════════════════════ */
 
 export interface Tarjeta {
@@ -437,32 +435,6 @@ export interface EntradaGlosario {
   sinonimos?: string[];
 }
 
-/**
- * - `contradiccion`: dos cartillas dan valores distintos para el mismo dato.
- * - `errata`: la cartilla dice algo incorrecto (de contenido, de tabla o tipográfico).
- * - `aclaracion`: la cartilla NO se equivoca; el dato se confunde con otro vecino.
- *   Existe para desambiguar, no para corregir. Ver ADR-012.
- */
-export type TipoErrata = 'contradiccion' | 'errata' | 'aclaracion';
-
-export interface Errata {
-  /** Familia + consecutivo. 'X-*' nace de una divergencia entre cartillas
-   *  (`contradiccion`, o la `aclaracion` que la desambigua); 'E-*' es errata de
-   *  contenido. El prefijo marca la familia, no el `tipo`. Ver ADR-012. */
-  id: string;
-  tipo: TipoErrata;
-  tema: string;
-  ubicacion: string;
-  /** Qué dice la cartilla. */
-  diceLaCartilla: string;
-  /** Qué es correcto, o cómo responder si hay conflicto. */
-  loCorrecto: string;
-  /** Instrucción operativa para el examen. */
-  comoResponder: string;
-  /** Slugs de los módulos afectados. */
-  modulos: string[];
-}
-
 export interface DatoDuro {
   id: string;
   categoria: string;
@@ -470,8 +442,6 @@ export interface DatoDuro {
   /** El valor exacto que se pregunta. */
   valor: string;
   modulo: string;
-  /** Id de errata si el dato está en conflicto entre cartillas. */
-  contradiccion?: string;
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -704,7 +674,6 @@ export const esqEstadoContenido = z.enum(['completo', 'en-preparacion']);
 
 const RE_ID_ITEM = /^[ABCD]\d{1,2}-\d{3}$/;
 const RE_REFERENCIA = /^Cartilla [1-4], Tema \d+/;
-const RE_ID_ERRATA = /^[XE]-\d{2}$/;
 const RE_FECHA = /^\d{4}-\d{2}-\d{2}$/;
 
 const camposBase = {
@@ -721,7 +690,6 @@ const camposBase = {
     .string()
     .regex(RE_REFERENCIA, 'la referencia debe empezar por "Cartilla N, Tema M"'),
   etiquetas: z.array(z.string().min(2)).min(1, 'al menos una etiqueta'),
-  contradiccion: z.string().regex(RE_ID_ERRATA).optional(),
 };
 
 /* ─── Los 7 tipos de ítem ─────────────────────────────────────────── */
@@ -914,7 +882,7 @@ export function verificarCuotas(items: Item[], reglas: ReglasCuota = CUOTAS): st
   return fallos;
 }
 
-/* ─── Tarjetas, glosario, erratas, datos duros ────────────────────── */
+/* ─── Tarjetas, glosario, datos duros ─────────────────────────────── */
 
 export const esqTarjeta = z.object({
   id: z.string().regex(/^[ABCD]\d{1,2}-T\d{2}$/, 'el id de tarjeta debe ser como "C5-T07"'),
@@ -931,24 +899,12 @@ export const esqEntradaGlosario = z.object({
   sinonimos: z.array(z.string().min(2)).optional(),
 });
 
-export const esqErrata = z.object({
-  id: z.string().regex(RE_ID_ERRATA),
-  tipo: z.enum(['contradiccion', 'errata', 'aclaracion']),
-  tema: z.string().min(4),
-  ubicacion: z.string().min(4),
-  diceLaCartilla: z.string().min(10),
-  loCorrecto: z.string().min(10),
-  comoResponder: z.string().min(20),
-  modulos: z.array(z.string().min(3)).min(1),
-});
-
 export const esqDatoDuro = z.object({
   id: z.string().min(3),
   categoria: z.string().min(3),
   concepto: z.string().min(3),
   valor: z.string().min(1),
   modulo: z.string().min(3),
-  contradiccion: z.string().regex(RE_ID_ERRATA).optional(),
 });
 
 export const esqModulo = z.object({
@@ -2636,7 +2592,6 @@ Corre en `prebuild`. **Si falla, el build falla.** Es el único mecanismo que ma
 
 import { BLOQUES, MODULOS } from '../content/estructura';
 import { BLUEPRINTS } from '../content/blueprint-examen';
-import { ERRATAS } from '../content/erratas';
 import { DATOS_DUROS } from '../content/datos-duros';
 import { GLOSARIO } from '../content/glosario';
 import { BANCO } from '../content/banco/indice';
@@ -2644,7 +2599,6 @@ import { TARJETAS } from '../content/tarjetas/indice';
 import {
   esqDatoDuro,
   esqEntradaGlosario,
-  esqErrata,
   esqItem,
   esqModulo,
   esqTarjeta,
@@ -2695,21 +2649,7 @@ async function main(): Promise<void> {
     }
   }
 
-  /* ── 2. Erratas, glosario y datos duros ────────────────────────── */
-
-  const idsErrata = new Set<string>();
-  for (const e of ERRATAS) {
-    const r = esqErrata.safeParse(e);
-    if (!r.success) {
-      for (const i of r.error.issues) err(`erratas/${e.id}`, `${i.path.join('.')}: ${i.message}`);
-      continue;
-    }
-    if (idsErrata.has(e.id)) err('erratas', `id duplicado: ${e.id}`);
-    idsErrata.add(e.id);
-    for (const m of e.modulos) {
-      if (!slugs.has(m)) err(`erratas/${e.id}`, `módulo inexistente "${m}"`);
-    }
-  }
+  /* ── 2. Glosario y datos duros ─────────────────────────────────── */
 
   const terminosGlosario = new Set<string>();
   for (const g of GLOSARIO) {
@@ -2731,9 +2671,6 @@ async function main(): Promise<void> {
       continue;
     }
     if (!slugs.has(d.modulo)) err(`datos-duros/${d.id}`, `módulo inexistente "${d.modulo}"`);
-    if (d.contradiccion && !idsErrata.has(d.contradiccion)) {
-      err(`datos-duros/${d.id}`, `contradicción inexistente "${d.contradiccion}"`);
-    }
   }
 
   /* ── 3. Banco de ítems ─────────────────────────────────────────── */
@@ -2783,9 +2720,6 @@ async function main(): Promise<void> {
       const prefijo = item.id.split('-')[0].toLowerCase();
       if (!modulo.slug.startsWith(`${prefijo}-`)) {
         err(`banco/${modulo.slug}/${item.id}`, `el prefijo del id no corresponde al módulo`);
-      }
-      if (item.contradiccion && !idsErrata.has(item.contradiccion)) {
-        err(`banco/${modulo.slug}/${item.id}`, `contradicción inexistente "${item.contradiccion}"`);
       }
       const cartilla = Number(item.referencia.match(/^Cartilla (\d)/)?.[1]);
       const cartillaEsperada = BLOQUES.find((b) => b.id === item.bloque)?.numeroCartilla;
@@ -2897,7 +2831,7 @@ async function main(): Promise<void> {
   console.log('');
   console.log('  Validación del banco — Idóneo 2210');
   console.log(`  Módulos: ${MODULOS.length} (${completos} completos, ${MODULOS.length - completos} en preparación)`);
-  console.log(`  Ítems: ${totalItems} · Tarjetas: ${idsTarjeta.size} · Erratas: ${idsErrata.size} · Glosario: ${terminosGlosario.size}`);
+  console.log(`  Ítems: ${totalItems} · Tarjetas: ${idsTarjeta.size} · Glosario: ${terminosGlosario.size}`);
   console.log('');
 
   if (avisos.length > 0) {
@@ -3688,187 +3622,6 @@ export const BLUEPRINTS: Record<string, BlueprintExamen> = {
 };
 ```
 
-### 9.3 `content/erratas.ts` — el diferenciador
-
-```ts
-// content/erratas.ts
-// Contradicciones entre cartillas (X-*) y erratas de contenido (E-*).
-// Alimenta la ruta /erratas y el componente <AlertaContradiccion />.
-// Regla de producto: si un ítem toca un punto de aquí, se redacta evitando la
-// ambigüedad y la explicación enlaza la entrada correspondiente.
-
-import type { Errata } from '@/lib/tipos';
-
-export const ERRATAS: Errata[] = [
-  {
-    id: 'X-01',
-    tipo: 'contradiccion',
-    tema: 'ATP por molécula de glucosa en aerobiosis',
-    ubicacion: 'Cartilla 1, Subtema 1.4.1 · Cartilla 3, Subtema 1.3.1',
-    diceLaCartilla: 'Cartilla 1: 36–38 ATP. Cartilla 3: 30–32 ATP.',
-    loCorrecto:
-      '30–32 ATP es el valor bioquímico actualizado y el que usa la cartilla más específica en fisiología.',
-    comoResponder:
-      'Si la pregunta viene del bloque de Ciencias Básicas, responde 36–38. Si viene de Ciencias Aplicadas, responde 30–32. Ante duda sin contexto de bloque, elige 30–32.',
-    modulos: ['a5-sistemas-energeticos-biomarcadores', 'c1-vias-energeticas'],
-  },
-  {
-    id: 'X-02',
-    tipo: 'contradiccion',
-    tema: 'Duración del sistema anaeróbico aláctico',
-    ubicacion: 'Cartilla 1, Subtema 1.4.2 · Cartilla 3, Subtema 1.1.1',
-    diceLaCartilla: 'Cartilla 1: 5–10 s. Cartilla 3: 10–15 s.',
-    loCorrecto:
-      'La Cartilla 3 es la fuente específica de fisiología: 10–15 s de esfuerzo máximo. La Cartilla 1 se refiere al esfuerzo máximo absoluto.',
-    comoResponder:
-      'Si aparecen las dos opciones, elige la del bloque evaluado: 5–10 s en Ciencias Básicas, 10–15 s en Ciencias Aplicadas.',
-    modulos: ['a5-sistemas-energeticos-biomarcadores', 'c1-vias-energeticas', 'c5-umbrales-zonas'],
-  },
-  {
-    id: 'X-03',
-    tipo: 'aclaracion',
-    tema: 'Reservas de ATP libre',
-    ubicacion: 'Cartilla 3',
-    diceLaCartilla: 'El ATP almacenado en el músculo alcanza para 2–3 s.',
-    loCorrecto: 'No hay conflicto: 2–3 s es correcto. El problema es que se confunde con X-02.',
-    comoResponder:
-      'ATP libre (2–3 s) ≠ sistema fosfágeno completo (10–15 s). Si la pregunta dice "ATP almacenado", son 2–3 s; si dice "sistema fosfágeno" o "aláctico", aplica X-02.',
-    modulos: ['a5-sistemas-energeticos-biomarcadores', 'c1-vias-energeticas'],
-  },
-  {
-    id: 'E-01',
-    tipo: 'errata',
-    tema: 'Qué organismos son procariotas',
-    ubicacion: 'Cartilla 1, Subtema 1.1.1',
-    diceLaCartilla:
-      '"Los organismos con células procariotas son las bacterias, arqueas, protozoos y algunos hongos y algas".',
-    loCorrecto:
-      'Protozoos, hongos y algas son eucariotas. Procariotas son solo bacterias y arqueas.',
-    comoResponder:
-      'Estudia lo correcto: bacterias y arqueas. Si un ítem del examen oficial repite el error de la cartilla, marca la opción de la cartilla — pero sabiendo que es un error.',
-    modulos: ['a1-celula'],
-  },
-  {
-    id: 'E-02',
-    tipo: 'errata',
-    tema: 'Nombre de la célula muscular y de la pulmonar',
-    ubicacion: 'Cartilla 1, Subtema 1.1.2',
-    diceLaCartilla: '"la célula muscular (sarcómero)"; "la célula pulmonar (alvéolo)".',
-    loCorrecto:
-      'La célula muscular es la fibra muscular o miocito; el sarcómero es su unidad contráctil. El alvéolo es una estructura, no una célula: la célula es el neumocito.',
-    comoResponder:
-      'Memoriza fibra muscular y neumocito. Reconoce el error para no dudar si aparece la versión de la cartilla.',
-    modulos: ['a1-celula', 'c4-nervioso-digestivo-osteomuscular'],
-  },
-  {
-    id: 'E-03',
-    tipo: 'errata',
-    tema: 'Función del cartílago articular',
-    ubicacion: 'Cartilla 1, Tabla 2',
-    diceLaCartilla: 'La fila "Cartílago articular" repite la descripción en la columna Función.',
-    loCorrecto: 'Su función es reducir la fricción entre superficies óseas y absorber impactos.',
-    comoResponder: 'Responde "reducir fricción y absorber impactos".',
-    modulos: ['a3-tejidos-organos-sistemas'],
-  },
-  {
-    id: 'E-04',
-    tipo: 'errata',
-    tema: 'Fila duplicada de "meniscos o discos"',
-    ubicacion: 'Cartilla 1, Tabla 2',
-    diceLaCartilla:
-      '"Meniscos o discos" aparece dos veces; la segunda fila describe bolsas llenas de líquido sinovial.',
-    loCorrecto: 'Esa segunda fila corresponde a las bolsas sinoviales (bursas).',
-    comoResponder:
-      'Si la descripción menciona bolsas con líquido sinovial que reducen el roce entre tendón y hueso, la respuesta es bursa, no menisco.',
-    modulos: ['a3-tejidos-organos-sistemas'],
-  },
-  {
-    id: 'E-05',
-    tipo: 'errata',
-    tema: 'Porcentaje de aumento',
-    ubicacion: 'Cartilla 1, Subtema 2.4.3',
-    diceLaCartilla:
-      '"Si un precio sube de $50 a $75… da como resultado 150 %. Es decir, que 50 % es el valor… del porcentaje de aumento".',
-    loCorrecto:
-      '$75 es el 150 % de $50; el aumento es del 50 %. La redacción confunde el valor relativo con el incremento.',
-    comoResponder:
-      'Usa siempre ((nuevo − viejo) / viejo) × 100 para el porcentaje de aumento.',
-    modulos: ['a6-estadistica'],
-  },
-  {
-    id: 'E-06',
-    tipo: 'errata',
-    tema: 'Ejemplo de mediana con n par',
-    ubicacion: 'Cartilla 1, Subtema 2.1.2',
-    diceLaCartilla: 'La lista ordenada aparece truncada ("5 6 7 8 9 12").',
-    loCorrecto: 'Con la lista 5, 6, 7, 8, 9, 12 la mediana es (7 + 8) / 2 = 7,5.',
-    comoResponder:
-      'Con n par, promedia las posiciones N/2 y (N/2)+1 de la lista ORDENADA. Ordenar primero es el paso que más se olvida.',
-    modulos: ['a6-estadistica'],
-  },
-  {
-    id: 'E-07',
-    tipo: 'errata',
-    tema: 'Fila de vitamina sin rótulo',
-    ubicacion: 'Cartilla 1, Tabla 9',
-    diceLaCartilla: 'Una fila aparece rotulada "Nota: Para profundizar…" en vez del nombre de la vitamina.',
-    loCorrecto:
-      'Esa fila corresponde a la Vitamina B2 (riboflavina): leche, huevos, vegetales de hoja verde, carne magra, almendras.',
-    comoResponder: 'Asocia esas fuentes con riboflavina / B2.',
-    modulos: ['a4-nutrientes'],
-  },
-  {
-    id: 'E-08',
-    tipo: 'errata',
-    tema: 'Errata tipográfica: "viaraza"',
-    ubicacion: 'Cartilla 1, varios',
-    diceLaCartilla: '"viaraza".',
-    loCorrecto: 'Debe leerse varianza.',
-    comoResponder: 'Sin efecto en la respuesta; solo evita la confusión al leer.',
-    modulos: ['a6-estadistica'],
-  },
-  {
-    id: 'E-09',
-    tipo: 'errata',
-    tema: 'Tabla de respuesta al entrenamiento desalineada',
-    ubicacion: 'Cartilla 3, Tabla 3',
-    diceLaCartilla:
-      'La tabla "Respuesta al entrenamiento de los diferentes sistemas" está desalineada: las flechas no corresponden a sus filas.',
-    loCorrecto:
-      'No uses esa tabla como fuente. Sí el texto: con entrenamiento de resistencia la FC en reposo baja, y el volumen sistólico y el gasto cardíaco máximo suben.',
-    comoResponder:
-      'Ante una pregunta sobre adaptaciones cardiovasculares, responde desde el texto: ↓FC reposo, ↑volumen sistólico, ↑gasto cardíaco máximo.',
-    modulos: ['c2-cardiovascular', 'c3-respiratorio-vo2', 'c5-umbrales-zonas'],
-  },
-  {
-    id: 'E-10',
-    tipo: 'errata',
-    tema: 'Cabecera equivocada en la tabla de minerales',
-    ubicacion: 'Cartilla 1, Tabla 10',
-    diceLaCartilla: 'La cabecera dice "VITAMINA".',
-    loCorrecto: 'La tabla es de minerales.',
-    comoResponder: 'Si el contenido de la fila es hierro, calcio, zinc o magnesio, es un mineral.',
-    modulos: ['a4-nutrientes'],
-  },
-  {
-    id: 'E-11',
-    tipo: 'errata',
-    tema: 'Fecha y número de la Ley 2210',
-    ubicacion: 'Cartilla 2, referencias',
-    diceLaCartilla: '"Ley 2210 de 2022… (2003, 13 de Junio)" y "Ley 2210 de 2023, artículo 8º".',
-    loCorrecto: 'Es la Ley 2210 del 23 de mayo de 2022.',
-    comoResponder: 'Ley 2210 de 2022. Ninguna otra fecha es correcta.',
-    modulos: ['d1-conceptualizacion', 'b1-fundamentos-pedagogia'],
-  },
-];
-
-export const ERRATAS_POR_ID = new Map(ERRATAS.map((e) => [e.id, e]));
-
-export function erratasDelModulo(slug: string): Errata[] {
-  return ERRATAS.filter((e) => e.modulos.includes(slug));
-}
-```
-
 ### 9.4 `content/datos-duros.ts` — alimenta el modo Última noche
 
 ```ts
@@ -3880,12 +3633,12 @@ import type { DatoDuro } from '@/lib/tipos';
 
 export const DATOS_DUROS: DatoDuro[] = [
   /* ── Vías energéticas ── */
-  { id: 'DD-001', categoria: 'Vías energéticas', concepto: 'ATP almacenado en el músculo', valor: '2–3 s', modulo: 'c1-vias-energeticas', contradiccion: 'X-03' },
-  { id: 'DD-002', categoria: 'Vías energéticas', concepto: 'Sistema fosfágeno (PCr)', valor: '10–15 s de esfuerzo máximo (Cartilla 3)', modulo: 'c1-vias-energeticas', contradiccion: 'X-02' },
+  { id: 'DD-001', categoria: 'Vías energéticas', concepto: 'ATP almacenado en el músculo', valor: '2–3 s', modulo: 'c1-vias-energeticas' },
+  { id: 'DD-002', categoria: 'Vías energéticas', concepto: 'Sistema fosfágeno (PCr)', valor: '5–15 s de esfuerzo máximo · depende de la intensidad y de las reservas de PCr', modulo: 'c1-vias-energeticas' },
   { id: 'DD-003', categoria: 'Vías energéticas', concepto: 'Reacción de la fosfocreatina', valor: 'PCr + ADP → Creatina + ATP · enzima: creatina quinasa', modulo: 'c1-vias-energeticas' },
   { id: 'DD-004', categoria: 'Vías energéticas', concepto: 'Glucólisis anaeróbica', valor: '30 s – 2 min · produce lactato', modulo: 'c1-vias-energeticas' },
   { id: 'DD-005', categoria: 'Vías energéticas', concepto: 'Glucólisis, fase citoplasmática', valor: '2 ATP netos + 2 NADH', modulo: 'c1-vias-energeticas' },
-  { id: 'DD-006', categoria: 'Vías energéticas', concepto: 'ATP total por glucosa en aerobiosis', valor: '30–32 (Cartilla 3) · 36–38 (Cartilla 1)', modulo: 'c1-vias-energeticas', contradiccion: 'X-01' },
+  { id: 'DD-006', categoria: 'Vías energéticas', concepto: 'ATP total por glucosa en aerobiosis', valor: '30–32 ATP · 30 en músculo esquelético', modulo: 'c1-vias-energeticas' },
   { id: 'DD-007', categoria: 'Vías energéticas', concepto: 'Oxidación del palmitato', valor: '≈129 ATP', modulo: 'c1-vias-energeticas' },
   { id: 'DD-008', categoria: 'Vías energéticas', concepto: 'Dónde ocurre cada fase', valor: 'Glucólisis → citoplasma · Krebs → matriz mitocondrial · Cadena de transporte → membrana interna mitocondrial', modulo: 'c1-vias-energeticas' },
 
@@ -3904,7 +3657,7 @@ export const DATOS_DUROS: DatoDuro[] = [
   { id: 'DD-026', categoria: 'Cardiovascular', concepto: 'FC de reserva', valor: 'FCmáx − FC en reposo', modulo: 'c2-cardiovascular' },
   { id: 'DD-027', categoria: 'Cardiovascular', concepto: 'Gasto cardíaco', valor: 'GC = FC × volumen sistólico', modulo: 'c2-cardiovascular' },
   { id: 'DD-028', categoria: 'Cardiovascular', concepto: 'Conversión de pulso a lpm', valor: '×4 (15 s) · ×6 (10 s) · ×10 (6 s)', modulo: 'c2-cardiovascular' },
-  { id: 'DD-029', categoria: 'Cardiovascular', concepto: 'Adaptación por tipo de esfuerzo', valor: 'Dinámico/resistencia → dilatación → ↑volumen sistólico · Isométrico/fuerza → hipertrofia → ↑fuerza de contracción', modulo: 'c2-cardiovascular', contradiccion: 'E-09' },
+  { id: 'DD-029', categoria: 'Cardiovascular', concepto: 'Adaptación por tipo de esfuerzo', valor: 'Dinámico/resistencia → dilatación → ↑volumen sistólico · Isométrico/fuerza → hipertrofia → ↑fuerza de contracción', modulo: 'c2-cardiovascular' },
 
   /* ── Respiratorio ── */
   { id: 'DD-030', categoria: 'Respiratorio', concepto: '1 MET', valor: '3,5 ml O₂ · kg⁻¹ · min⁻¹', modulo: 'c3-respiratorio-vo2' },
@@ -3951,11 +3704,11 @@ export const DATOS_DUROS: DatoDuro[] = [
   /* ── Estadística ── */
   { id: 'DD-080', categoria: 'Estadística', concepto: 'Media', valor: 'Σx / n', modulo: 'a6-estadistica' },
   { id: 'DD-081', categoria: 'Estadística', concepto: 'Mediana (n impar)', valor: 'Posición (N+1)/2 de la lista ordenada', modulo: 'a6-estadistica' },
-  { id: 'DD-082', categoria: 'Estadística', concepto: 'Mediana (n par)', valor: 'Promedio de las posiciones N/2 y (N/2)+1', modulo: 'a6-estadistica', contradiccion: 'E-06' },
+  { id: 'DD-082', categoria: 'Estadística', concepto: 'Mediana (n par)', valor: 'Promedio de las posiciones N/2 y (N/2)+1', modulo: 'a6-estadistica' },
   { id: 'DD-083', categoria: 'Estadística', concepto: 'Varianza', valor: 'Σ(x − x̄)² / n', modulo: 'a6-estadistica' },
   { id: 'DD-084', categoria: 'Estadística', concepto: 'Desviación estándar', valor: '√varianza', modulo: 'a6-estadistica' },
   { id: 'DD-085', categoria: 'Estadística', concepto: 'Rango', valor: 'máximo − mínimo', modulo: 'a6-estadistica' },
-  { id: 'DD-086', categoria: 'Estadística', concepto: 'Porcentaje de aumento', valor: '((nuevo − viejo) / viejo) × 100', modulo: 'a6-estadistica', contradiccion: 'E-05' },
+  { id: 'DD-086', categoria: 'Estadística', concepto: 'Porcentaje de aumento', valor: '((nuevo − viejo) / viejo) × 100', modulo: 'a6-estadistica' },
 
   /* ── Carga ── */
   { id: 'DD-090', categoria: 'Carga', concepto: 'Densidad', valor: 'Tiempo de trabajo activo / tiempo total', modulo: 'd2-carga' },
@@ -3963,7 +3716,7 @@ export const DATOS_DUROS: DatoDuro[] = [
   { id: 'DD-092', categoria: 'Carga', concepto: 'Escala de esfuerzo percibido', valor: 'Escala de Borg (RPE)', modulo: 'd2-carga' },
 
   /* ── Ley 2210 y dopaje ── */
-  { id: 'DD-100', categoria: 'Ley 2210 y dopaje', concepto: 'Requisitos de idoneidad', valor: '>18 años · ≥12 meses de experiencia · aprobar la evaluación en una categoría', modulo: 'd1-conceptualizacion', contradiccion: 'E-11' },
+  { id: 'DD-100', categoria: 'Ley 2210 y dopaje', concepto: 'Requisitos de idoneidad', valor: '>18 años · ≥12 meses de experiencia · aprobar la evaluación en una categoría', modulo: 'd1-conceptualizacion' },
   { id: 'DD-101', categoria: 'Ley 2210 y dopaje', concepto: 'Niveles de la Ley 2210', valor: 'Formación · perfeccionamiento · altos logros', modulo: 'd1-conceptualizacion' },
   { id: 'DD-102', categoria: 'Ley 2210 y dopaje', concepto: 'Estrategias del programa antidopaje', valor: 'Educación · disuasión · detección', modulo: 'c9-dopaje' },
   { id: 'DD-103', categoria: 'Ley 2210 y dopaje', concepto: 'Infracciones del Artículo 2', valor: '11 infracciones', modulo: 'c9-dopaje' },
@@ -4249,7 +4002,6 @@ export async function existeTeoria(slug: string): Promise<boolean> {
 | `/resultados/[intentoId]` | Informe + revisión ítem por ítem | Server | `VistaInforme` |
 | `/progreso` | Dominio por bloque/módulo, historial | Server | `PanelProgreso` |
 | `/glosario` | Conceptos clave, buscable | Server | `BuscadorGlosario` |
-| `/erratas` | Contradicciones y erratas de las cartillas | Server | — (estático) |
 | `/herramientas` | Calculadora médico-deportiva | Server | `Calculadora` |
 | `/ultima-noche` | Datos duros en tarjetas rápidas | Server | `MazoDatosDuros` |
 | `/ajustes` | Tema, nombre, fecha de examen, exportar/importar, reiniciar | Server | `PanelAjustes` |
@@ -4740,9 +4492,6 @@ export function Pie() {
           puntaje oficial de aprobación.
         </p>
         <nav className="flex flex-wrap gap-x-4 gap-y-1 pt-1">
-          <Link href="/erratas" className="underline underline-offset-2 hover:text-foreground">
-            Erratas y contradicciones
-          </Link>
           <Link href="/ajustes" className="underline underline-offset-2 hover:text-foreground">
             Ajustes y respaldo
           </Link>
@@ -4872,71 +4621,9 @@ export function Ojo({ children }: { children: React.ReactNode }) {
 }
 ```
 
-### 12.4 `<AlertaContradiccion>` — el diferenciador
-
-```tsx
-// src/components/mdx/alerta-contradiccion.tsx — Server Component
-import Link from 'next/link';
-import { TriangleAlert } from 'lucide-react';
-import { ERRATAS_POR_ID } from '@/content/erratas';
-
-export function AlertaContradiccion({ id }: { id: string }) {
-  const errata = ERRATAS_POR_ID.get(id);
-  // Un id inexistente rompería el build vía el validador; en runtime no
-  // se renderiza nada roto.
-  if (!errata) return null;
-
-  const rotulo =
-    errata.tipo === 'contradiccion'
-      ? 'Las cartillas se contradicen'
-      : errata.tipo === 'aclaracion'
-        ? 'Aclaración: no es un error'
-        : 'Errata de la cartilla';
-
-  return (
-    <aside className="my-6 rounded-lg border border-destructive/40 bg-destructive/5 p-4">
-      <div className="flex items-center gap-2">
-        <TriangleAlert className="size-4 shrink-0 text-destructive" aria-hidden />
-        <p className="font-titulo text-sm font-semibold text-destructive">
-          {rotulo} · {errata.id}
-        </p>
-      </div>
-      <p className="mt-2 text-sm font-medium">{errata.tema}</p>
-      <dl className="mt-3 space-y-2 text-sm">
-        <div>
-          <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Dice la cartilla
-          </dt>
-          <dd>{errata.diceLaCartilla}</dd>
-        </div>
-        <div>
-          <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Lo correcto
-          </dt>
-          <dd>{errata.loCorrecto}</dd>
-        </div>
-        <div>
-          <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Cómo responder
-          </dt>
-          <dd className="font-medium">{errata.comoResponder}</dd>
-        </div>
-      </dl>
-      <Link
-        href={`/erratas#${errata.id}`}
-        className="mt-3 inline-block text-sm font-medium text-primary underline underline-offset-2"
-      >
-        Ver todas las erratas
-      </Link>
-    </aside>
-  );
-}
-```
-
 ```tsx
 // src/components/mdx/componentes.tsx
 import type { MDXComponents } from 'mdx/types';
-import { AlertaContradiccion } from './alerta-contradiccion';
 import { Dato } from './dato';
 import { Formula } from './formula';
 import { Ojo } from './ojo';
@@ -4947,7 +4634,6 @@ export const componentesMdx: MDXComponents = {
   Formula,
   TablaClave,
   Ojo,
-  AlertaContradiccion,
 };
 ```
 
@@ -5098,7 +4784,7 @@ export function EnvoltorioItem(props: PropsItem) {
 }
 ```
 
-El panel de retroalimentación (`retroalimentacion.tsx`) muestra, en este orden: veredicto del ítem → `explicacion` → `pasos` si es cálculo → `<AlertaContradiccion>` si el ítem tiene `contradiccion` → `referencia` en pequeño. Esa referencia es lo que permite al usuario ir a verificar en la cartilla: no es decorativa.
+El panel de retroalimentación (`retroalimentacion.tsx`) muestra, en este orden: veredicto del ítem → `explicacion` → `pasos` si es cálculo → `referencia` en pequeño. Esa referencia es lo que permite al usuario ir a verificar en la cartilla: no es decorativa.
 
 ---
 ## 14. Módulo piloto C5 — la plantilla de oro
@@ -5163,9 +4849,9 @@ Su adaptación característica es el aumento de los **triglicéridos intramuscul
 
 Es la zona donde vive el **MLSS (máximo estado estable de lactato)**: la intensidad más alta a la que la concentración de lactato en sangre se mantiene constante en el tiempo. Por encima del MLSS el lactato ya no se estabiliza, sube hasta obligar a parar.
 
-Sus adaptaciones son cardiovasculares: aumento de la volemia, del volumen sistólico y del gasto cardíaco máximo.
+Sus adaptaciones son cardiovasculares y centrales, y van las cuatro juntas: sube la volemia, sube el volumen sistólico, sube el gasto cardíaco máximo y **baja la frecuencia cardíaca en reposo**. La cadena es una sola: más sangre en circulación llena mejor el ventrículo, un ventrículo mejor llenado expulsa más sangre por latido, y con más sangre por latido el corazón mueve lo mismo con menos latidos.
 
-<AlertaContradiccion id="E-09" />
+Lo que **no** sube con el entrenamiento es la FCmáx. Es un techo que depende de la edad, no del estado de forma: lo que se entrena es cuánta sangre mueves en cada latido, no cuántos latidos alcanzas.
 
 ### R3 y R3+ — potencia aeróbica
 
@@ -5179,10 +4865,12 @@ Aquí se ubican los dos métodos interválicos de moda:
 - **SIT** (*sprint interval training*): repeticiones muy cortas a intensidad máxima o supramáxima con recuperaciones largas.
 
 <Ojo>
-El SIT parece trabajo de sprint, y sin embargo la cartilla lo ubica en R3+ junto al HIIT. La razón es el **objetivo adaptativo**, no la sensación: la repetición del estímulo con recuperaciones largas lleva el consumo de oxígeno cerca del VO₂máx sesión tras sesión. No lo confundas con el trabajo del sistema fosfágeno.
+El SIT parece trabajo de sprint, y sin embargo se clasifica en R3+ junto al HIIT. La razón es el **objetivo adaptativo**, no la sensación: la repetición del estímulo con recuperaciones largas lleva el consumo de oxígeno cerca del VO₂máx sesión tras sesión. No lo confundas con el trabajo del sistema fosfágeno.
 </Ojo>
 
-<AlertaContradiccion id="X-02" />
+Y ya que sale el sistema fosfágeno, conviene tener claro cuánto dura, porque es el otro extremo de la escala. Sostiene el esfuerzo máximo entre <Dato etiqueta="sistema fosfágeno" valor="5–15 s" /> y ese rango es un rango de verdad, no un número redondeado a la fuerza: dónde caiga tu deportista depende de la intensidad real a la que trabaje y de cuánta fosfocreatina tenga acumulada ese día. Un velocista descansado y con depósitos llenos se acerca a los 15 s; el mismo velocista en la cuarta repetición, con las reservas a medias, se apaga antes de los 10.
+
+Eso es distinto del **ATP libre**, el que ya está en la fibra listo para gastarse sin regenerar nada: ese alcanza para <Dato etiqueta="ATP libre" valor="2–3 s" /> y se agota casi al arrancar. La fosfocreatina es la que estira esos 2–3 s hasta el rango de 5–15.
 
 ## La VAM
 
@@ -5227,9 +4915,13 @@ FC objetivo = FCmáx × % de la zona
 - Que la máxima oxidación de grasas es R1, no R0.
 - Que HIIT y SIT van en R3/R3+.
 - Que el modelo polarizado es el que **evita** la zona intermedia.
+- Que con el entrenamiento de resistencia **baja la FC en reposo** y **suben** volemia, volumen sistólico y gasto cardíaco máximo. La FCmáx no se mueve.
+- Que el sistema fosfágeno da **5–15 s** y el ATP libre solo **2–3 s**.
 ````
 
 > **Nota para quien escriba los otros 28 módulos:** el archivo MDX **no lleva un `# Título`** de primer nivel — el título, el subtítulo y los objetivos los renderiza la página desde `content/estructura.ts`. Empezar el MDX con `#` duplicaría el encabezado.
+>
+> **El contenido enseña el dato verdadero (ADR-014).** La teoría afirma lo cierto y punto: sin recuadros de errata, sin «la cartilla dice», sin comparar versiones. Donde el material oficial se equivoque, se enseña lo correcto **sin anunciar la discrepancia** — la app no documenta los errores de las cartillas en ningún sitio. Antes de escribir un módulo, lee `.claude/CONTENIDO.md`: recoge la investigación ya verificada para los puntos donde la cartilla falla, y volver a derivarlos del material fuente reintroduce el error.
 
 ### 14.2 `content/tarjetas/c5-umbrales-zonas.ts` — 15 tarjetas
 
@@ -5782,7 +5474,6 @@ export const ITEMS: Item[] = [
       'La cadena va del volumen de sangre al llenado ventricular, de ahí al volumen sistólico y finalmente al gasto cardíaco máximo, que es el producto de frecuencia por volumen sistólico. El distractor más tentador es el último, porque suena razonable que "el corazón entrenado llegue más alto": en realidad la frecuencia cardíaca máxima no aumenta con el entrenamiento, es la frecuencia de reposo la que baja. Dato para recordar: con entrenamiento de resistencia baja la FC de reposo y suben el volumen sistólico y el gasto cardíaco máximo.',
     referencia: 'Cartilla 3, Tema 2, Subtema 2.6.2 — Umbral Ventilatorio 2',
     etiquetas: ['R2', 'volumen sistólico', 'gasto cardíaco', 'adaptaciones'],
-    contradiccion: 'E-09',
   },
   {
     id: 'C5-020',
@@ -5890,7 +5581,6 @@ export const ITEMS: Item[] = [
       'Las zonas se definen por el objetivo adaptativo, no por la sensación del esfuerzo aislado. Aunque cada repetición de SIT sea supramáxima, la sesión completa acumula tiempo cerca del VO₂máx y produce las adaptaciones propias de R3: densidad capilar, densidad mitocondrial y enzimas oxidativas. El distractor más tentador afirma que el sistema aláctico forma parte del metabolismo aeróbico, lo cual es falso: es anaeróbico por definición. Dato para recordar: clasifica por adaptación buscada, no por cuánto duele la repetición.',
     referencia: 'Cartilla 3, Tema 2, Subtema 2.6.3 — Zona R3',
     etiquetas: ['SIT', 'HIIT', 'R3', 'potencia aeróbica'],
-    contradiccion: 'X-02',
   },
   {
     id: 'C5-025',
@@ -5935,7 +5625,7 @@ Reglas de redacción, no negociables:
 
 **De los distractores.** Los tres son plausibles: conceptos del mismo campo semántico que se confunden en la práctica. Longitud pareja — la correcta nunca puede ser la más larga y detallada. Cada distractor corresponde a un error real de quien estudió a medias. Prohibido "todas las anteriores" y "ninguna de las anteriores".
 
-**De la explicación.** Estructura fija: *por qué la correcta lo es* → *por qué falla el distractor más tentador* → *dato para recordar*. Mínimo 200 caracteres. Cita cartilla y subtema. Si el dato está en conflicto entre cartillas, se añade el campo `contradiccion` con el id correspondiente.
+**De la explicación.** Estructura fija: *por qué la correcta lo es* → *por qué falla el distractor más tentador* → *dato para recordar*. Mínimo 200 caracteres. Cita cartilla y subtema en `referencia`, que es el mapa del temario. El cuerpo de la explicación **no habla de las cartillas**: enseña el dato verdadero (ADR-014).
 
 **Orden de producción** (por densidad de retorno, no alfabético): C5 → bloque D completo → resto del bloque C → bloque B → bloque A. Un bloque temático por sesión de Claude Code, nunca módulos sueltos de bloques distintos: mantiene el tono y el criterio de dificultad consistentes.
 
@@ -6034,7 +5724,6 @@ La UI son cinco pestañas: **FC y zonas · Cardio · Carga · MET y VO₂ · Ant
 Vista de solo datos duros, sin teoría, para el día anterior al examen. Lee `content/datos-duros.ts`, agrupa por `categoria` y presenta cada dato como tarjeta rápida (concepto → valor) con un control de "ocultar valores" para autoevaluarse.
 
 - Filtro por categoría y por bloque.
-- Los datos con `contradiccion` llevan el ícono de advertencia y abren la entrada de `/erratas`.
 - **No registra progreso ni alimenta el SRS.** Es una vista de consulta: meter esto en la cola de repaso la víspera del examen sería contraproducente.
 - Botón "Modo repaso": recorre los datos de la categoría uno a uno, valor oculto, con "lo sabía / no lo sabía" — solo como contador de sesión, sin persistir.
 
@@ -6256,7 +5945,7 @@ export default defineConfig({
 ### Paso 3 — Validador de banco
 
 1. `scripts/validar-banco.ts` — copiar §8.
-2. Crear `content/estructura.ts`, `content/erratas.ts`, `content/glosario.ts`, `content/datos-duros.ts` y `content/blueprint-examen.ts` **vacíos pero con la forma correcta** (arrays vacíos y exports nombrados) para que el validador compile. Se llenan en el paso 6.
+2. Crear `content/estructura.ts`, `content/glosario.ts`, `content/datos-duros.ts` y `content/blueprint-examen.ts` **vacíos pero con la forma correcta** (arrays vacíos y exports nombrados) para que el validador compile. Se llenan en el paso 6.
 3. Verificar que `npm run validar` corre y que `npm run build` lo dispara mediante `prebuild`.
 4. Prueba de fuego: mete a mano un ítem con `explicacion` de 50 caracteres y confirma que `npm run build` **falla**. Bórralo después.
 
@@ -6294,11 +5983,10 @@ export default defineConfig({
 
 1. `content/estructura.ts` — copiar §9.1 completo (4 bloques, 29 módulos).
 2. `content/blueprint-examen.ts` — copiar §9.2.
-3. `content/erratas.ts` — copiar §9.3.
-4. `content/datos-duros.ts` — copiar §9.4.
-5. `content/glosario.ts` — copiar §9.5.
-6. `content/banco/indice.ts` y `content/tarjetas/indice.ts` — copiar §9.6 (con el registro de C5 comentado hasta el paso 8).
-7. `src/app/bloques/[bloqueId]/page.tsx` y una ruta `/modulos` de índice: listado de los 29 módulos agrupados por bloque, con el color de bloque y una insignia "En preparación" en los 28 pendientes.
+3. `content/datos-duros.ts` — copiar §9.4.
+4. `content/glosario.ts` — copiar §9.5.
+5. `content/banco/indice.ts` y `content/tarjetas/indice.ts` — copiar §9.6 (con el registro de C5 comentado hasta el paso 8).
+6. `src/app/bloques/[bloqueId]/page.tsx` y una ruta `/modulos` de índice: listado de los 29 módulos agrupados por bloque, con el color de bloque y una insignia "En preparación" en los 28 pendientes.
 
 **Entregable:** `npm run validar` en verde con 29 módulos declarados y 0 ítems. Los 4 bloques navegables con su color.
 
@@ -6307,12 +5995,11 @@ export default defineConfig({
 ### Paso 7 — Renderizado MDX
 
 1. `src/lib/contenido.ts` — copiar §9.7.
-2. `src/components/mdx/` — copiar §12 completo: `renderizador.tsx`, `dato.tsx`, `formula.tsx`, `tabla-clave.tsx`, `ojo.tsx`, `alerta-contradiccion.tsx`, `componentes.tsx`.
+2. `src/components/mdx/` — copiar §12 completo: `renderizador.tsx`, `dato.tsx`, `formula.tsx`, `tabla-clave.tsx`, `ojo.tsx`, `componentes.tsx`.
 3. Añadir la clase `.prose-idoneo` a `globals.css`.
 4. `src/app/modulos/[slug]/page.tsx` (Server, con `await params`): encabezado desde `estructura.ts` (título, subtítulo, objetivos, minutos, prerequisitos), teoría MDX si existe, y estado vacío honesto si `leerTeoria` devuelve `null`.
-5. `src/app/erratas/page.tsx`: lista completa de `ERRATAS` con anclas `id={errata.id}` para que `<AlertaContradiccion>` enlace.
 
-**Entregable:** una ruta de módulo renderiza MDX con los 5 componentes personalizados. `/erratas` completa.
+**Entregable:** una ruta de módulo renderiza MDX con los 4 componentes personalizados.
 
 ---
 
@@ -6385,7 +6072,7 @@ export default defineConfig({
 2. `src/app/resultados/[intentoId]/page.tsx` (Server, `await params`) + `src/components/informe/vista-informe.tsx` (`"use client"`).
 3. `barras-dominio.tsx` con recharts, usando `--color-chart-1..4`. Contenedor responsive, altura fija, sin animación de entrada.
 4. `temas-prioritarios.tsx`: top-5 con botón **"Estudiar esto"** que lleva a `/modulos/[slug]`.
-5. `revision-items.tsx`: ítem por ítem con la respuesta dada, la correcta, la `explicacion`, la `<AlertaContradiccion>` si aplica y la `referencia`.
+5. `revision-items.tsx`: ítem por ítem con la respuesta dada, la correcta, la `explicacion` y la `referencia`.
 6. Mostrar `NOTA_VEREDICTO` bajo el veredicto. No es opcional: la app no puede insinuar que sus cortes son los de COLEF.
 7. `src/app/progreso/page.tsx`: dominio por bloque y módulo, historial de intentos.
 8. Tests `src/lib/__tests__/informe.test.ts`: `calcularVeredicto` en los cuatro tramos y en las fronteras 59/60/74/75/84/85; `temasPrioritarios` excluye módulos con menos de 3 ítems; `detectarPatrones` devuelve el mensaje de aplicación cuando recuerdo 90 % y aplicación 40 %, y `[]` cuando no hay patrón.
@@ -6456,17 +6143,6 @@ Bloque B primero (22 %, muy nominal: ideal para `emparejar` y `caso`), luego blo
 
 **18.5 · `/ajustes`.** Nombre, fecha de examen, tema, sonido. Exportar JSON (descarga con `nombreArchivoRespaldo`), importar con validación Zod y confirmación explícita antes de sobrescribir, reiniciar todo con doble confirmación. Recordatorio de respaldo según `necesitaRespaldo`.
 
-**18.6 · Formulario de erratas.** Enlace externo a un issue prellenado de GitHub desde `/erratas` y desde el panel de retroalimentación de cada ítem:
-
-```ts
-const url = new URL('https://github.com/USUARIO/idoneo-2210/issues/new');
-url.searchParams.set('title', `Errata en ${itemId}`);
-url.searchParams.set('labels', 'errata');
-url.searchParams.set('body', `Ítem: ${itemId}\nMódulo: ${slug}\n\nQué está mal:\n`);
-```
-
-Sin backend. Un enlace, nada más.
-
 **18.7 · SEO mínimo.** Metadata completa y OG solo en `/`. `robots: { index: false }` en el resto. `src/app/robots.ts` permitiendo solo la portada.
 
 **18.8 · Deploy.** `vercel` → `vercel --prod`. Cero variables de entorno. Verificar que el build en Vercel dispara `prebuild` y que el validador corre allí.
@@ -6496,10 +6172,11 @@ Si un ítem incumple las cuotas, el build falla. Es a propósito.
 Ver `.claude/CONTENIDO.md` — una fila por módulo con teoría, tarjetas, ítems y
 estado de revisión.
 
-## Reportar una errata
+## Reportar un error de contenido
 
-Abre un issue con la etiqueta `errata`. Las contradicciones ya detectadas entre
-cartillas están documentadas en la app, en `/erratas`.
+Abre un issue con la etiqueta `contenido`, citando el id del ítem. El contenido
+enseña el dato verificado, no lo que repite el material oficial: si encuentras
+una cifra que no cuadra con la bibliografía, es un error nuestro y se corrige.
 
 ## Licencia y atribución
 
@@ -6646,7 +6323,7 @@ Next.js 15 App Router · TypeScript strict · Tailwind CSS **v4** · shadcn/ui (
 
 ### Carpetas
 
-- `content/` — TODO el contenido. `estructura.ts` (4 bloques, 29 módulos), `banco/` (ítems en TS), `tarjetas/`, `teoria/` (MDX), `erratas.ts`, `datos-duros.ts`, `glosario.ts`, `blueprint-examen.ts`.
+- `content/` — TODO el contenido. `estructura.ts` (4 bloques, 29 módulos), `banco/` (ítems en TS), `tarjetas/`, `teoria/` (MDX), `datos-duros.ts`, `glosario.ts`, `blueprint-examen.ts`.
 - `src/lib/` — tipos, esquemas Zod, almacenamiento y los 5 motores. Cero JSX.
 - `src/app/` — rutas. Todas las páginas son Server Components.
 - `src/components/` — `ui/` (shadcn), `mdx/`, `items/` (7 tipos), `sesion/`, `informe/`, `layout/`.
@@ -6701,6 +6378,7 @@ Radio `0.625rem`. Contenido `max-w-3xl`. Transiciones ≤200 ms. Táctil: opcion
 12. **Actualizar `.claude/BITACORA.md` al terminar cada paso.** Es parte del entregable, no un extra.
 13. **La atribución a COLEF y COCED no se toca.** El material fuente es CC BY-NC-SA 4.0: el pie de `src/components/layout/pie.tsx` debe estar visible en todas las rutas, y `LICENSE` + la sección de licencia del `README.md` deben conservarse. No borrar el pie "porque estorba", no acortar el texto, no quitar el enlace a la licencia.
 14. **La app no se monetiza.** La cláusula NoComercial de la licencia del material fuente lo prohíbe: sin pagos, sin suscripciones, sin publicidad, sin patrocinios. Ver ADR-001 en `.claude/ARQUITECTURA.md`.
+15. **El contenido enseña el dato verdadero, verificado (ADR-014).** Las cartillas son la guía del temario, no la fuente de verdad de cada cifra. La app **no documenta sus errores en ningún sitio**: ni ruta, ni componente, ni campo, ni «la cartilla dice» dentro de una explicación. Antes de escribir un módulo, lee `.claude/CONTENIDO.md`, que recoge la investigación ya verificada.
 
 ## Licencia
 
@@ -6725,6 +6403,7 @@ Contenido adaptado de la «Guía básica del entrenador deportivo» (Cartillas 1
 12. **Nunca destruir el progreso del usuario.** Ni al migrar el esquema, ni al importar un JSON inválido, ni al reiniciar sin doble confirmación.
 13. **La atribución CC BY-NC-SA 4.0 es entregable, no adorno.** `LICENSE` en el paso 1, el pie de §11.7 en el paso 5, la sección de licencia del `README.md` en el paso 18.9. Un paso no está cerrado si falta su parte de la licencia. Ver §1 · Licencia y atribución.
 14. **La app no se monetiza jamás.** La cláusula NoComercial del material fuente lo prohíbe. Cualquier propuesta de cobrar exige reescribir el contenido desde fuentes propias o permiso expreso de COLEF y COCED.
+15. **El contenido enseña el dato verdadero (ADR-014).** Este documento se escribió cuando la app catalogaba las erratas del material fuente; esa decisión se revocó. Si encuentras aquí un resto del sistema de erratas —un tipo, un campo, una ruta, un componente—, **no lo construyas**: está desactualizado y manda el ADR.
 
 ---
 

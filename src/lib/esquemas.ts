@@ -26,7 +26,6 @@ export const esqEstadoContenido = z.enum(['completo', 'en-preparacion']);
 
 const RE_ID_ITEM = /^[ABCD]\d{1,2}-\d{3}$/;
 const RE_REFERENCIA = /^Cartilla [1-4], Tema \d+/;
-const RE_ID_ERRATA = /^[XE]-\d{2}$/;
 const RE_FECHA = /^\d{4}-\d{2}-\d{2}$/;
 
 const camposBase = {
@@ -43,7 +42,6 @@ const camposBase = {
     .string()
     .regex(RE_REFERENCIA, 'la referencia debe empezar por "Cartilla N, Tema M"'),
   etiquetas: z.array(z.string().min(2)).min(1, 'al menos una etiqueta'),
-  contradiccion: z.string().regex(RE_ID_ERRATA).optional(),
 };
 
 /** Un refinamiento reutilizable: se aplica al esquema por tipo y a la unión. */
@@ -296,7 +294,7 @@ export function verificarCuotas(items: Item[], reglas: ReglasCuota = CUOTAS): st
   return fallos;
 }
 
-/* ─── Tarjetas, glosario, erratas, datos duros ────────────────────── */
+/* ─── Tarjetas, glosario, datos duros ─────────────────────────────── */
 
 export const esqTarjeta = z.object({
   id: z.string().regex(/^[ABCD]\d{1,2}-T\d{2}$/, 'el id de tarjeta debe ser como "C5-T07"'),
@@ -313,26 +311,12 @@ export const esqEntradaGlosario = z.object({
   sinonimos: z.array(z.string().min(2)).optional(),
 });
 
-export const esqErrata = z.object({
-  id: z.string().regex(RE_ID_ERRATA),
-  // 'aclaracion' es el tercer tipo desde ADR-012: la cartilla no se equivoca,
-  // el dato se confunde con otro. §5 del blueprint solo trae los dos primeros.
-  tipo: z.enum(['contradiccion', 'errata', 'aclaracion']),
-  tema: z.string().min(4),
-  ubicacion: z.string().min(4),
-  diceLaCartilla: z.string().min(10),
-  loCorrecto: z.string().min(10),
-  comoResponder: z.string().min(20),
-  modulos: z.array(z.string().min(3)).min(1),
-});
-
 export const esqDatoDuro = z.object({
   id: z.string().min(3),
   categoria: z.string().min(3),
   concepto: z.string().min(3),
   valor: z.string().min(1),
   modulo: z.string().min(3),
-  contradiccion: z.string().regex(RE_ID_ERRATA).optional(),
 });
 
 export const esqModulo = z.object({

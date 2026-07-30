@@ -6,12 +6,12 @@ import type { DatoDuro } from '@/lib/tipos';
 
 export const DATOS_DUROS: DatoDuro[] = [
   /* ── Vías energéticas ── */
-  { id: 'DD-001', categoria: 'Vías energéticas', concepto: 'ATP almacenado en el músculo', valor: '2–3 s', modulo: 'c1-vias-energeticas', contradiccion: 'X-03' },
-  { id: 'DD-002', categoria: 'Vías energéticas', concepto: 'Sistema fosfágeno (PCr)', valor: '10–15 s de esfuerzo máximo (Cartilla 3)', modulo: 'c1-vias-energeticas', contradiccion: 'X-02' },
+  { id: 'DD-001', categoria: 'Vías energéticas', concepto: 'ATP almacenado en el músculo', valor: '2–3 s', modulo: 'c1-vias-energeticas' },
+  { id: 'DD-002', categoria: 'Vías energéticas', concepto: 'Sistema fosfágeno (PCr)', valor: '5–15 s de esfuerzo máximo · depende de la intensidad y de las reservas de PCr', modulo: 'c1-vias-energeticas' },
   { id: 'DD-003', categoria: 'Vías energéticas', concepto: 'Reacción de la fosfocreatina', valor: 'PCr + ADP → Creatina + ATP · enzima: creatina quinasa', modulo: 'c1-vias-energeticas' },
   { id: 'DD-004', categoria: 'Vías energéticas', concepto: 'Glucólisis anaeróbica', valor: '30 s – 2 min · produce lactato', modulo: 'c1-vias-energeticas' },
   { id: 'DD-005', categoria: 'Vías energéticas', concepto: 'Glucólisis, fase citoplasmática', valor: '2 ATP netos + 2 NADH', modulo: 'c1-vias-energeticas' },
-  { id: 'DD-006', categoria: 'Vías energéticas', concepto: 'ATP total por glucosa en aerobiosis', valor: '30–32 (Cartilla 3) · 36–38 (Cartilla 1)', modulo: 'c1-vias-energeticas', contradiccion: 'X-01' },
+  { id: 'DD-006', categoria: 'Vías energéticas', concepto: 'ATP total por glucosa en aerobiosis', valor: '30–32 ATP · 30 en músculo esquelético', modulo: 'c1-vias-energeticas' },
   { id: 'DD-007', categoria: 'Vías energéticas', concepto: 'Oxidación del palmitato', valor: '≈129 ATP', modulo: 'c1-vias-energeticas' },
   { id: 'DD-008', categoria: 'Vías energéticas', concepto: 'Dónde ocurre cada fase', valor: 'Glucólisis → citoplasma · Krebs → matriz mitocondrial · Cadena de transporte → membrana interna mitocondrial', modulo: 'c1-vias-energeticas' },
 
@@ -30,7 +30,7 @@ export const DATOS_DUROS: DatoDuro[] = [
   { id: 'DD-026', categoria: 'Cardiovascular', concepto: 'FC de reserva', valor: 'FCmáx − FC en reposo', modulo: 'c2-cardiovascular' },
   { id: 'DD-027', categoria: 'Cardiovascular', concepto: 'Gasto cardíaco', valor: 'GC = FC × volumen sistólico', modulo: 'c2-cardiovascular' },
   { id: 'DD-028', categoria: 'Cardiovascular', concepto: 'Conversión de pulso a lpm', valor: '×4 (15 s) · ×6 (10 s) · ×10 (6 s)', modulo: 'c2-cardiovascular' },
-  { id: 'DD-029', categoria: 'Cardiovascular', concepto: 'Adaptación por tipo de esfuerzo', valor: 'Dinámico/resistencia → dilatación → ↑volumen sistólico · Isométrico/fuerza → hipertrofia → ↑fuerza de contracción', modulo: 'c2-cardiovascular', contradiccion: 'E-09' },
+  { id: 'DD-029', categoria: 'Cardiovascular', concepto: 'Adaptación por tipo de esfuerzo', valor: 'Dinámico/resistencia → dilatación → ↑volumen sistólico · Isométrico/fuerza → hipertrofia → ↑fuerza de contracción', modulo: 'c2-cardiovascular' },
 
   /* ── Respiratorio ── */
   { id: 'DD-030', categoria: 'Respiratorio', concepto: '1 MET', valor: '3,5 ml O₂ · kg⁻¹ · min⁻¹', modulo: 'c3-respiratorio-vo2' },
@@ -77,11 +77,11 @@ export const DATOS_DUROS: DatoDuro[] = [
   /* ── Estadística ── */
   { id: 'DD-080', categoria: 'Estadística', concepto: 'Media', valor: 'Σx / n', modulo: 'a6-estadistica' },
   { id: 'DD-081', categoria: 'Estadística', concepto: 'Mediana (n impar)', valor: 'Posición (N+1)/2 de la lista ordenada', modulo: 'a6-estadistica' },
-  { id: 'DD-082', categoria: 'Estadística', concepto: 'Mediana (n par)', valor: 'Promedio de las posiciones N/2 y (N/2)+1', modulo: 'a6-estadistica', contradiccion: 'E-06' },
+  { id: 'DD-082', categoria: 'Estadística', concepto: 'Mediana (n par)', valor: 'Promedio de las posiciones N/2 y (N/2)+1', modulo: 'a6-estadistica' },
   { id: 'DD-083', categoria: 'Estadística', concepto: 'Varianza', valor: 'Σ(x − x̄)² / n', modulo: 'a6-estadistica' },
   { id: 'DD-084', categoria: 'Estadística', concepto: 'Desviación estándar', valor: '√varianza', modulo: 'a6-estadistica' },
   { id: 'DD-085', categoria: 'Estadística', concepto: 'Rango', valor: 'máximo − mínimo', modulo: 'a6-estadistica' },
-  { id: 'DD-086', categoria: 'Estadística', concepto: 'Porcentaje de aumento', valor: '((nuevo − viejo) / viejo) × 100', modulo: 'a6-estadistica', contradiccion: 'E-05' },
+  { id: 'DD-086', categoria: 'Estadística', concepto: 'Porcentaje de aumento', valor: '((nuevo − viejo) / viejo) × 100', modulo: 'a6-estadistica' },
 
   /* ── Carga ── */
   { id: 'DD-090', categoria: 'Carga', concepto: 'Densidad', valor: 'Tiempo de trabajo activo / tiempo total', modulo: 'd2-carga' },
@@ -89,7 +89,7 @@ export const DATOS_DUROS: DatoDuro[] = [
   { id: 'DD-092', categoria: 'Carga', concepto: 'Escala de esfuerzo percibido', valor: 'Escala de Borg (RPE)', modulo: 'd2-carga' },
 
   /* ── Ley 2210 y dopaje ── */
-  { id: 'DD-100', categoria: 'Ley 2210 y dopaje', concepto: 'Requisitos de idoneidad', valor: '>18 años · ≥12 meses de experiencia · aprobar la evaluación en una categoría', modulo: 'd1-conceptualizacion', contradiccion: 'E-11' },
+  { id: 'DD-100', categoria: 'Ley 2210 y dopaje', concepto: 'Requisitos de idoneidad', valor: '>18 años · ≥12 meses de experiencia · aprobar la evaluación en una categoría', modulo: 'd1-conceptualizacion' },
   { id: 'DD-101', categoria: 'Ley 2210 y dopaje', concepto: 'Niveles de la Ley 2210', valor: 'Formación · perfeccionamiento · altos logros', modulo: 'd1-conceptualizacion' },
   { id: 'DD-102', categoria: 'Ley 2210 y dopaje', concepto: 'Estrategias del programa antidopaje', valor: 'Educación · disuasión · detección', modulo: 'c9-dopaje' },
   { id: 'DD-103', categoria: 'Ley 2210 y dopaje', concepto: 'Infracciones del Artículo 2', valor: '11 infracciones', modulo: 'c9-dopaje' },

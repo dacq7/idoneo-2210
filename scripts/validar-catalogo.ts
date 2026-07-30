@@ -14,7 +14,6 @@ import {
   cuotasDelBloque,
   esqDatoDuro,
   esqEntradaGlosario,
-  esqErrata,
   esqItem,
   esqModulo,
   esqTarjeta,
@@ -25,7 +24,6 @@ import type {
   BlueprintExamen,
   DatoDuro,
   EntradaGlosario,
-  Errata,
   Item,
   Modulo,
   Tarjeta,
@@ -37,7 +35,6 @@ export const MIN_TARJETAS_POR_MODULO = 12;
 export interface Catalogo {
   bloques: readonly Bloque[];
   modulos: readonly Modulo[];
-  erratas: readonly Errata[];
   glosario: readonly EntradaGlosario[];
   datosDuros: readonly DatoDuro[];
   banco: Record<string, () => Promise<Item[]>>;
@@ -52,7 +49,6 @@ export interface ResumenCatalogo {
   completos: number;
   items: number;
   tarjetas: number;
-  erratas: number;
   glosario: number;
 }
 
@@ -86,7 +82,6 @@ export async function validarCatalogo(catalogo: Catalogo): Promise<ResultadoVali
   const {
     bloques: BLOQUES,
     modulos: MODULOS,
-    erratas: ERRATAS,
     glosario: GLOSARIO,
     datosDuros: DATOS_DUROS,
     banco: BANCO,
@@ -135,21 +130,7 @@ export async function validarCatalogo(catalogo: Catalogo): Promise<ResultadoVali
     }
   }
 
-  /* ── 2. Erratas, glosario y datos duros ────────────────────────── */
-
-  const idsErrata = new Set<string>();
-  for (const e of ERRATAS) {
-    const r = esqErrata.safeParse(e);
-    if (!r.success) {
-      for (const i of r.error.issues) err(`erratas/${e.id}`, detalle(i));
-      continue;
-    }
-    if (idsErrata.has(e.id)) err('erratas', `id duplicado: ${e.id}`);
-    idsErrata.add(e.id);
-    for (const m of e.modulos) {
-      if (!slugs.has(m)) err(`erratas/${e.id}`, `módulo inexistente "${m}"`);
-    }
-  }
+  /* ── 2. Glosario y datos duros ─────────────────────────────────── */
 
   const terminosGlosario = new Set<string>();
   for (const g of GLOSARIO) {
@@ -171,9 +152,6 @@ export async function validarCatalogo(catalogo: Catalogo): Promise<ResultadoVali
       continue;
     }
     if (!slugs.has(d.modulo)) err(`datos-duros/${d.id}`, `módulo inexistente "${d.modulo}"`);
-    if (d.contradiccion && !idsErrata.has(d.contradiccion)) {
-      err(`datos-duros/${d.id}`, `contradicción inexistente "${d.contradiccion}"`);
-    }
   }
 
   /* ── 3. Banco de ítems ─────────────────────────────────────────── */
@@ -223,9 +201,6 @@ export async function validarCatalogo(catalogo: Catalogo): Promise<ResultadoVali
       const prefijo = item.id.split('-')[0].toLowerCase();
       if (!modulo.slug.startsWith(`${prefijo}-`)) {
         err(`banco/${modulo.slug}/${item.id}`, `el prefijo del id no corresponde al módulo`);
-      }
-      if (item.contradiccion && !idsErrata.has(item.contradiccion)) {
-        err(`banco/${modulo.slug}/${item.id}`, `contradicción inexistente "${item.contradiccion}"`);
       }
       const cartilla = Number(item.referencia.match(/^Cartilla (\d)/)?.[1]);
       const cartillaEsperada = BLOQUES.find((b) => b.id === item.bloque)?.numeroCartilla;
@@ -380,7 +355,6 @@ export async function validarCatalogo(catalogo: Catalogo): Promise<ResultadoVali
       completos,
       items: totalItems,
       tarjetas: idsTarjeta.size,
-      erratas: idsErrata.size,
       glosario: terminosGlosario.size,
     },
   };

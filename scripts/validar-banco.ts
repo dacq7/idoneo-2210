@@ -10,7 +10,6 @@ import path from 'node:path';
 
 import { BLOQUES, MODULOS } from '../content/estructura';
 import { BLUEPRINTS } from '../content/blueprint-examen';
-import { ERRATAS } from '../content/erratas';
 import { DATOS_DUROS } from '../content/datos-duros';
 import { GLOSARIO } from '../content/glosario';
 import { BANCO } from '../content/banco/indice';
@@ -37,7 +36,6 @@ async function main(): Promise<void> {
   const { errores, avisos, resumen } = await validarCatalogo({
     bloques: BLOQUES,
     modulos: MODULOS,
-    erratas: ERRATAS,
     glosario: GLOSARIO,
     datosDuros: DATOS_DUROS,
     banco: BANCO,
@@ -52,7 +50,7 @@ async function main(): Promise<void> {
     `  Módulos: ${resumen.modulos} (${resumen.completos} completos, ${resumen.modulos - resumen.completos} en preparación)`,
   );
   console.log(
-    `  Ítems: ${resumen.items} · Tarjetas: ${resumen.tarjetas} · Erratas: ${resumen.erratas} · Glosario: ${resumen.glosario}`,
+    `  Ítems: ${resumen.items} · Tarjetas: ${resumen.tarjetas} · Glosario: ${resumen.glosario}`,
   );
   console.log('');
 

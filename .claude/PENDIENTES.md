@@ -30,10 +30,7 @@ Se transcribieron §9.2–§9.5 (6 blueprints · 14 erratas · 70 datos duros ·
 
 ## Paso 7 — Renderizado MDX
 
-- **§12.4 ya está corregida en `CLAUDE.md`** (enmienda de ADR-012, 2026-07-30): el ternario binario pasó a **tres ramas** y para `'aclaracion'` el rótulo es «Aclaración: no es un error». Copiar §12.4 literal **ahora sí es correcto**. El pin de regresión de `esquemas.test.ts` sigue vigilando que X-03 no vuelva a `'contradiccion'`.
-- **El tratamiento visual de una `'aclaracion'` no puede ser el destructivo.** `border-destructive` codifica «algo está mal» y en una aclaración no lo hay. El token coherente es `aviso`, el que ya usa `<Ojo>`. El estilo fino se acuerda con el `ui-designer`; lo fijado es que **no sea rojo**.
-- `/erratas` agrupa por **tres** tipos y conserva el ancla `id="X-03"`: `DD-001` de `datos-duros.ts` enlaza por ahí.
-- ~~Decidir el `tipo` de `X-03`~~ **resuelto en el Paso 6 (ADR-012)**: es `'aclaracion'`.
+- ~~Las tres obligaciones sobre `<AlertaContradiccion>`, el tratamiento de `'aclaracion'` y el agrupado de `/erratas`~~ **sin objeto desde ADR-014**: el sistema de erratas se eliminó por completo. **No copiar §12.4 del blueprint, que sigue trayendo el componente.**
 
 ## Paso 8 — Módulo piloto C5 · ✅ CERRADO el 2026-07-30
 
@@ -41,7 +38,9 @@ C5 completo: teoría, 15 tarjetas y **28 ítems** con el reparto 12/9/7 de ADR-0
 
 ## Pasos 9 y 11 — Hooks de sesión y cronómetro
 
-- **Decidir, EN EL MISMO MOMENTO, la deuda de `src/lib/esquemas.ts`.** Manda al navegador los siete esquemas de ítem, más tarjetas, erratas y glosario, donde **ninguno se usa**: en cliente solo hace falta `esqEstadoProgreso`, que `almacenamiento.ts` importa para validar el progreso al leerlo. Evidencia: `grep "diceLaCartilla" .next/static/chunks/` devuelve `571-*.js`. **No es violación de §5** —§5 sanciona ese import explícitamente—; lo no previsto es el coste. Partirlo en `esquemas-progreso.ts` / `esquemas-contenido.ts` sí es arquitectura y choca con §22 regla 2, así que se reportó en vez de hacerse. Misma deuda que el barrel, mismas rutas, mismo momento.
+- ~~`<AlertaContradiccion>` es prematuro, no código muerto~~ **borrado por ADR-014.** El panel de retroalimentación de este paso muestra veredicto → `explicacion` → `pasos` si es cálculo → `referencia`, y **nada más**: el campo `contradiccion` de `ItemBase` ya no existe. **§13 del blueprint sigue describiendo el cuadro en el panel: no copiarlo.**
+
+- **Decidir, EN EL MISMO MOMENTO, la deuda de `src/lib/esquemas.ts`.** Manda al navegador los siete esquemas de ítem, más tarjetas y glosario, donde **ninguno se usa**: en cliente solo hace falta `esqEstadoProgreso`, que `almacenamiento.ts` importa para validar el progreso al leerlo. Evidencia: la cadena de sondeo era `grep "diceLaCartilla" .next/static/chunks/`; con `esqErrata` borrado (ADR-014) **hay que elegir una nueva** antes de volver a medirlo. **No es violación de §5** —§5 sanciona ese import explícitamente—; lo no previsto es el coste. Partirlo en `esquemas-progreso.ts` / `esquemas-contenido.ts` sí es arquitectura y choca con §22 regla 2, así que se reportó en vez de hacerse. Misma deuda que el barrel, mismas rutas, mismo momento.
 - **Decidir la deuda del barrel de `radix-ui`: 77.5 kB gz.** `src/components/ui/badge.tsx` y `button.tsx` hacen `import { Slot } from "radix-ui"` —el paquete paraguas—, y como `Slot` es cliente, el barrel completo entra al bundle de la ruta. Medido: `/not-found` paga **183.8 kB js gz** contra los **106.2** de `/modulos`, y el chunk extra (`470-*.js`, 77.5 kB gz) contiene `Slot`, `Presence`, `DismissableLayer` y `FocusScope` — maquinaria de diálogos que un 404 no usa. **El `grep` de ADR-010 no lo detecta porque no es `content/`.** El arreglo son dos líneas (`import { Slot } from "@radix-ui/react-slot"`, ya presente como transitiva en `1.3.3`) más declararlo en `dependencies`, pero los otros 8 componentes de `ui/` importan el mismo barrel para primitivas que **sí** usan, así que conviene fijar el criterio completo de una vez. Se decide aquí porque es cuando entran `Dialog` (reanudar sesión) y `Tabs` (`/herramientas`) y el reparto de chunks cambia igual.
 
 - Los hooks se exportan como **`useSesion`** y **`useCronometro`**; los archivos siguen siendo `usar-sesion.ts` y `usar-cronometro.ts` (ADR-007). Con nombre en español, `react-hooks/rules-of-hooks` da error **y deja de auditar el interior de la función** — justo en el controlador de sesión y el auto-envío del cronómetro.
@@ -63,11 +62,9 @@ C5 completo: teoría, 15 tarjetas y **28 ítems** con el reparto 12/9/7 de ADR-0
 
 - **El CSS de la ficha declara claves hasta `--et-7`.** Una tabla de **8 columnas o más** apilaría igual, pero de la octava en adelante el valor saldría **sin su clave**. Ninguna tabla de las cartillas llega a 6; si alguna llegara, se añade la línea que falte en `globals.css` §3.2.
 
-- **A-18 · «0 violaciones de axe» ya NO significa «tabla verificada».** El degradado que señala el desplazamiento horizontal de las tablas (A-11) es un `background-image` sobre el contenedor, y axe **no sabe calcular contraste sobre un degradado**: lo marca como *incompleto* y se abstiene. Medido en la reverificación del Paso 7: las incompletas de un módulo con teoría pasan de **1 a 32**, y **31 son celdas de tabla**.
+- ~~**A-18 · «0 violaciones de axe» ya NO significa «tabla verificada».**~~ **Resuelto al cerrar A-22** (2026-07-30): el degradado que cegaba a axe sobre las celdas de tabla ya no existe, así que un informe en verde vuelve a responder por ellas. **No hay que medir a mano el contraste de las tablas nuevas.** Se deja tachado y no borrado porque la advertencia circuló varios días.
 
-  No hay ningún fallo detrás — el texto de tabla mide 17.03 claro / 15.22 oscuro, muy por encima del 4.5 —, pero **la comprobación automática dejó de cubrir ese caso**. Los pasos 15, 16 y 17 escriben 29 módulos llenos de tablas, que son el formato dominante de las cartillas.
-
-  **Consecuencia operativa:** al auditar contenido nuevo con tablas, el contraste de sus celdas **se mide a mano** o se comprueba desactivando temporalmente el degradado. Un informe de axe en verde no responde por ellas. Ver A-18 en `ACCESIBILIDAD.md`.
+- **A-23 · lo que sí hereda este paso, y es más caro que lo anterior.** El remedio de A-22 (`overflow-wrap: anywhere` en `.prose-idoneo table`) partía palabras normales en las cabeceras: «Zon/a», «Aeróbi/co», «Sustrat/o». Ya arreglado en el Paso 8b repartiendo el valor por rol de celda (`th: normal` · `td: break-word` · `td::before: normal`). **La lección operativa para 29 módulos de tablas:** un cambio de maquetación tipográfica sobre `table` llega por herencia a rótulos y valores por igual, y son roles con necesidades opuestas. Al tocar el CSS de tabla, se comprueba con **una tabla ancha real a 375 px**, no con una de dos columnas. Ver A-23 en `ACCESIBILIDAD.md`.
 
 ## Paso 16 — Resto del bloque C
 
@@ -100,6 +97,10 @@ C5 completo: teoría, 15 tarjetas y **28 ítems** con el reparto 12/9/7 de ADR-0
 ---
 
 ## Sin paso asignado
+
+- **`DISENO.md` §1.4, fila D-1, afirma algo falso y es anterior a ADR-014.** Dice que `text-aviso` «sí se usa como texto: el `<Ojo>` de §12.3». En el `ojo.tsx` real, `text-aviso` está **solo en el icono**; el título va en `text-foreground` por §6.3. El consumidor real de `text-aviso` como texto es el **cronómetro a los 10 min** (Paso 11). Corregirlo cambia la justificación de un valor de la paleta, así que lo decide el `ui-designer` — conviene hacerlo **en el Paso 11**, cuando el cronómetro exista y la justificación se pueda escribir sobre algo medido en vez de sobre una promesa.
+
+- ~~**`CLAUDE.md` sostiene entero el sistema de erratas que ADR-014 eliminó.**~~ **Editado el 2026-07-30** (enmienda a ADR-014): once secciones limpias, 366 líneas fuera. §1 **sustituye** el diferenciador en vez de borrarlo. Y **§21 y §22 ganan una regla 15** que dice por qué el documento está limpio, para que una copia vieja no reintroduzca el sistema en silencio.
 
 - **ADR-008 pendiente de ratificación** por el `software-architect`: añade una tercera clave de `localStorage` donde §6 dice "dos claves, deliberadamente separadas", más API pública nueva. El `code-reviewer` no lo bloqueó — corrige que §6 destruyera el progreso y restaura un invariante en vez de romperlo.
 - Dos verrugas cosméticas del validador que se dejaron a propósito: el resumen cuenta `items` **antes** de validar mientras las cuotas juzgan solo los válidos (la cabecera puede decir 27 y la cuota 25), y `conteoPorModulo` conserva ese mismo conteo. Inofensivas; revisar solo si estorban en los pasos 15–17.

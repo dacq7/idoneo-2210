@@ -2,8 +2,7 @@
 //
 // Base: §12.2. Los tres tamaños se llevan a la escala de DISENO.md §2.3, que es
 // la fuente de verdad tipográfica: `text-xs tracking-wide` y `text-sm` no
-// existen en esa escala. Es la misma corrección que §6.7 aplicó al `<dt>` de
-// <AlertaContradiccion>. Nada más cambia de §12.2.
+// existen en esa escala. Nada más cambia de §12.2.
 
 /**
  * Valor exacto en línea dentro de la teoría: `<Dato etiqueta="R1" valor="65–75 %" />`.

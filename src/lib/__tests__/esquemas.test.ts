@@ -1,10 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { ERRATAS } from '@/content/erratas';
 import {
   CUOTAS,
   CUOTAS_BLOQUE_C,
   cuotasDelBloque,
-  esqErrata,
   esqItem,
   esqItemCalculo,
   esqItemCaso,
@@ -412,27 +410,6 @@ describe('formatos', () => {
     }
   });
 
-  it('esqErrata acepta los 3 tipos y rechaza uno inventado (ADR-012)', () => {
-    const errata = {
-      id: 'X-03',
-      tema: 'Reservas de ATP libre',
-      ubicacion: 'Cartilla 3',
-      diceLaCartilla: 'El ATP almacenado en el músculo alcanza para 2–3 s.',
-      loCorrecto: 'No hay conflicto: 2–3 s es correcto. Se confunde con X-02.',
-      comoResponder: 'ATP libre (2–3 s) ≠ sistema fosfágeno completo (10–15 s).',
-      modulos: ['c1-vias-energeticas'],
-    };
-    for (const tipo of ['contradiccion', 'errata', 'aclaracion']) {
-      expect(esqErrata.safeParse({ ...errata, tipo }).success, `${tipo} debería ser válido`).toBe(
-        true,
-      );
-    }
-    // Sin tilde y en la forma exacta del enum: 'aclaración' no vale.
-    for (const tipo of ['aclaración', 'nota', '']) {
-      expect(esqErrata.safeParse({ ...errata, tipo }).success, `${tipo} debería fallar`).toBe(false);
-    }
-  });
-
   it('esqTarjeta acepta "C5-T07" y rechaza "C5-T7"', () => {
     const tarjeta = {
       modulo: 'c5-umbrales-zonas',
@@ -536,35 +513,5 @@ describe('cuotasDelBloque', () => {
 
   it('solo cambia el mínimo de ítems, no el resto de las reglas', () => {
     expect({ ...CUOTAS_BLOQUE_C, minimoItems: CUOTAS.minimoItems }).toEqual(CUOTAS);
-  });
-});
-
-/* ─── 8. Clasificación real de las erratas (ADR-012) ──────────────── */
-
-describe('ERRATAS — clasificación del contenido real', () => {
-  it('X-03 es una aclaración, no una contradicción', () => {
-    // Pin de regresión: §9.3 del blueprint la trae como 'contradiccion', pero su
-    // propio loCorrecto dice "No hay conflicto". Si alguien vuelve a copiar §9.3
-    // literal, este test lo detiene antes de que el rótulo mienta en la UI.
-    const x03 = ERRATAS.find((e) => e.id === 'X-03');
-    expect(x03).toBeDefined();
-    expect(x03?.tipo).toBe('aclaracion');
-  });
-
-  it('toda entrada del catálogo real pasa esqErrata', () => {
-    for (const e of ERRATAS) {
-      expect(esqErrata.safeParse(e).success, `${e.id} debería ser válida`).toBe(true);
-    }
-  });
-
-  it('las X-* nacen de una divergencia entre cartillas y las E-* son erratas', () => {
-    // El prefijo marca la familia, no el tipo: una X-* puede ser 'aclaracion'.
-    for (const e of ERRATAS) {
-      if (e.id.startsWith('E-')) {
-        expect(e.tipo, `${e.id} lleva prefijo E-`).toBe('errata');
-      } else {
-        expect(['contradiccion', 'aclaracion'], `${e.id} lleva prefijo X-`).toContain(e.tipo);
-      }
-    }
   });
 });
