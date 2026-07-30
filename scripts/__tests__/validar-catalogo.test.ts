@@ -49,7 +49,6 @@ function catalogo(extra: Partial<Catalogo> = {}): Catalogo {
   return {
     bloques: BLOQUES_VALIDOS,
     modulos: veintinueveModulos(modulo('c5-umbrales-zonas')),
-    erratas: [],
     glosario: [],
     datosDuros: [],
     banco: {},
@@ -144,7 +143,6 @@ describe('validarCatalogo — línea base', () => {
       completos: 0,
       items: 0,
       tarjetas: 0,
-      erratas: 0,
       glosario: 0,
     });
   });
@@ -295,7 +293,7 @@ describe('formato del detalle del issue', () => {
     const r = await validarCatalogo(
       catalogo({
         modulos: [{ ...modulo('c5-umbrales-zonas'), titulo: 'x' }],
-        erratas: [{ id: 'X-01', tipo: 'contradiccion', tema: 'x', ubicacion: 'y', diceLaCartilla: 'z', loCorrecto: 'w', comoResponder: 'v', modulos: [] }],
+        glosario: [{ termino: 'x', definicion: 'corta', modulo: 'inexistente' }],
         banco: {
           'c5-umbrales-zonas': async () => [
             item('C5-001', { opciones: ['a', 'a', 'b', 'c'] } as Partial<Item>),

@@ -10,7 +10,6 @@
 
 import { Children, isValidElement, type ReactElement, type ReactNode } from 'react';
 import type { MDXComponents } from 'mdx/types';
-import { AlertaContradiccion } from './alerta-contradiccion';
 import { Dato } from './dato';
 import { Formula } from './formula';
 import { Ojo } from './ojo';
@@ -76,7 +75,6 @@ export const componentesMdx: MDXComponents = {
   Formula,
   TablaClave,
   Ojo,
-  AlertaContradiccion,
 
   // `tabIndex={0}` no es opcional: un contenedor con `overflow-x: auto` no es
   // alcanzable con el teclado en Chromium (WCAG 2.1.1).

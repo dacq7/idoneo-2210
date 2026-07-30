@@ -5,6 +5,12 @@
 // Etapa 2 de un módulo. Una tarjeta a la vez: frente → «Ver la respuesta» →
 // reverso → «La sabía» / «No la sabía».
 //
+// Jerarquía: la acción primaria son los BOTONES, a 52px. Este mazo se estudia
+// desde el celular y el teclado es ayuda secundaria, no la vía de uso. El atajo
+// existe y funciona igual de bien, pero se anuncia en una línea discreta y solo
+// donde hay teclado (`any-pointer: fine`), no como la instrucción de la
+// pantalla.
+//
 // Frontera (ADR-010): NO importa `content/tarjetas/indice`. Las tarjetas las
 // carga la PÁGINA en el servidor con `cargarTarjetas(slug)` y las pasa ya
 // proyectadas a `TarjetaEnMazo` (sin el campo `modulo`, que el mazo no usa).
@@ -122,16 +128,36 @@ export function MazoTarjetas({ slug, bloque, tarjetas }: Props) {
     setTerminado(false);
   }
 
-  function alPulsarTecla(evento: React.KeyboardEvent<HTMLDivElement>) {
+  // Los atajos escuchan en `window`, no en un contenedor. Antes vivían en un
+  // `<div onKeyDown>` SIN `tabIndex`: un div no enfocable no recibe teclado, así
+  // que las teclas solo funcionaban mientras el foco siguiera dentro por
+  // casualidad —y bastaba pulsar una zona neutra, que manda el foco al <body>,
+  // para que el mazo dejara de responder. Es el patrón de §13 del blueprint
+  // (`opcion-unica.tsx`) y aquí resuelve además que el atajo funcione desde el
+  // primer momento, sin haber tenido que hacer clic en nada.
+  //
+  // El teclado es AYUDA, no la vía: los botones son la acción primaria y
+  // funcionan solos. Por eso el efecto no toca `Enter` — la activación del botón
+  // enfocado ya es nativa, y duplicarla aquí dispararía dos veces.
+  useEffect(() => {
     if (terminado || !revelada) return;
-    if (evento.key === '1') {
+
+    const alPulsar = (evento: KeyboardEvent) => {
+      if (evento.altKey || evento.ctrlKey || evento.metaKey) return;
+      // Defensivo: hoy el mazo no tiene campos de texto, pero un atajo global
+      // que se coma el «1» de un input sería un bug muy caro de encontrar.
+      const foco = document.activeElement;
+      if (foco instanceof HTMLElement && (foco.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(foco.tagName))) {
+        return;
+      }
+      if (evento.key !== '1' && evento.key !== '2') return;
       evento.preventDefault();
-      responder(true);
-    } else if (evento.key === '2') {
-      evento.preventDefault();
-      responder(false);
-    }
-  }
+      responder(evento.key === '1');
+    };
+
+    window.addEventListener('keydown', alPulsar);
+    return () => window.removeEventListener('keydown', alPulsar);
+  });
 
   if (terminado) {
     return (
@@ -153,7 +179,7 @@ export function MazoTarjetas({ slug, bloque, tarjetas }: Props) {
   const avance = ((indice + 1) / total) * 100;
 
   return (
-    <div className="space-y-4" onKeyDown={alPulsarTecla}>
+    <div className="space-y-4">
       <div className="space-y-2">
         {/* El contador es el portador accesible del avance; la banda solo lo
             refuerza. role="status" lo anuncia al pasar de tarjeta sin robar el
@@ -200,26 +226,47 @@ export function MazoTarjetas({ slug, bloque, tarjetas }: Props) {
         ) : null}
       </article>
 
+      {/* Acción primaria. Este mazo se estudia en el celular —restricción dura
+          del brief—, así que lo que manda es el objetivo táctil: 52px, la
+          medida que §3 de DISENO.md reserva para las opciones de ítem, porque
+          esto es exactamente eso, la respuesta a la tarjeta. */}
       {revelada ? (
         <div className="flex flex-col gap-2 sm:flex-row">
-          <Boton onClick={() => responder(true)} variante="contorno" className="flex-1">
+          <Boton
+            onClick={() => responder(true)}
+            variante="contorno"
+            className="min-h-[52px] flex-1 text-[0.9375rem]"
+          >
             <Check className="size-4" aria-hidden="true" />
             La sabía
           </Boton>
-          <Boton onClick={() => responder(false)} variante="contorno" className="flex-1">
+          <Boton
+            onClick={() => responder(false)}
+            variante="contorno"
+            className="min-h-[52px] flex-1 text-[0.9375rem]"
+          >
             <X className="size-4" aria-hidden="true" />
             No la sabía
           </Boton>
         </div>
       ) : (
-        <Boton ref={refRevelar} onClick={revelar} variante="principal" className="w-full">
+        <Boton
+          ref={refRevelar}
+          onClick={revelar}
+          variante="principal"
+          className="min-h-[52px] w-full text-[0.9375rem]"
+        >
           Ver la respuesta
         </Boton>
       )}
 
-      <p className="hidden text-[0.8125rem] text-muted-foreground sm:block">
-        Con el teclado: <Tecla>Enter</Tecla> para ver la respuesta, <Tecla>1</Tecla> si la
-        sabías y <Tecla>2</Tecla> si no.
+      {/* Ayuda secundaria, no la instrucción de uso. Se muestra por MODALIDAD y
+          no por ancho: `any-pointer: fine` es la señal de que hay ratón o
+          teclado detrás. `sm:` era un proxy de ancho para una pregunta de
+          entrada, y se equivocaba en los dos sentidos — la escondía en un
+          teléfono con teclado y la mostraba en una tableta táctil de 700px. */}
+      <p className="hidden text-[0.8125rem] leading-[1.45] text-muted-foreground [@media(any-pointer:fine)]:block">
+        Atajos: <Tecla>1</Tecla> si la sabías, <Tecla>2</Tecla> si no.
       </p>
     </div>
   );

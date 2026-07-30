@@ -422,6 +422,22 @@ Si devuelve algo, un componente cliente volvió a importar `content/`.
 > `intentarMigrar`). Medido: `conceptosClave` devuelve 1 chunk y `osteomuscular`
 > devuelve 0, con el bundle sano.
 >
+> **Segunda corrección — 2026-07-30, ADR-014.** El canario complementario que
+> sondeaba `content/erratas.ts` (`diceLaCartilla`, «Las cartillas se contradicen»)
+> quedó sin objeto: el archivo ya no existe. Lo sustituye **`Malondialdehído`**
+> (valor de `DD-073` en `content/datos-duros.ts`), que cumple los tres criterios:
+> es un **valor** y no un nombre de campo —los nombres de campo viajan
+> legítimamente dentro de los esquemas de Zod, que es lo que quemó a
+> `conceptosClave`—, sale de un archivo que ningún Client Component puede
+> importar, y es única en todo el repo. **No sirven las cadenas de
+> `content/banco/` ni de `content/tarjetas/`**: esas entran al bundle cliente a
+> propósito desde el Paso 11 y darían falso positivo.
+>
+> ```bash
+> grep -rl "osteomuscular"   .next/static/chunks/   # content/estructura.ts
+> grep -rl "Malondialdehído" .next/static/chunks/   # content/datos-duros.ts
+> ```
+>
 > **El canario fiable es `osteomuscular`**: es una cadena de contenido puro, no
 > aparece en ningún esquema. Y el barrido va sobre `.next/static/chunks/` entero,
 > no solo sobre el chunk del layout: desde el Paso 8 hay rutas con cliente propio. Esta comprobación es **preferible a la cifra**: es binaria y no depende de con qué método se midió el peso.
@@ -521,9 +537,9 @@ Mientras no haya respuesta, el estado real es: **fuga conocida, medida, contenid
 
 ---
 
-## ADR-012 · `TipoErrata` gana un tercer valor: `aclaracion`
+## ADR-012 · `TipoErrata` gana un tercer valor: `aclaracion` — ⚠️ SUPERSEDIDA por ADR-014
 
-**Estado:** Aceptada
+**Estado:** ~~Aceptada~~ **Supersedida por ADR-014** el 2026-07-30: el sistema de erratas se eliminó por completo, así que ya no hay `TipoErrata` que clasificar. Se conserva como historia.
 **Fecha:** 2026-07-30 · **Autor:** software-architect
 
 **Contexto:** `content/erratas.ts`, transcrito hoy literal desde §9.3, trae **X-03 con `tipo: 'contradiccion'`** y, en el mismo objeto, un `loCorrecto` que dice **«No hay conflicto: 2–3 s es correcto. El problema es que se confunde con X-02.»** No es una contradicción entre cartillas ni una errata: la cartilla no dice nada incorrecto. Es una **desambiguación** frente a X-02 (ATP libre 2–3 s ≠ sistema fosfágeno 10–15 s).
@@ -600,3 +616,134 @@ El docblock del `id` entró como quinto punto por ser la misma corrección incom
 
 **El pin de regresión se mantiene**, aunque §9.3 ya esté corregido. Sigue siendo el guardián: si alguien recopia el bloque de §9.3 desde una versión vieja del blueprint, desde un fork o desde un pantallazo de la conversación, el pin falla. La edición del blueprint reduce la probabilidad del error; el test es lo que lo detecta si ocurre.
 
+
+---
+
+## ADR-013 · El cuadro de errata sale del cuerpo de la teoría — ⚠️ SUPERSEDIDA por ADR-014
+
+**Estado:** ~~Aceptada~~ **Supersedida por ADR-014** el mismo día: sacar el cuadro del cuerpo de la teoría fue la primera mitad de un movimiento que terminó en eliminar el sistema entero. Se conserva como historia.
+**Fecha:** 2026-07-30 · **Autor:** hilo principal, por decisión del usuario
+
+**Contexto.** La teoría de C5 —la plantilla de oro que se replica 28 veces— montaba dos `<AlertaContradiccion>` dentro del hilo de lectura: `E-09` en la sección R2 y `X-02` tras el `<Ojo>` del SIT. Es lo que §14.1 del blueprint prescribe, y §1 llama a ese componente **el activo defendible del producto**.
+
+El problema no es el componente sino **dónde estaba**. En el cuerpo de la teoría producía tres efectos que no se ven al leer el blueprint y sí al leer el MDX renderizado:
+
+1. **El dato correcto no estaba en la prosa.** La bajada de FC en reposo —la mitad de las adaptaciones de R2— vivía **solo** dentro del cuadro de E-09. Quien leyera la teoría saltándose el recuadro no aprendía el dato. Un cuadro de advertencia es tipográficamente saltable: eso es lo que lo hace útil como alerta y lo que lo descalifica como portador del contenido.
+2. **Meta-discurso donde tenía que haber enseñanza.** El texto que rodeaba a E-09 decía «no uses esa tabla como fuente». Es una instrucción sobre cómo leer la Cartilla 3, no fisiología. El `<Ojo>` del SIT hacía lo mismo en menor escala: «la cartilla lo ubica en R3+».
+3. **Fingía precisión que no existe.** El cuadro de X-02 resolvía «elige 10–15 s si el bloque es Ciencias Aplicadas». La verificación del usuario, con fuentes, dice que **no hay un número único**: el sistema fosfágeno sostiene de 5 a 15 s según intensidad y reservas basales de PCr. El cuadro convertía un rango real en un falso binario de bloques.
+
+**Decisión.** **La teoría afirma el dato correcto de forma directa, integrado en la prosa, sin recuadro y sin hablar de lo que dice o deja de decir la cartilla. `/erratas` sigue existiendo, intacto, como registro de referencia.**
+
+`<AlertaContradiccion>` **no se borra ni se despublica**: sigue registrado en `componentesMdx` y sigue siendo el componente de `/erratas` vía `ESTILO_ERRATA`. Lo que cambia es que **la teoría deja de ser uno de sus lugares**.
+
+**Por qué esto no contradice §1.** §1 identifica como activo defendible el **haber detectado y catalogado** las contradicciones —trabajo que exige haber leído las cuatro cartillas con lápiz en mano—, no la decisión tipográfica de renderizarlas en medio de la lectura. Ese catálogo sigue completo en `content/erratas.ts` (14 entradas), sigue publicado en `/erratas`, y sigue llegando al usuario por tres vías: el enlace del pie en todas las rutas, el campo `contradiccion` de los ítems del banco —que el panel de retroalimentación del Paso 9 va a montar, y ahí el cuadro **sí** corresponde, porque el usuario acaba de fallar el ítem— y los datos duros marcados en `/ultima-noche`. La cobertura no baja; cambia el momento.
+
+**Qué se pierde, dicho sin adorno.** El estudiante ya no sabe, leyendo la teoría, que si abre la Cartilla 3 se va a encontrar una tabla desalineada que lo contradice. Esa señal queda solo en `/erratas`. Es el precio, y se paga a sabiendas: vale más que el dato correcto esté en el hilo de lectura que una alerta sobre un libro que el estudiante quizá no abra.
+
+**Alternativas descartadas:**
+
+- **Dejar el cuadro y además meter el dato en la prosa.** Duplica: el mismo dato dos veces en la misma pantalla, con dos redacciones que se van a desincronizar en cuanto alguien edite una sola. Y no arregla el meta-discurso.
+- **Cambiar el cuadro por un `<Ojo>`.** Sustituye un recuadro por otro. El `<Ojo>` es para «no hay error, pero aquí te vas a equivocar», y aquí lo que hay es un dato que enseñar.
+- **Nota al pie o enlace en línea a `/erratas`.** Saca al usuario de la lectura hacia una ruta de referencia, en móvil, a mitad de un módulo. `/erratas` es para consultar, no para interrumpir.
+
+**Consecuencias.**
+
+1. **Los pasos 15–17 replican esto, no §14.1.** Queda escrito en `.claude/CONTENIDO.md`, que es lo que el autor de contenido lee antes de escribir un módulo. El blueprint queda desalineado en §14.1 y **no se editó `CLAUDE.md`**: la edición la autoriza el usuario, y aquí —a diferencia de ADR-012— el defecto **sí deja rastro**, porque un módulo nuevo que monte el cuadro se ve al revisarlo. Queda solicitada, no aplicada.
+2. **`<AlertaContradiccion>` se queda sin ningún consumidor hasta el Paso 9.** No es código muerto: es **prematuro**. Está escrito, probado y con su `ESTILO_ERRATA` en uso desde `/erratas`. Anotado en `PENDIENTES.md` para que una limpieza de código muerto no se lo lleve por delante.
+3. **`content/erratas.ts` se reescribió con lo verificado**, no solo se movió de sitio: X-01 pasa a 30–32 siempre (los 36–38 son el dato viejo, no «la versión de Ciencias Básicas»), X-02 pasa a rango 5–15 s, X-03 se mantiene como `'aclaracion'` y gana valor —al bajar el piso de X-02 a 5 s, el 2–3 y el 5–15 quedan más cerca, así que la desambiguación hace más falta, no menos—, y cuatro E-* se corrigieron o completaron (E-01, E-03, E-07, E-09).
+4. **`content/datos-duros.ts` acompaña.** `DD-002` decía «10–15 s (Cartilla 3)» y `DD-006` presentaba 30–32 y 36–38 como dos alternativas de igual rango. Alimentan `/ultima-noche`, que es donde el usuario memoriza valores exactos la víspera: dejarlos con la resolución vieja era peor que dejarlos en el banco.
+
+**Ningún ítem del banco cambió**, así que el reparto 12/9/7 de ADR-006 queda intacto. Se revisaron los dos que llevan campo `contradiccion` —`C5-019` (E-09) y `C5-024` (X-02)— y ninguno afirma nada que se haya caído; `C5-019` incluso queda ahora respaldado por la teoría, que antes no enseñaba el dato del que depende su respuesta correcta.
+
+Compuertas al cierre: `typecheck` limpio · `lint` limpio · **187 tests** · `validar` 0 errores.
+
+### Enmienda a ADR-013 — 2026-07-30: se editó `CLAUDE.md` §14.1
+
+Autorizado por el usuario, con el procedimiento vigente desde la enmienda de ADR-012: **diff preparado sobre una copia y revisado antes de aplicar.**
+
+| Punto | Qué cambió |
+|---|---|
+| §14.1, sección R2 | el párrafo de adaptaciones se amplía a las cuatro (incluida ↓FC en reposo) y el cuadro de `E-09` pasa al párrafo que enseña que **la FCmáx no sube con el entrenamiento** |
+| §14.1, `<Ojo>` del SIT | «la cartilla lo ubica en R3+» → «se clasifica en R3+» — el mismo meta-discurso, sin recuadro |
+| §14.1, cuadro de `X-02` | pasa a prosa que enseña **5–15 s como rango**, más la separación frente al ATP libre (2–3 s) |
+| §14.1, «Lo mínimo que tienes que llevarte» | dos viñetas nuevas: adaptaciones cardiovasculares + FCmáx quieta; 5–15 s vs 2–3 s |
+| Nota que sigue al bloque | **la regla que gobierna la réplica**: las erratas no van en el cuerpo de la teoría |
+
+**10 inserciones, 4 supresiones.** Ninguna otra sección se movió.
+
+**Las cuatro primeras son un espejo mecánico**, no una redacción nueva: se verificó extrayendo el bloque cercado de §14.1 y comparándolo con `content/teoria/c5-umbrales-zonas.mdx` — **coinciden byte a byte**.
+
+**La quinta es la que justifica la edición, y no es espejo de nada.** Las otras cuatro arreglan el ejemplo; esta arregla **la instrucción**, que es lo que se replica 28 veces. Un autor que copie C5 sin ella puede leer la ausencia de cuadros como casualidad de este módulo. Va en la nota que ya gobierna la réplica, junto a la regla del `#` de primer nivel, y remite a este ADR.
+
+**Diferencia con la enmienda de ADR-012, que es la que fija el criterio:** allí el defecto era invisible —§12.4 copiado literal compilaba, validaba y pasaba los tests mostrando un rótulo falso—. Aquí **deja rastro**: un módulo que monte el cuadro se ve al revisarlo. Se editó igual porque el rastro visible no protege cuando el mismo defecto se replica 28 veces antes de que alguien mire; el coste de detectarlo tarde se multiplica por 28, y el de editarlo hoy son diez líneas.
+
+**§1 se dejó intacto**, y es decisión, no olvido. *(Dejó de serlo el mismo día: ADR-014 lo sustituyó — la frase que sigue describe el estado de §1 entre las dos ediciones, no el actual.)* Sigue llamando a `<AlertaContradiccion>` «el diferenciador». No es falso bajo la tesis de este ADR —el activo es el catálogo de contradicciones, no el sitio donde se renderiza—, es impreciso en una frase. Tocarlo abre la sección de visión del producto, que ya no es alinear §14.1.
+
+---
+
+## ADR-014 · El contenido enseña el dato verdadero. La app no documenta los errores de las cartillas
+
+**Estado:** Aceptada · **supersede a ADR-012 y a ADR-013**
+**Fecha:** 2026-07-30 · **Autor:** hilo principal, por decisión de producto del usuario
+
+**Decisión.** **El sistema de erratas se elimina por completo.** El contenido de Idóneo 2210 enseña el dato **verdadero, investigado y verificado**. Las cuatro cartillas son **la guía del temario, no la fuente de verdad de cada cifra**. La app **no documenta sus errores en ningún lugar**: ni ruta, ni componente, ni campo, ni tipo, ni mención dentro de una explicación.
+
+Rige para todo el proyecto, **incluidos los pasos 15–17**. Ningún paso futuro reintroduce el sistema.
+
+**Qué se borró.**
+
+| Capa | Qué desaparece |
+|---|---|
+| Ruta | `src/app/erratas/` entera — `PaginaErratas` y `FichaErrata` |
+| Contenido | `content/erratas.ts` y sus 14 entradas |
+| Componente | `src/components/mdx/alerta-contradiccion.tsx`, con `ESTILO_ERRATA` y `CLASES_DT_ERRATA`; fuera del mapa `componentesMdx` |
+| Tipos | `Errata`, `TipoErrata`, y el campo `contradiccion` de `ItemBase` y de `DatoDuro` |
+| Esquemas | `esqErrata`, la constante `RE_ID_ERRATA` y las dos validaciones del campo `contradiccion` |
+| Validador | las comprobaciones de erratas y el conteo del resumen |
+| Navegación | el enlace «Erratas y contradicciones» del pie |
+| Página de módulo | la sección «Ojo con las cartillas en este módulo» |
+| Tests | los 4 que fijaban la clasificación (187 → 183) |
+
+Además se limpiaron **9 campos `contradiccion`** del contenido real (7 en `datos-duros.ts`, 2 en el banco de C5) y **tres textos que hablaban de las cartillas** en vez de enseñar: dos explicaciones de ítem y un párrafo de la teoría de C5.
+
+**Por qué esto supersede y no solo continúa.** ADR-012 y ADR-013 son el mismo error, tomado en dos escalones. ADR-012 afinó la **taxonomía** del catálogo —añadió `'aclaracion'` para que un rótulo no mintiera—; ADR-013 movió el catálogo **fuera del cuerpo de la teoría**. Los dos aceptaban la premisa de que la app debe **catalogar el error del material fuente**, y trabajaban sobre cómo presentarlo mejor. Esta decisión rechaza la premisa: **el error de la cartilla no es contenido de estudio**. El usuario tiene que aprenderse la fisiología, no la bibliografía de sus erratas.
+
+Visto así, ADR-013 fue la primera mitad de este movimiento sin saberlo. Su argumento —«un dato que solo vive dentro de un recuadro es un dato que el lector se salta»— llevado hasta el final dice que el sitio correcto del dato verdadero es la prosa, y que el aviso sobre el libro **no tiene sitio correcto**.
+
+**Lo que se pierde, dicho sin adorno.** §1 del blueprint llama a este sistema «el activo defendible del producto» y afirma que son 3–5 ítems del examen real. Con esta decisión, si el examen oficial repite un error de la cartilla, la app **no prepara para marcarlo**: enseña lo cierto y el usuario responderá lo cierto. Es una pérdida real y el usuario la asume a sabiendas. A cambio, la app deja de tener dos verdades sobre el mismo dato —lo que la cartilla dice y lo que es— y **el criterio de calidad del contenido pasa a ser uno solo y verificable**: ¿es verdad?
+
+**Consecuencia operativa para los pasos 15–17, que es donde esto se cobra.** El estándar de redacción sube: hasta hoy bastaba con destilar la cartilla; ahora **cada cifra que entra al banco tiene que estar verificada**, y donde la cartilla se equivoque, el contenido dice lo cierto sin anunciar la discrepancia. Escrito en `.claude/CONTENIDO.md`, que es lo que se lee antes de escribir un módulo.
+
+**Lo verificado no se tira.** El catálogo borrado contenía investigación con fuentes que sigue siendo exactamente lo que los pasos 15–17 necesitan para escribir 10 módulos que aún no existen: el ATP por glucosa (30–32, y 30 en músculo esquelético por la lanzadera glicerol-3-fosfato), la duración del sistema fosfágeno (5–15 s, rango real), qué organismos son procariotas (las cianobacterias lo son; protozoos y hongos no), la mediana con n par, el porcentaje de aumento, la fecha de la Ley 2210. **Se conserva como notas de autoría en `.claude/CONTENIDO.md`, no como contenido de la app.** `.claude/` es documentación de construcción, no producto: nada de eso llega al usuario, y sin ello el autor del Paso 17 volvería a derivar los datos de una cartilla que en esos puntos se equivoca — que es justo lo que esta decisión quiere evitar.
+
+**`CLAUDE.md` se alineó el mismo día** — ver la enmienda al pie de este ADR.
+
+Compuertas al cierre: `typecheck` limpio · `lint` limpio · **183 tests** · `validar` 0 errores.
+
+### Enmienda a ADR-014 — 2026-07-30: se editó `CLAUDE.md` en once secciones
+
+Autorizado por el usuario, con el procedimiento vigente: **diff preparado sobre una copia y revisado antes de aplicar.** **46 inserciones, 366 supresiones**; el blueprint pasa de 6.810 a 6.484 líneas.
+
+Se editó con prioridad porque **la reintroducción compila**: a diferencia de ADR-012, donde el `typecheck` tumbaba el defecto, aquí el sistema volvería como contenido nuevo y ninguna compuerta lo detendría — y once secciones lo mandaban construir justo antes de los pasos 15–17, que escriben 28 módulos.
+
+| Sección | Qué cambió |
+|---|---|
+| **§1** | **el diferenciador se sustituye, no se borra**: pasa de `AlertaContradiccion` a «el contenido enseña el dato verdadero, investigado y verificado». Y fuera «registro de erratas» del alcance v1 |
+| §3 | `erratas.ts`, `erratas/page.tsx` y `AlertaContradiccion` del árbol |
+| §4 | `TipoErrata` y `Errata` enteros · el campo `contradiccion` de `ItemBase` y de `DatoDuro` |
+| §5 | `esqErrata` · `RE_ID_ERRATA` · los dos campos `contradiccion` |
+| §8 | el import, el bloque 2 del validador, las dos comprobaciones de referencia colgada y el conteo del resumen |
+| §9.3 | **la sección entera** — 187 líneas |
+| §9.4 | 7 campos `contradiccion`, y los dos valores que comparaban cartillas (`DD-002` → `5–15 s`; `DD-006` → `30–32 ATP · 30 en músculo esquelético`) |
+| §10.1 · §11.7 | la fila `/erratas` y el enlace del pie |
+| §12.4 | **la sección entera** y la entrada del mapa `componentesMdx` |
+| §13 · §14 · §15.2 | el cuadro del panel de retroalimentación · la nota de réplica, los dos ítems y la regla de redacción de §14.4 · el ícono del modo última noche |
+| §17 | pasos 3, 6, 7 (entregable: 5 → 4 componentes), 12, y **18.6 entero** |
+| §18.9 | «Reportar una errata» → «Reportar un error de contenido», con la lógica invertida: si una cifra no cuadra con la bibliografía, **el error es nuestro** |
+| §21 · §22 | `erratas.ts` del listado de `content/` · **y una regla 15 nueva en cada lista de reglas no negociables** |
+
+**Las dos reglas 15 son el añadido que no estaba en la lista de secciones, y son lo que de verdad protege.** Un blueprint limpio no dice **por qué** está limpio: un agente que trabaje desde una copia vieja, un fork o un pantallazo no tiene nada que lo detenga. La de §22 lo dice explícito: «si encuentras aquí un resto del sistema de erratas, **no lo construyas**: está desactualizado y manda el ADR».
+
+**Van al final de cada lista, no intercaladas**, por dos razones mecánicas: `7bis.` no es un marcador de lista válido en markdown y rompería la numeración al renderizar; y renumerar 8→9 tampoco servía, porque hay comentarios de código que citan «§22 regla 6» y «§22 regla 11» **por número**.
+
+**Quedan tres menciones a «errata» en las 6.484 líneas, y las tres son deliberadas**: los dos párrafos nuevos de §1 y la nota de §14. Las tres dicen que las cartillas se equivocan y que la app **no lo cataloga**. Ninguna manda construir nada.

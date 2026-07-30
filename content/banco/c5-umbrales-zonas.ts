@@ -184,7 +184,7 @@ export const ITEMS: Item[] = [
     opciones: ['R3 / R3+', 'R0', 'R1', 'R2'],
     correcta: 0,
     explicacion:
-      'La cartilla ubica tanto el HIIT como el SIT en R3/R3+ (90–95 %), la zona de la potencia aeróbica. El distractor más tentador es R2, porque el trabajo interválico duro "se siente" como un esfuerzo sostenido de umbral; la diferencia está en que el HIIT busca acercarse al VO₂máx, no sostenerse por debajo del MLSS. Dato para recordar: R2 es el techo de lo sostenible, R3 es donde se rompe ese techo a intervalos.',
+      'Tanto el HIIT como el SIT se ubican en R3/R3+ (90–95 %), la zona de la potencia aeróbica. El distractor más tentador es R2, porque el trabajo interválico duro "se siente" como un esfuerzo sostenido de umbral; la diferencia está en que el HIIT busca acercarse al VO₂máx, no sostenerse por debajo del MLSS. Dato para recordar: R2 es el techo de lo sostenible, R3 es donde se rompe ese techo a intervalos.',
     referencia: 'Cartilla 3, Tema 2, Subtema 2.6.3 — Zona R3',
     etiquetas: ['HIIT', 'SIT', 'R3'],
   },
@@ -409,7 +409,6 @@ export const ITEMS: Item[] = [
       'La cadena va del volumen de sangre al llenado ventricular, de ahí al volumen sistólico y finalmente al gasto cardíaco máximo, que es el producto de frecuencia por volumen sistólico. El distractor más tentador es el último, porque suena razonable que "el corazón entrenado llegue más alto": en realidad la frecuencia cardíaca máxima no aumenta con el entrenamiento, es la frecuencia de reposo la que baja. Dato para recordar: con entrenamiento de resistencia baja la FC de reposo y suben el volumen sistólico y el gasto cardíaco máximo.',
     referencia: 'Cartilla 3, Tema 2, Subtema 2.6.2 — Umbral Ventilatorio 2',
     etiquetas: ['R2', 'volumen sistólico', 'gasto cardíaco', 'adaptaciones'],
-    contradiccion: 'E-09',
   },
   {
     id: 'C5-020',
@@ -517,7 +516,6 @@ export const ITEMS: Item[] = [
       'Las zonas se definen por el objetivo adaptativo, no por la sensación del esfuerzo aislado. Aunque cada repetición de SIT sea supramáxima, la sesión completa acumula tiempo cerca del VO₂máx y produce las adaptaciones propias de R3: densidad capilar, densidad mitocondrial y enzimas oxidativas. El distractor más tentador afirma que el sistema aláctico forma parte del metabolismo aeróbico, lo cual es falso: es anaeróbico por definición. Dato para recordar: clasifica por adaptación buscada, no por cuánto duele la repetición.',
     referencia: 'Cartilla 3, Tema 2, Subtema 2.6.3 — Zona R3',
     etiquetas: ['SIT', 'HIIT', 'R3', 'potencia aeróbica'],
-    contradiccion: 'X-02',
   },
   {
     id: 'C5-025',
@@ -565,7 +563,7 @@ export const ITEMS: Item[] = [
     ],
     correcta: 0,
     explicacion:
-      'En R1 la grasa aporta entre el 20 y el 40 % y el hidrato de carbono entre el 60 y el 80 %: es el reparto con mayor participación lipídica de todas las zonas, aunque el hidrato siga siendo mayoritario. El distractor más tentador es el reparto invertido, 60–80 % de grasas, porque a R1 se le llama "la zona de quemar grasa" y se asume que la grasa manda; lo que R1 maximiza es el aporte lipídico, no que supere al hidrato. El cuarto reparto no corresponde a ninguna zona con cifra propia: en R2 la cartilla dice «casi exclusivamente hidratos de carbono», sin dar un porcentaje. Dato para recordar: en ninguna zona la grasa llega a ser el sustrato mayoritario.',
+      'En R1 la grasa aporta entre el 20 y el 40 % y el hidrato de carbono entre el 60 y el 80 %: es el reparto con mayor participación lipídica de todas las zonas, aunque el hidrato siga siendo mayoritario. El distractor más tentador es el reparto invertido, 60–80 % de grasas, porque a R1 se le llama "la zona de quemar grasa" y se asume que la grasa manda; lo que R1 maximiza es el aporte lipídico, no que supere al hidrato. El cuarto reparto no corresponde a ninguna zona con cifra propia: en R2 el sustrato es casi exclusivamente hidrato de carbono y no se le asigna un porcentaje de reparto. Dato para recordar: en ninguna zona la grasa llega a ser el sustrato mayoritario.',
     referencia: 'Cartilla 3, Tema 2, Subtema 2.6.1 — Umbral Ventilatorio 1',
     etiquetas: ['R1', 'sustrato', 'grasas', 'hidratos de carbono'],
   },

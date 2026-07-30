@@ -4,9 +4,8 @@
 //
 // 1. El título de §12.3 es `font-titulo text-sm` = Barlow Condensed a 14px, que
 //    viola la regla dura 1 de DISENO.md §2.3 («Barlow Condensed nunca baja de
-//    1.125rem»). Es exactamente la misma violación que §6.7 corrigió en el
-//    rótulo de <AlertaContradiccion>, y se corrige igual: fila «Eyebrow /
-//    etiqueta», Inter 600 a 11px con tracking +0.08em.
+//    1.125rem»). Se corrige con la fila «Eyebrow / etiqueta»: Inter 600 a 11px
+//    con tracking +0.08em.
 // 2. El desplazamiento horizontal de la tabla lo pone `.tabla-desliz`, el
 //    envoltorio que `componentes.tsx` aplica a TODA tabla del MDX (también a las
 //    sueltas). Aquí el marco solo recorta: `overflow-hidden` impide que el

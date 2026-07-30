@@ -43,9 +43,6 @@ export function Pie() {
           puntaje oficial de aprobación.
         </p>
         <nav className="flex flex-wrap gap-x-4 gap-y-1 pt-1" aria-label="Enlaces del pie">
-          <Link href="/erratas" className="underline underline-offset-2 hover:text-foreground">
-            Erratas y contradicciones
-          </Link>
           <Link href="/ajustes" className="underline underline-offset-2 hover:text-foreground">
             Ajustes y respaldo
           </Link>

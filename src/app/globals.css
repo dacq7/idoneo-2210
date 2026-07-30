@@ -305,8 +305,8 @@
 
   /* DISENO.md §3.1 · dos medidas dentro de la columna: LECTURA (38rem) y
      CONSULTA (el ancho completo).
-     A 768 px la teoría corría a 88,5 caracteres por línea, y los recuadros a
-     91–96, peor todavía. 1.4.8 pide ≤80 y es AAA, pero el interlineado de 1.65
+     A 768 px la teoría corría a 88,5 caracteres por línea, y el recuadro de
+     prosa a 91–96, peor todavía. 1.4.8 pide ≤80 y es AAA, pero el interlineado de 1.65
      compensa a medias: reduce el error de retorno de línea, no la distancia de
      barrido, que es lo que cansa.
 
@@ -322,7 +322,7 @@
      desplazamiento horizontal y con él A-11, que hoy no aparece en escritorio —
      sería fabricar un Moderado para arreglar un Menor. El saliente resultante es
      deseable y significa una sola cosa: «esto es un dato que se consulta, no
-     prosa». Refuerza por geometría lo que §6.1 distingue por marco vs. barra.
+     prosa». Refuerza por geometría lo que §6.1 dice con la forma del recuadro.
 
      PROHIBIDO: `max-w-[65ch]` (tabular-nums infla 1ch a 11 px → 65ch ≈ 88 cpl,
      o sea no arregla nada), centrar con `mx-auto`, y bajar el line-height de
@@ -331,10 +331,12 @@
     max-width: 38rem;
   }
 
-  /* Los recuadros van a 15 px dentro de un marco con padding, así que a 38rem
-     corrían a 79,2–79,6 cpl: pasaban el 80 de 1.4.8 por menos de un carácter.
-     36rem los deja en 74,4–75,0, el mismo margen real que la teoría de 17 px.
-     La medida se define en caracteres (~75 cpl); el píxel es su implementación. */
+  /* El <Ojo> va a 15 px dentro de un marco con padding, así que a 38rem corría
+     a 79,2 cpl: pasaba el 80 de 1.4.8 por menos de un carácter. 36rem lo deja en
+     75,2, el mismo margen real que la teoría de 17 px. El selector es `> aside`
+     y no `.ojo` a propósito: cualquier recuadro de prosa futuro hereda la medida
+     sin que haya que acordarse (§6.8). La medida se define en caracteres
+     (~75 cpl); el píxel es su implementación. */
   .prose-idoneo > aside {
     max-width: 36rem;
   }
@@ -444,27 +446,49 @@
     border-collapse: collapse;
     font-size: 0.9375rem;
     line-height: 1.45;
-
-    /* A-22 · una cadena inquebrable ENVUELVE en vez de desbordar. Sobre el
-       contenido actual no cambia un píxel —todas las palabras ya caben— y
-       elimina el único escenario que el degradado decía cubrir: se PREVIENE el
-       caso residual en vez de señalarlo, que es la misma tesis de §3.2. Es
-       heredada: basta declararla aquí para que llegue a `th` y `td`. */
-    overflow-wrap: anywhere;
   }
 
+  /* Los rótulos NO se parten, y se dice aquí en vez de dejarlo al azar de la
+     herencia. A-22 declaró `overflow-wrap: anywhere` en `table` contando con que
+     bajara a `th` y `td`; el efecto que no midió es que `anywhere` no solo
+     autoriza el corte al maquetar, sino que rebaja la anchura mínima intrínseca
+     de la celda a UN carácter, y `table-layout: auto` la toma como suelo. Con el
+     suelo de las cinco columnas en 1 car., la cabecera de la tabla de zonas se
+     leía «Zon/a», «Aeróbi/co», «Sustrat/o».
+     `normal` devuelve al `<th>` su mínimo intrínseco de palabra entera; como el
+     suelo de una columna es el MÁXIMO de los de sus celdas, el rótulo pasa
+     además a sostener la columna. */
   .prose-idoneo th {
     border-bottom: 2px solid var(--border);
     padding: 0.5rem 0.75rem;
     text-align: left;
     vertical-align: bottom;
     font-weight: 600;
+    overflow-wrap: normal;
   }
 
   .prose-idoneo td {
     border-bottom: 1px solid var(--border);
     padding: 0.5rem 0.75rem;
     vertical-align: top;
+
+    /* A-22, acotado a la celda de DATOS: una cadena inquebrable (un número
+       larguísimo, una URL) envuelve en vez de desbordar, ahora que no hay
+       degradado que señale el desbordamiento. El propósito era ese —valores—,
+       nunca los rótulos.
+
+       `break-word` y NO `anywhere`, que es lo que A-22 dejó. La diferencia no es
+       cosmética: `anywhere` rebaja la anchura mínima intrínseca de la celda a un
+       carácter y `table-layout: auto` la toma como suelo, así que el algoritmo
+       se cree autorizado a estrechar la columna por debajo de la palabra más
+       larga y la parte. Medido con `anywhere` acotado ya al `<td>`: a 640px
+       «exclusivamente» seguía partiéndose en la tabla de zonas. `break-word` no
+       toca el mínimo intrínseco —el suelo sigue siendo la palabra más larga— y
+       solo parte cuando la palabra por sí sola no cabe en su línea, que es
+       exactamente el caso residual que A-22 quería cubrir. Si algún día una
+       cadena monstruosa hace que la tabla no quepa, el desbordamiento vuelve a
+       `.tabla-desliz`, que existe para eso y ya es enfocable (A-10/A-19). */
+    overflow-wrap: break-word;
   }
 
   /* Sin línea al final: dentro del marco de <TablaClave> chocaría con el borde. */
@@ -537,9 +561,18 @@
          componentes.tsx en `--et-N` leyendo el <thead>; si faltara, la ficha se
          degrada a valores sin clave, nunca a una ficha rota.
          `font-family` explícita: la primera celda pasa a Barlow Condensed y el
-         ::before heredaría 12 px condensados, que viola §2.3 regla 1. */
+         ::before heredaría 12 px condensados, que viola §2.3 regla 1.
+         `overflow-wrap` explícita por la misma razón: el pseudoelemento hereda
+         del `<td>`, y en la ficha el rótulo de columna vive DENTRO de un `<td>`
+         —es el mismo texto del `<th>` recortado, servido por `--et-N`—, así que
+         la regla de `th` no lo alcanza. Con el `anywhere` de A-22 heredado aquí,
+         la ficha seguía leyendo «Aeróbi/co» aunque la retícula ya estuviera
+         arreglada. Se mantiene explícita aunque el `<td>` haya bajado a
+         `break-word`: el rótulo es rótulo en las dos vistas y no depende de lo
+         que decida la celda de datos. */
       & tbody td::before {
         display: block;
+        overflow-wrap: normal;
         margin-bottom: 0.125rem;
         font-family: var(--font-sans);
         font-size: 0.75rem;

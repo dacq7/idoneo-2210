@@ -3,15 +3,11 @@
 // Base: §12.3, con la forma que fija DISENO.md §6.1 y la escala de §2.3.
 //
 // REGLA DURA de §6.1: el <Ojo> lleva **barra lateral de 4px y nunca marco
-// completo**; <AlertaContradiccion> lleva **marco completo y nunca barra
-// lateral**. Es la única señal estructural que distingue los dos recuadros de la
-// teoría, y por eso el ámbar compartido con una `'aclaracion'` no genera
-// ambigüedad (§6.5). Intercambiar los marcos borra esa señal.
+// completo**. Desde ADR-014 es el ÚNICO recuadro de la teoría, así que la barra
+// lateral ya no distingue de nada — se conserva porque sigue siendo la forma
+// correcta para un aparte dentro del hilo de lectura, no una interrupción.
 //
-// El icono es `Eye` y no `CircleAlert`: los dos recuadros ámbar llevan iconos
-// distintos a propósito (§6.2).
-//
-// `aria-label` en vez del `aria-labelledby` que recomienda la nota de §6.7: el
+// `aria-label` en vez de `aria-labelledby`: el
 // título del <Ojo> es fijo y el componente no tiene ninguna clave única con la
 // que construir un `id` sin arriesgar colisiones cuando un módulo monta varios.
 // El nombre accesible que resulta es el mismo.

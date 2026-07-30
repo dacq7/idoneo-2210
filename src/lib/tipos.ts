@@ -75,8 +75,6 @@ export interface ItemBase {
   /** Formato: 'Cartilla N, Tema M, Subtema M.X — Título'. */
   referencia: string;
   etiquetas: string[];
-  /** Id de una entrada de content/erratas.ts (X-01, E-09, …). */
-  contradiccion?: string;
 }
 
 export interface ItemUnica extends ItemBase {
@@ -148,7 +146,7 @@ export type Item =
   | ItemCaso;
 
 /* ══════════════════════════════════════════════════════════════════
-   TARJETAS, GLOSARIO, ERRATAS, DATOS DUROS
+   TARJETAS, GLOSARIO, DATOS DUROS
    ══════════════════════════════════════════════════════════════════ */
 
 export interface Tarjeta {
@@ -168,33 +166,6 @@ export interface EntradaGlosario {
   sinonimos?: string[];
 }
 
-/**
- * - `contradiccion`: dos cartillas dan valores distintos para el mismo dato.
- * - `errata`: la cartilla dice algo incorrecto (de contenido, de tabla o tipográfico).
- * - `aclaracion`: la cartilla NO se equivoca; el dato se confunde con otro vecino.
- *   Existe para desambiguar, no para corregir. Ver ADR-012.
- */
-export type TipoErrata = 'contradiccion' | 'errata' | 'aclaracion';
-
-export interface Errata {
-  /** Familia + consecutivo. 'X-*' nace de una divergencia entre cartillas
-   *  (`contradiccion`, o la `aclaracion` que la desambigua); 'E-*' es errata de
-   *  contenido. El prefijo marca la familia, no el `tipo`. Ver ADR-012. */
-  id: string;
-  tipo: TipoErrata;
-  tema: string;
-  ubicacion: string;
-  /** Qué dice la cartilla. */
-  diceLaCartilla: string;
-  /** Qué es correcto, o cómo responder si hay conflicto.
-   *  En una `aclaracion`, dice explícitamente que no hay conflicto. */
-  loCorrecto: string;
-  /** Instrucción operativa para el examen. */
-  comoResponder: string;
-  /** Slugs de los módulos afectados. */
-  modulos: string[];
-}
-
 export interface DatoDuro {
   id: string;
   categoria: string;
@@ -202,8 +173,6 @@ export interface DatoDuro {
   /** El valor exacto que se pregunta. */
   valor: string;
   modulo: string;
-  /** Id de errata si el dato está en conflicto entre cartillas. */
-  contradiccion?: string;
 }
 
 /* ══════════════════════════════════════════════════════════════════

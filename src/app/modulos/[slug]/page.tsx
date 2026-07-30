@@ -14,18 +14,21 @@
 // Jerarquía de encabezados: el <h1> es el título del módulo y el MDX empieza en
 // `##` (§14.1), de modo que los h2 de la teoría son hermanos de los h2 de esta
 // página. Sin salto de nivel y con un solo h1.
+//
+// ADR-014 · la teoría enseña el dato verdadero y punto. Esta página no lista
+// erratas ni contradicciones de las cartillas, porque la app ya no las documenta
+// en ninguna parte: las cartillas son la guía del temario, no la fuente de verdad
+// de cada cifra.
 
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
 import { BLOQUES_POR_ID, MODULOS, MODULOS_POR_SLUG } from '@/content/estructura';
-import { erratasDelModulo } from '@/content/erratas';
 import { cargarTarjetas } from '@/content/tarjetas/indice';
 import { RotuloBloque } from '@/components/layout/rotulo-bloque';
 import { EtapasModulo } from '@/components/modulo/etapas-modulo';
 import { MarcadorLectura } from '@/components/modulo/marcador-lectura';
-import { ESTILO_ERRATA } from '@/components/mdx/alerta-contradiccion';
 import { RenderizadorMdx } from '@/components/mdx/renderizador';
 import { leerTeoria } from '@/lib/contenido';
 import { CLASES_BLOQUE, cn } from '@/lib/utils';
@@ -57,7 +60,6 @@ export default async function PaginaModulo({ params }: Props) {
 
   const bloque = BLOQUES_POR_ID.get(modulo.bloque);
   const [mdx, tarjetas] = await Promise.all([leerTeoria(slug), cargarTarjetas(slug)]);
-  const erratas = erratasDelModulo(slug);
 
   const prerequisitos = modulo.prerequisitos
     .map((pre) => MODULOS_POR_SLUG.get(pre))
@@ -222,38 +224,6 @@ export default async function PaginaModulo({ params }: Props) {
         </ul>
       </section>
 
-      {erratas.length > 0 ? (
-        <section aria-labelledby="erratas-modulo" className="space-y-3">
-          <h2 id="erratas-modulo">Ojo con las cartillas en este módulo</h2>
-          <p className="text-[0.8125rem] text-muted-foreground">
-            {erratas.length === 1
-              ? 'Hay una entrada del registro de erratas que toca este módulo.'
-              : `Hay ${erratas.length} entradas del registro de erratas que tocan este módulo.`}{' '}
-            Son puntos donde el material oficial falla o se presta a confusión, y suelen decidir dos
-            o tres preguntas del examen.
-          </p>
-          <ul className="space-y-2">
-            {erratas.map((errata) => {
-              const { rotulo, Icono, tinte } = ESTILO_ERRATA[errata.tipo];
-              return (
-                <li key={errata.id}>
-                  <Link
-                    href={`/erratas#${errata.id}`}
-                    className="flex items-center gap-2.5 rounded-md border border-border bg-card px-3 py-2 transition-colors duration-150 hover:bg-accent"
-                  >
-                    <Icono className={cn('size-4 shrink-0', tinte)} aria-hidden="true" />
-                    <span className="min-w-0">
-                      <span className="font-mono text-[0.8125rem] font-medium">{errata.id}</span>{' '}
-                      <span className="text-[0.9375rem]">{errata.tema}</span>
-                      <span className="sr-only"> — {rotulo}</span>
-                    </span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      ) : null}
     </div>
   );
 }

@@ -95,7 +95,7 @@ directiva. Verificado al cerrar el Paso 8: la lista real son **9 clientes** —l
   exige limpieza al desmontar y se rompe en silencio si dos componentes compiten
   por el atributo. **Y descartado** volver `Pie` cliente. El archivo aún no se
   construye: es del Paso 11, y suma **una** alta a §10.3.
-- **Ningún Client Component importa `content/`.** Ni `estructura`, ni `erratas`,
+- **Ningún Client Component importa `content/`.** Ni `estructura`,
   ni `glosario`, ni `datos-duros`, ni `blueprint-examen`, ni los índices de
   `banco/` y `tarjetas/`. Los datos entran **por prop desde un Server Component**,
   reducidos al subconjunto serializable que el componente necesita — como
@@ -322,21 +322,22 @@ editan a mano». Mientras el barrel entre por una sola ruta secundaria, no urge.
 
 ---
 
-## Teoría MDX y registro de erratas (Paso 7)
+## Teoría MDX (Paso 7)
+
+> **Actualizada tras ADR-014 (Paso 8b).** El registro de erratas se eliminó de la
+> app: se fueron `PaginaErratas`, `FichaErrata`, `AlertaContradiccion` y el mapa
+> `ESTILO_ERRATA` / `CLASES_DT_ERRATA`, junto con la ruta `/erratas` y
+> `content/erratas.ts`. **`Ojo` es el único recuadro de contenido de la teoría.**
 
 | Componente | Archivo | S/C | Props | Quién lo usa |
 |---|---|---|---|---|
 | `PaginaModulo` | `src/app/modulos/[slug]/page.tsx` | Server | `params: Promise<{ slug }>` | ruta `/modulos/[slug]` · los 29 slugs se prerenderizan |
-| `PaginaErratas` | `src/app/erratas/page.tsx` | Server | — | ruta `/erratas`, enlazada desde el pie de todas las rutas |
-| `FichaErrata` | `src/app/erratas/page.tsx` (local) | Server | `errata: Errata` | `PaginaErratas` |
 | `RenderizadorMdx` | `src/components/mdx/renderizador.tsx` | Server **async** | `fuente: string` | `PaginaModulo` |
 | `componentesMdx` | `src/components/mdx/componentes.tsx` | mapa | — | `RenderizadorMdx` |
 | `Dato` | `src/components/mdx/dato.tsx` | Server | `etiqueta`, `valor`, `nota?` | el MDX de teoría |
 | `Formula` | `src/components/mdx/formula.tsx` | Server | `children`, `nota?` | el MDX de teoría |
 | `TablaClave` | `src/components/mdx/tabla-clave.tsx` | Server | `titulo?`, `children` | el MDX de teoría |
 | `Ojo` | `src/components/mdx/ojo.tsx` | Server | `children` | el MDX de teoría |
-| `AlertaContradiccion` | `src/components/mdx/alerta-contradiccion.tsx` | Server | `id: string` | el MDX de teoría · Paso 9 (panel de retroalimentación) |
-| `ESTILO_ERRATA`, `CLASES_DT_ERRATA` | `src/components/mdx/alerta-contradiccion.tsx` | data | — | `AlertaContradiccion`, `PaginaErratas`, `PaginaModulo` |
 | `leerTeoria`, `existeTeoria` | `src/lib/contenido.ts` | **server-only** | `slug: string` | `PaginaModulo` |
 
 **Ninguno lleva `"use client"`.** El Paso 7 no añade ni una alta a §10.3: siguen
@@ -350,26 +351,22 @@ como HTML.
   webpack, así que la directiva funciona sin instalar el paquete y sin añadir una
   dependencia (ADR-002). Importarlo desde un Client Component rompe el build con
   un mensaje explícito, que es exactamente para lo que está.
-- **El vocabulario de las erratas vive en un solo sitio: `ESTILO_ERRATA`.** Mapea
-  los tres tipos de ADR-012 a su rótulo, icono, marco, fondo y tinte, según
-  DISENO.md §6.2 y §6.7. Lo consumen los tres sitios que muestran una errata
-  —la alerta de la teoría, `/erratas` y la lista del pie de un módulo—. Si un
-  paso futuro necesita un cuarto, **importa el mapa, no lo reescribe.** Las
-  clases son literales a propósito: Tailwind no genera `border-${x}/60`.
-- **La regla de forma de §6.1 es la que separa los dos recuadros:** el `<Ojo>`
-  lleva **barra lateral de 4px y nunca marco**; `<AlertaContradiccion>` lleva
-  **marco completo y nunca barra lateral**. Es la única señal estructural entre
-  ellos, y es lo que permite que una `'aclaracion'` comparta el ámbar del `<Ojo>`
-  sin ambigüedad. Intercambiarlas borra la distinción.
+- **`<Ojo>` lleva barra lateral de 4px y nunca marco completo** (DISENO.md §6.1).
+  Hasta ADR-014 la barra era además lo que lo separaba de `<AlertaContradiccion>`;
+  hoy se sostiene por su propio motivo: un aparte dentro del hilo de lectura no se
+  encierra. **El marco completo queda libre** para el primer componente futuro que
+  sea de verdad una interrupción del texto — y ese componente pasa antes por §6.
+  Sus clases son literales y viven en el propio archivo: ya no hay mapa de estilos
+  que importar.
 - **`.prose-idoneo` solo pone ritmo, no tamaños de encabezado.** Los de `h2` y
   `h3` ya los fija `@layer base` desde la escala de DISENO.md §2.3; §12.1 proponía
   `text-2xl`/`text-xl`, que los sacaría de esa escala. **Si un paso futuro añade
   una regla a `.prose-idoneo`, no repite tamaños de encabezado.**
 - **El MDX de un módulo empieza en `##`.** El `<h1>` lo pone la página desde
-  `content/estructura.ts` (§14.1). Verificado en las dos rutas nuevas:
-  `/modulos/[slug]` es `h1 → h2` (objetivos, teoría, conceptos clave, erratas del
-  módulo) `→ h3` (los del MDX); `/erratas` es `h1 → h2` (los tres tipos) `→ h3`
-  (el tema de cada ficha). Sin saltos y con un solo `h1`.
+  `content/estructura.ts` (§14.1). `/modulos/[slug]` es `h1 → h2` (etapas,
+  objetivos, teoría, conceptos clave) `→ h3` (los del MDX). Sin saltos y con un
+  solo `h1`. **ADR-014 retiró la sección «Ojo con las cartillas en este módulo»**,
+  que era otro `h2`: la jerarquía no cambia de forma, solo pierde un hermano.
 - **Toda tabla del MDX se envuelve en `.tabla-desliz`,** un `<div>` con
   `overflow-x: auto` y **`tabIndex={0}`**. Lo pone el mapeo de `table` en
   `componentes.tsx`, así que aplica también a las tablas sueltas: el autor del
@@ -379,30 +376,58 @@ como HTML.
   no usa ratón (WCAG 2.1.1)—. Dentro de `<TablaClave>` el marco (`.marco-tabla`)
   le cede el margen al envoltorio, con dos reglas de la misma capa CSS y no con
   dos utilidades de margen compitiendo, cuyo orden Tailwind decide.
-- **Los `<p>` estructurales de `<AlertaContradiccion>` llevan `my-0` / `mb-0`
-  explícitos.** El cuadro vive dentro de `.prose-idoneo`, que da `margin-block:
-  1rem` a todo `<p>`. El `<Ojo>` **no** los lleva, y es deliberado: su contenido
-  sí es prosa del autor y debe conservar el ritmo de párrafo.
-- **Los dos recuadros van a 15px / 1.5** («Cuerpo de interfaz» de §2.3), con
-  `leading-[1.5]` explícito en la alerta: sin él heredaría 1.65 dentro de un
-  módulo y 1.5 en `/erratas`, y el mismo componente se vería distinto en cada
-  sitio.
-- **Los `<aside>` llevan nombre accesible.** Es la nota de §6.7: un módulo con
-  cinco recuadros anunciaría cinco landmarks *complementary* idénticos. La alerta
-  usa `aria-labelledby` sobre el `<p>` del rótulo (`alerta-{id}`), que es único
-  por errata; el `<Ojo>` usa `aria-label="Ojo con esto"` porque su título es fijo
-  y no tiene ninguna clave con la que construir un `id` sin arriesgar colisiones.
-- **Las fichas de `/erratas` son `<article>`, no `<aside>`.** Ahí son el contenido
-  principal, no una interrupción de la lectura. Conservan el ancla `id={errata.id}`
-  —`<AlertaContradiccion>` enlaza a `/erratas#X-02` y `DD-001` llega a `#X-03`— y
-  compensan el encabezado pegajoso con
-  `scroll-mt-[calc(var(--alto-encabezado)+1rem)]`. Verificado: al abrir
-  `/erratas#E-09` la ficha queda a 76px del borde, con el encabezado de 60px
-  encima.
-- **`/modulos/[slug]` monta `RotuloBloque`; `/erratas` no.** Regla de DISENO.md
-  §2.4: exactamente un bloque en contexto. Las erratas tocan módulos de los
-  cuatro.
-- **Ninguna de las dos rutas lee el progreso del usuario.** Las etapas del módulo
+- **`overflow-wrap` va por rol de celda, no en la tabla entera.**
+  *(Corregido en el Paso 8b — corrige A-22.)* A-22 puso `overflow-wrap: anywhere`
+  en `.prose-idoneo table` contando con la herencia. Lo que no midió es que
+  `anywhere` **no solo autoriza el corte al maquetar: rebaja la anchura mínima
+  intrínseca de la celda a UN carácter**, y `table-layout: auto` la toma como
+  suelo de columna. Con ese suelo, la cabecera de la tabla de zonas de C5 se leía
+  **«Zon/a», «Aeróbi/co», «Sustrat/o»**. El reparto que queda:
+
+  | Selector | Valor | Por qué |
+  |---|---|---|
+  | `.prose-idoneo table` | — (se retira) | la herencia era el problema |
+  | `.prose-idoneo th` | `normal` | un rótulo no se parte nunca; y como el suelo de una columna es el **máximo** de los de sus celdas, el `<th>` pasa a sostener la columna |
+  | `.prose-idoneo td` | `break-word` | el propósito de A-22 —que una cadena inquebrable envuelva en vez de desbordar— acotado a los **valores** |
+  | `td::before` en la ficha (§3.2) | `normal` | en la ficha el **rótulo vive dentro de un `<td>`** (es el texto del `<th>` recortado, servido por `--et-N`), así que la regla de `th` no lo alcanza |
+
+  **`break-word` y no `anywhere` en el `<td>`, y la diferencia se midió:** con
+  `anywhere` ya acotado a la celda de datos, a 640 px **«exclusivamente» seguía
+  partiéndose** en la tabla de zonas. `break-word` no toca el mínimo intrínseco
+  —el suelo sigue siendo la palabra más larga— y solo parte cuando la palabra por
+  sí sola no cabe en su línea, que es el caso residual que A-22 quería cubrir.
+  Lo que se cede: si algún día una cadena monstruosa hace que la tabla no quepa,
+  el desbordamiento vuelve a `.tabla-desliz`, que existe para eso y ya es
+  enfocable (A-10/A-19). **Se prefiere un desbordamiento hipotético en un
+  contenedor diseñado para desbordarse antes que un corte real y presente en la
+  tabla de más valor de la app.**
+
+  **Cómo se verifica** (es reproducible y no depende del ojo): se envuelve cada
+  palabra de cada celda en un `Range` y se cuentan las filas distintas de sus
+  `getClientRects()`; más de una fila = palabra partida. Y se repite la medición
+  forzando `overflow-wrap: normal !important` en las celdas: un corte que aparece
+  en **las dos** pasadas es un corte tipográfico natural (UAX#14) y no culpa de
+  la hoja. Medido en 9 anchos (360 → 1280 px) sobre las dos tablas de C5, 35
+  celdas y 188 palabras por ancho: **0 palabras partidas por la hoja**, en ficha
+  y en retícula, y **0 desbordamientos** de documento y de contenedor. El único
+  corte que queda es `80–90` a partir de 768 px, presente también en el control:
+  es el salto tras el signo `–`, comportamiento normal de línea.
+- **Los `<p>` del `<Ojo>` NO llevan `my-0` / `mb-0`, y es deliberado.** El
+  recuadro vive dentro de `.prose-idoneo`, que da `margin-block: 1rem` a todo
+  `<p>`; su contenido es prosa del autor y debe conservar el ritmo de párrafo.
+  Solo se recortan los márgenes contra el borde del recuadro
+  (`[&>p:first-child]:mt-0` / `[&>p:last-child]:mb-0`).
+- **El recuadro va a 15px / 1.5** («Cuerpo de interfaz» de §2.3), con
+  `leading-[1.5]` **explícito**: sin él heredaría el 1.65 de la teoría y el
+  recuadro dejaría de leerse como aparte.
+- **El `<aside>` lleva nombre accesible y sale de la lista de landmarks.** Es A-09:
+  un módulo con varios recuadros anunciaría varios *complementary* idénticos. Se
+  resuelve con `role="note"` + `aria-label="Ojo con esto"` —`aria-label` y no
+  `aria-labelledby` porque el título es fijo y no hay clave única con la que
+  construir un `id` sin arriesgar colisiones cuando un módulo monta varios.
+- **`/modulos/[slug]` monta `RotuloBloque`.** Regla de DISENO.md §2.4: aparece
+  porque hay exactamente un bloque en contexto (`modulo.bloque`).
+- **La ruta no lee el progreso del usuario.** Las etapas del módulo
   (tarjetas, práctica, quiz) y el marcador de lectura llegan en los Pasos 8 y 9;
   el estado vacío de hoy no debe rellenarse con nada de eso por conveniencia.
 - **El estado vacío de la teoría se corrige solo.** El texto ofrece un módulo
@@ -420,15 +445,19 @@ como HTML.
 
 | Ruta | js gz | chunks | Tipo |
 |---|---|---|---|
-| `/erratas/page` | **106.9 kB** | 6 | servidor puro |
 | `/modulos/[slug]/page` | **106.9 kB** | 6 | servidor puro |
 
-Las dos rutas nuevas caen dentro del piso de servidor puro (103–107 kB), así que
-no hay nada que investigar. Los +0.5 kB del CSS son `.prose-idoneo`; el js del
-armazón **no se movió**, que es lo esperado de un paso sin un solo componente
-cliente. El `grep` de ADR-010 sigue sin encontrar nada, y tampoco aparece
-contenido de erratas (`diceLaCartilla`, «Las cartillas se contradicen») en
-`.next/static/chunks/`.
+La ruta nueva cae dentro del piso de servidor puro (103–107 kB), así que no hay
+nada que investigar. Los +0.5 kB del CSS son `.prose-idoneo`; el js del armazón
+**no se movió**, que es lo esperado de un paso sin un solo componente cliente. El
+`grep` de ADR-010 sigue sin encontrar nada.
+
+> ⚠ **Las cifras de este bloque son la línea base del Paso 7 y ADR-014 la movió.**
+> La tabla traía además `/erratas/page` (**106.9 kB gz**, 6 chunks), ruta que ya no
+> existe; y el CSS del layout perdió las reglas que solo servían a la alerta y a la
+> ficha. **Los números de arriba se conservan como registro histórico del Paso 7 —
+> no son la base contra la que comparar el Paso 9.** La remedición va con el cierre
+> del Paso 8b.
 
 ---
 
@@ -502,10 +531,38 @@ app pasa de **6 a 9 clientes**. Comprobación:
   para que el lector de pantalla lea la respuesta y los dos botones queden justo
   después); avanzar → el botón «Ver la respuesta»; terminar → el resumen. Las
   tres verificadas en navegador.
-- **Teclado completo, sin listener global.** `Enter`/`Espacio` son nativos de los
-  botones; `1` y `2` los captura un `onKeyDown` **en el contenedor**, no en
-  `window`, así que solo actúan cuando el foco ya está dentro del mazo y no le
-  roban teclas al resto de la app. El atajo se anuncia en pantalla desde `sm`.
+- **La acción primaria son los botones, a 52px; el teclado es ayuda secundaria.**
+  *(Corregido en el Paso 8b. Antes la única línea de instrucción de la pantalla
+  era «Con el teclado: Enter / 1 / 2», y este mazo se estudia desde el celular —
+  mobile-first es restricción dura del brief.)* «Ver la respuesta», «La sabía» y
+  «No la sabía» llevan `min-h-[52px]`, la medida que DISENO.md §3 reserva para
+  las **opciones de ítem**, porque eso es exactamente lo que son: la respuesta a
+  la tarjeta. Los dos botones del resumen se quedan en el piso general de 44px:
+  son navegación, no respuesta. Medido en navegador: 343×52 px a 375 px de ancho.
+- **El atajo escucha en `window`, y eso corrige un fallo real.** Vivía en un
+  `<div onKeyDown>` **sin `tabIndex`** — un div no enfocable no recibe teclado,
+  así que `1`/`2` solo funcionaban mientras el foco siguiera dentro por
+  casualidad, y bastaba pulsar una zona neutra (foco al `<body>`) para que el
+  mazo dejara de responder. Es el hallazgo que el `code-reviewer` dejó abierto en
+  el Paso 8 y **no se resuelve solo** al agrandar los botones: la gestión de foco
+  ya era correcta, el agujero estaba en el foco perdido. Ahora es un
+  `useEffect` + `window.addEventListener('keydown', …)`, el patrón de §13 del
+  blueprint (`opcion-unica.tsx`). Verificado en navegador: con el foco forzado a
+  `<body>`, `1` avanza de «Tarjeta 1 de 15» a «Tarjeta 2 de 15» y `2` de la 2 a
+  la 3. Y el recorrido completo de las 15 tarjetas sale **sin un solo clic**.
+  - El efecto **no toca `Enter`**: la activación del botón enfocado ya es nativa
+    y duplicarla dispararía dos veces. Por eso el atajo anunciado es solo `1`/`2`.
+  - Guarda contra `INPUT`/`TEXTAREA`/`SELECT`/`contentEditable` y contra
+    `alt`/`ctrl`/`meta`. Hoy el mazo no tiene campos de texto; un atajo global que
+    se comiera el «1» de un input sería un fallo carísimo de encontrar.
+- **La ayuda de teclado se muestra por MODALIDAD, no por ancho.**
+  `[@media(any-pointer:fine)]:block` en vez del `hidden sm:block` anterior.
+  `sm:` era un proxy de ancho para una pregunta de entrada, y fallaba en los dos
+  sentidos. Medido con emulación de dispositivo: **Pixel 5 y iPhone 12 → oculta**
+  (`any-pointer: coarse`); **escritorio a 375 px y a 1280 px → visible**
+  (`any-pointer: fine`). Coste en CSS: 0 B gz medidos. El caso que queda fuera es
+  la tableta táctil con teclado externo sin ratón — el atajo sigue funcionando,
+  solo no se anuncia; no hay media query para «hay teclado».
 - **El contador es `role="status"`.** Es lo que anuncia el avance sin recargar y
   sin robar el foco. La banda de avance es `aria-hidden`: relleno puro,
   `rounded-none`, sin tipografía encima y **sin transición** — `width` es
@@ -526,7 +583,7 @@ app pasa de **6 a 9 clientes**. Comprobación:
   el Paso 7 ya envió. No es la única vía de vuelta: están también la fila
   «Esencial» de las etapas y el «Volver al módulo» del resumen.
 - **Jerarquía verificada en las dos rutas.** `/modulos/[slug]`: un solo `h1` y
-  `h2` para etapas, objetivos, teoría, conceptos y erratas. `/modulos/[slug]/tarjetas`:
+  `h2` para etapas, objetivos, teoría y conceptos. `/modulos/[slug]/tarjetas`:
   `h1` «Tarjetas» → `h2` «Las cuatro etapas». **El frente de la tarjeta es un
   `<p>`, no un encabezado**: es una pregunta, y como `h3` metería un salto antes
   del primer `h2`.
@@ -543,15 +600,31 @@ grep -l "osteomuscular\|conceptosClave" .next/static/chunks/app/layout-*.js
 en `src/lib/esquemas.ts`, y `esquemas.ts` entra legítimamente al bundle cliente
 desde el Paso 8: `almacenamiento.ts` importa `esqEstadoProgreso` para
 `intentarMigrar`, que corre en `obtenerSnapshot` en cada cliente que usa
-`useEstado()`. Lo mismo pasa con `diceLaCartilla`, `estadoContenido` y
-`minutosEstimados`: son **nombres de campo de esquemas**, no datos.
+`useEstado()`. Lo mismo pasa con `estadoContenido` y `minutosEstimados`: son
+**nombres de campo de esquemas**, no datos.
 
-**El canario fiable es `osteomuscular`** — texto de un título de módulo real, que
-solo existe en `content/estructura.ts`:
+**Regla del canario, para no volver a elegir mal: tiene que ser un VALOR de
+contenido, nunca un nombre de campo** —los nombres de campo viajan legítimamente
+dentro de los esquemas de Zod— **y tiene que salir de un archivo de `content/` que
+ningún Client Component pueda importar jamás** (los datos entran por prop desde un
+Server Component; ver ADR-010).
+
+**Los dos canarios vigentes:**
 
 ```bash
-grep -rl "osteomuscular" .next/static/chunks/    # limpio al cerrar el Paso 8
+grep -rl "osteomuscular"    .next/static/chunks/   # content/estructura.ts
+grep -rl "Malondialdehído"  .next/static/chunks/   # content/datos-duros.ts
 ```
+
+| Canario | De dónde sale | Por qué sirve |
+|---|---|---|
+| `osteomuscular` | título de módulo de `content/estructura.ts` | limpio al cerrar el Paso 8. Es el que ya documentaba este archivo |
+| `Malondialdehído` | valor de `DD-073` en `content/datos-duros.ts` | **sustituye a la sonda de erratas** (`diceLaCartilla`, «Las cartillas se contradicen»), que ADR-014 dejó sin objeto. Cadena única: no aparece en ningún otro archivo del repo, ni en `content/` ni en `src/` |
+
+**No sirven como canario** las cadenas de `content/banco/` ni de
+`content/tarjetas/`: esos módulos **sí** entran al bundle cliente a propósito, con
+`import()` dinámico bajo interacción, desde el Paso 11. Un canario ahí daría falso
+positivo el día que el simulacro funcione bien.
 
 ### Peso — las dos métricas, medidas al cerrar el paso
 
@@ -565,6 +638,20 @@ grep -rl "osteomuscular" .next/static/chunks/    # limpio al cerrar el Paso 8
 |---|---|---|---|
 | `/modulos/[slug]/page` | **134.0 kB** | 9 | 106.9 kB (Paso 7) |
 | `/modulos/[slug]/tarjetas/page` | **135.8 kB** | 9 | — (nueva) |
+
+> **Remedida al cerrar el Paso 8b** (mismo comando, misma métrica):
+> `/layout` js **131.9 kB gz** (131 913 B) · css **13.5 kB gz** (13 542 B) ·
+> total **145.5 kB gz** — el js no se mueve, el css sube **11 B gz** medidos, que
+> es lo que cuestan las tres declaraciones de `overflow-wrap` por rol de celda.
+> `/modulos/[slug]/page` **134.0 kB gz**, sin cambio.
+> `/modulos/[slug]/tarjetas/page` **136.0 kB gz**, **+0.2 kB** sobre los 135.8.
+> **Los 8 chunks compartidos son byte a byte los mismos** (mismos hashes que
+> `/modulos/[slug]`): todo el delta está en el chunk propio de la ruta,
+> `app/modulos/[slug]/tarjetas/page-*.js`, que pasa de **2.36 a 2.57 kB gz**. Lo
+> paga el `useEffect` con el listener de `window` y su guarda contra campos de
+> texto —que sustituye a un `onKeyDown` de tres líneas— más las clases de tamaño
+> de los tres botones. **Cero dependencias nuevas y cero imports nuevos**; el
+> canario de ADR-010 sigue limpio.
 
 **+27 kB gz sobre el piso de servidor puro. Investigado antes de cerrar, como
 manda la regla, y explicado — no es un import accidental.** Diferencia de chunks
@@ -588,8 +675,8 @@ pagar estos 22 kB**: ya están en chunks compartidos.
 **Lo que sí queda como deuda medible, con dueño y con cifra:** `esquemas.ts` es
 **un solo módulo** y los esquemas de Zod se construyen en el ámbito del módulo,
 así que importar `esqEstadoProgreso` arrastra también `esqItem`, `esqTarjeta`,
-`esqErrata`, `esqModulo`, `esqDatoDuro` y `esqEntradaGlosario` —los siete tipos
-de ítem incluidos— al navegador, donde **ninguno se usa**: solo los consume
+`esqModulo`, `esqDatoDuro` y `esqEntradaGlosario` —los siete tipos de ítem
+incluidos— al navegador, donde **ninguno se usa**: solo los consume
 `scripts/validar-banco.ts`, que corre en Node. Partirlo en
 `esquemas-progreso.ts` (lo que el navegador necesita) y `esquemas-contenido.ts`
 (lo que solo necesita el validador) recortaría buena parte de los 5,0 kB del

@@ -76,11 +76,12 @@ y la de después. El historial es lo que evita que vuelva.
 | A-15 | Menor | **abierto** (Paso 7) — 88,5 caracteres por línea desde `md`. Decide `ui-designer` |
 | A-16 | Menor | **abierto** (Paso 7) — 11 px en versalitas para etiquetas de contenido. Decide `ui-designer` |
 | A-17 | Moderado | **arreglado 2026-07-30** — la tapa pasa a `--background`; las tres variantes colapsan en una |
-| A-18 | Menor | **resuelto a medias 2026-07-30** — a 375 px axe recupera las celdas de la tabla ancha (17 → 0). A 1280 px sigue ciego: ver **A-22** |
+| A-18 | Menor | **resuelto 2026-07-30** — primero a 375 px con la ficha (17 → 0); del todo al cerrar **A-22**, que retiró el degradado que cegaba a axe a 1280 |
 | A-19 | Menor | **abierto** (§3.2) — bajo `sm` el envoltorio promete un desplazamiento que ya no existe. **Arreglo probado en runtime** |
 | A-20 | Menor | **abierto** (§3.2) — la clave de la ficha se anuncia en VERSALITAS. Corrige una afirmación mía del Paso 5 |
 | A-21 | Menor | **abierto** (§3.1) — la banda «74,4–75,0 cpl» no se cumple en 2 de 4 superficies. Decide `ui-designer` |
-| A-22 | Menor | **abierto** (§3.2) — por encima de `sm` ninguna tabla desborda: el degradado no señala nada y cuesta 49 incompletas de axe |
+| A-22 | Menor | **cerrado 2026-07-30** — se retiró el degradado. Su remedio de reemplazo introdujo **A-23**, ya arreglado |
+| A-23 | Serio | **arreglado 2026-07-30** (Paso 8b) — el `overflow-wrap: anywhere` con que se cerró A-22 partía palabras normales en las cabeceras: «Zon/a», «Aeróbi/co», «Sustrat/o» |
 
 ---
 
@@ -647,6 +648,13 @@ solo su `.gitkeep`, verificado con `git status`.
 enfocable sin nombre, ni los 88 caracteres por línea, ni los 11 px en versalitas.
 
 ## Confirmación de `DISENO.md` §6 — **lo confirmo, no lo refuto**
+
+> ⚠️ **Registro histórico desde ADR-014 (2026-07-30).** Se midió cuando la teoría tenía
+> **dos** recuadros. `<AlertaContradiccion>` ya no existe, así que de los 12 pares de esta
+> sección **8 miden piezas borradas** —el `<dt>`, el enlace, el icono `destructive`—. Las
+> mediciones siguen siendo correctas y por eso no se tocan: **lo que ya no vale es usarlas
+> como comprobación vigente.** Las 8 que sí aplican al `<Ojo>` están remedidas en
+> `DISENO.md` §6.6.
 
 Se pidió verificar los 16 pares de §6.6 contra el CSS ya escrito. **Medidos en
 navegador sobre el DOM real, coinciden dentro de ±0,10.** 0 fallos.
@@ -1804,3 +1812,49 @@ Que nadie lea «0 violaciones» como «tabla verificada».
 | **axe, las ocho corridas** | **0 violaciones** en `/modulos/[slug]` y `/erratas`, claro y oscuro, 375 y 1280 px. `/erratas`: **0 incompletas a 1280** y 1 a 375 (la del pie, heredada) |
 | **La única incompleta que no es degradado** | `<strong>COLEF Colombia</strong>` del pie: *«overlapped by another element»*, la barra fija a 375 px. Es la misma del Paso 5, sin cambio |
 
+
+---
+
+### A-23 · El remedio de A-22 partía palabras normales en las cabeceras de tabla
+**Criterio:** ninguno formal — 1.4.8 (AAA) roza el caso · **Severidad: Serio en la práctica** · **arreglado 2026-07-30, Paso 8b**
+**Dónde:** `src/app/globals.css`, `.prose-idoneo table` → repartido entre `th`, `td` y `td::before`
+
+A-22 se cerró retirando el degradado y poniendo `overflow-wrap: anywhere` en
+`.prose-idoneo table`, contando con que la herencia lo bajara a `th` y `td`. La
+herencia funcionó; **el efecto que no se midió es otro**: `anywhere` no solo
+autoriza el corte al maquetar, **rebaja la anchura mínima intrínseca de la celda
+a un carácter**, y `table-layout: auto` toma ese mínimo como suelo de columna.
+Con el suelo de las cinco columnas en 1 carácter, el algoritmo se creía
+autorizado a estrechar por debajo de la palabra más larga. Resultado en la tabla
+de zonas de C5 —la que el examen pregunta con número exacto—: **«Zon/a»,
+«Aeróbi/co», «Sustrat/o»**.
+
+**Arreglo, por rol de celda y no por herencia:**
+
+| Selector | Valor | Por qué |
+|---|---|---|
+| `.prose-idoneo table` | *se retira* | la herencia era el problema |
+| `.prose-idoneo th` | `normal` | devuelve al rótulo su mínimo de palabra entera; como el suelo de columna es el **máximo** de sus celdas, el rótulo pasa a sostener la columna |
+| `.prose-idoneo td` | `break-word` | **no `anywhere`**: `break-word` no toca el mínimo intrínseco y solo parte cuando la palabra sola no cabe en su línea — el caso residual que A-22 quería cubrir. Con `anywhere` ya acotado al `<td>`, «exclusivamente» seguía partiéndose a 640 px |
+| `td::before` (ficha §3.2) | `normal` | en la vista de ficha el rótulo de columna vive **dentro de un `<td>`**, servido por `--et-N`: la regla de `th` no lo alcanza |
+
+**Verificación (navegador, 9 anchos de 360 a 1280 px).** Cada palabra de cada
+celda envuelta en un `Range`; más de una fila en `getClientRects()` = partida.
+Con control: misma medición forzando `overflow-wrap: normal !important`, para
+distinguir lo que rompe la hoja de lo que rompe UAX#14.
+
+**A 375 px: 0 palabras partidas** en las dos tablas de C5 (35 celdas, 188
+palabras), la de zonas en **ficha** y la de modelos en **retícula**. Igual a 360,
+390, 414, 639, 640, 768, 1024 y 1280 px, con la de zonas ya en retícula. **0
+desbordamientos** de documento y de contenedor en los nueve anchos. Único corte
+residual: `80–90` desde 768 px, presente **también en el control** — es el salto
+tras el guion largo que manda UAX#14, no la hoja de estilos.
+
+**Lo que este hallazgo deja para el futuro.** Un remedio de accesibilidad que se
+apoya en la **herencia** para llegar a varios roles de elemento aplica el mismo
+valor a cosas que no son la misma cosa. Aquí «celda» eran dos roles distintos
+—rótulo y valor— con necesidades opuestas, y el que importaba para el arreglo era
+el que menos se miraba. Se cede que una cadena monstruosa futura vuelva a
+desbordar dentro de `.tabla-desliz`, que existe para eso y ya es enfocable
+(A-10/A-19): un desbordamiento hipotético en un contenedor diseñado para
+desbordarse es mejor trato que un corte real en la tabla de más valor de la app.

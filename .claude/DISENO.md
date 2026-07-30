@@ -36,7 +36,7 @@ alias en `@theme inline`. Sin el alias, la utilidad de Tailwind no existe.
 | **Azul acero** | `--primary` · `--ring` | `oklch(0.48 0.12 250)` `#1a609e` | `oklch(0.70 0.13 248)` `#56a4eb` | Acción principal, enlaces, foco de teclado, veredicto «Listo». El único color de marca. |
 | **Pizarra** | `--foreground` · `--muted-foreground` | `#141a22` · `#606873` | `#e2e7eb` · `#8c949f` | Todo el texto. Azulada, no negra: descansa la vista en lectura larga de noche. |
 | **Verde campo** | `--exito` | `oklch(0.52 0.125 152)` `#1c7d43` | `oklch(0.68 0.14 152)` `#48b06c` | Respuesta correcta, veredicto «Sólido». Nunca para celebrar: para informar. |
-| **Rojo tabla** | `--destructive` | `oklch(0.552 0.19 27)` `#c9312d` | `oklch(0.66 0.18 26)` `#ec5c55` | Respuesta incorrecta, veredicto «En riesgo», cronómetro ≤2 min, `<AlertaContradiccion>`. |
+| **Rojo tabla** | `--destructive` | `oklch(0.552 0.19 27)` `#c9312d` | `oklch(0.66 0.18 26)` `#ec5c55` | Respuesta incorrecta, veredicto «En riesgo», cronómetro ≤2 min. |
 | **Ámbar de aviso** | `--aviso` | `oklch(0.560 0.120 72)` `#9f6700` ⚠ | `oklch(0.78 0.14 76)` `#eaaa40` | Veredicto «En camino», cronómetro ≤10 min, `<Ojo>`. |
 | **Lienzo** | `--background` · `--card` | `#fbfcfd` · `#ffffff` | `#0c1117` · `#151b22` | Fondo de página y de tarjeta. |
 
@@ -382,7 +382,7 @@ más visitadas sería ruido.
 | `/bloques/[bloqueId]` | ✅ | el bloque **es** la pantalla |
 | `/modulos/[slug]` y sus 3 etapas (`tarjetas`, `practica`, `quiz`) | ✅ | `modulo.bloque` |
 | `/simulacros/bloque/[bloqueId]` | ✅ | un solo bloque evaluado |
-| `/`, `/repaso`, `/simulacros`, `/glosario`, `/ajustes`, `/plan`, `/progreso`, `/erratas`, `/herramientas`, `/ultima-noche`, `/diagnostico`, `/simulacros/final`, 404, `error.tsx` | ❌ | ningún bloque, o los cuatro a la vez |
+| `/`, `/repaso`, `/simulacros`, `/glosario`, `/ajustes`, `/plan`, `/progreso`, `/herramientas`, `/ultima-noche`, `/diagnostico`, `/simulacros/final`, 404, `error.tsx` | ❌ | ningún bloque, o los cuatro a la vez |
 | `/resultados/[intentoId]` | **depende del `ambito` del intento** | ✅ si el intento es de tipo `bloque` o `quiz` (un solo bloque); ❌ si es `final` o `diagnostico`, que abarcan los cuatro |
 
 **Criterio general, para cualquier ruta futura:** el rótulo aparece si y solo si
@@ -395,16 +395,18 @@ porque no hay un color de bloque que acompañar.
 > observación heredada del Paso 5 sobre el pie. Sustituye a la antigua fila
 > única «Eyebrow / etiqueta».
 
-**El error no era el tamaño: era la fila.** §6.7 llevó el `<dt>` de
-`<AlertaContradiccion>` a la fila «Eyebrow» con buen criterio —sacarlo del
-`text-xs tracking-wide`, que no estaba en la escala— pero a la fila equivocada.
-Un antetítulo y una clave de campo hacen trabajos distintos:
+**El error no era el tamaño: era la fila.** La partición nació con el `<dt>` de
+`<AlertaContradiccion>`, que estaba en la fila «Eyebrow» —fila equivocada, no
+tamaño equivocado—. **ADR-014 retiró ese componente y con él la ruta `/erratas`,
+pero la partición se queda: la sostiene la ficha por fila de §3.2**, cuyo
+`td::before` es una clave de campo con el mismo trabajo. Un antetítulo y una clave
+de campo hacen cosas distintas:
 
 | | **Antetítulo (11px)** | **Clave de campo (12px)** |
 |---|---|---|
-| Qué es | rótulo que **precede a un título** y lo califica | **clave de una lista de definición**: nombra el campo que le sigue |
+| Qué es | rótulo que **precede a un título** y lo califica | **clave que nombra el campo que le sigue** |
 | Cómo se lee | una vez, al entrar a la pantalla. Orienta y se retira | **muchas veces**: el lector salta entre claves comparando campos |
-| Cuántas hay | una por pantalla | 3 por ficha · **42 en `/erratas`** |
+| Cuántas hay | una por pantalla | **5 por ficha × 4 fichas** en una sola tabla de C5, y la misma tabla en cada módulo |
 | Si desaparece | se pierde orientación | **se pierde la estructura**: la ficha deja de ser legible |
 
 Una pieza que se relee todo el rato no puede ir en el escalón más pequeño de la
@@ -415,12 +417,12 @@ le dice al ojo «esto no es el título».
 
 | Pieza | Fila | Por qué |
 |---|---|---|
-| `<dt>` de `<AlertaContradiccion>` y de la ficha de `/erratas` | **Clave de campo · 12px** | es la estructura de la ficha, releída en cada una de las 14 |
+| `td::before` de la **ficha por fila** de §3.2 (la vista de tabla bajo `sm`) | **Clave de campo · 12px** | es la estructura de la ficha, releída en cada fila y en cada módulo. **Desde ADR-014 es el único consumidor de esta fila** |
 | `RotuloBloque` (§2.4) | Antetítulo · 11px | se lee al entrar; el `h1` de 28px que va debajo lo respalda de inmediato |
 | Título de `<TablaClave>` | Antetítulo · 11px | antetítulo de la tabla, leído una vez antes de bajar a los datos |
 | `etiqueta` de `<Dato>` | Antetítulo · 11px | va **en línea** dentro de la prosa de 17px y pegada a su valor: los dos se leen de una sola mirada. Subirla engorda el chip y descuadra el ritmo de línea del párrafo |
 | Etiqueta de la barra inferior | Antetítulo · 11px | acompaña a un icono en posición fija y permanente. Además, subirla **agravaría A-01** (a 200 % de zoom la barra ya pierde el quinto destino) |
-| Antetítulos de `/`, `/modulos`, `/erratas`, `error.tsx`, `not-found.tsx` | Antetítulo · 11px | los cinco son antetítulos de un `h1` |
+| Antetítulos de `/`, `/modulos`, `error.tsx`, `not-found.tsx` | Antetítulo · 11px | los cuatro son antetítulos de un `h1` |
 
 **Criterio para cualquier etiqueta futura:** ¿el lector vuelve a ella mientras
 lee? Si vuelve, es clave de campo (12px). Si la lee una vez y sigue, es
@@ -428,12 +430,12 @@ antetítulo (11px).
 
 #### Las versalitas se quedan
 
-Se descarta quitarles el `uppercase` a los `<dt>`, que era la opción más barata
+Se descarta quitarles el `uppercase` a las claves, que era la opción más barata
 del auditor. Las mayúsculas cuestan perfil de palabra —cierto— pero aquí ese
-coste se paga **una sola vez**: las tres claves son siempre las mismas tres, en
-el mismo orden, en las catorce fichas. A partir de la segunda ficha el lector ya
+coste se paga **una sola vez**: las claves de una tabla son siempre las mismas, en
+el mismo orden, en todas sus fichas. A partir de la segunda ficha el lector ya
 no las lee, las reconoce por forma y posición, y es justamente el bloque de
-versalitas lo que le permite saltar directo a «LO CORRECTO» sin leer. En prosa
+versalitas lo que le permite saltar directo al campo que busca sin leer. En prosa
 corrida el perfil de palabra importa en cada palabra; en un marco fijo y
 repetido, no. Se conserva el `uppercase` y la legibilidad se compra con el
 tamaño, que es donde el problema estaba de verdad.
@@ -511,7 +513,7 @@ se lee renglón a renglón.**
 | | **Medida de lectura** | **Medida de consulta** |
 |---|---|---|
 | Ancho | **≈75 caracteres por línea**, que en píxeles son **38rem · 608px** en las superficies de **17px** y **36rem · 576px** en las de **15px** | la columna entera · **720px** |
-| Qué va aquí | 38rem: párrafos, listas, `h2`, `h3`, `hr`. 36rem: los dos recuadros de prosa (`<Ojo>`, `<AlertaContradiccion>`) y la ficha de `/erratas` | tablas, `<TablaClave>`, `<Formula>` |
+| Qué va aquí | 38rem: párrafos, listas, `h2`, `h3`, `hr`. 36rem: el recuadro de prosa, hoy solo `<Ojo>` | tablas, `<TablaClave>`, `<Formula>` |
 | Cómo se consume | se recorre línea tras línea | se **busca** un dato dentro de una retícula |
 
 #### La medida se define en caracteres, no en píxeles
@@ -520,10 +522,12 @@ se lee renglón a renglón.**
 > §3.1 fijó un único tope de 38rem y afirmó que dejaba «cinco caracteres de
 > margen» bajo el 80 de 1.4.8. **Esa afirmación era cierta solo para la teoría de
 > 17px.** El auditor remidió con `canvas.measureText` sobre el texto real y
-> encontró que las tres superficies de 15px se quedaban en **79,2–79,6 cpl**: el
-> margen ahí era de **0,4 a 0,8 caracteres**, no de cinco. La estimación original
-> usó 7,17px de ancho de carácter para todas; los valores reales van de **6,81 a
-> 7,27px** según el texto.
+> encontró que las tres superficies de 15px de entonces —`<Ojo>`, la alerta y la
+> ficha de `/erratas`— se quedaban en **79,2–79,6 cpl**: el margen ahí era de
+> **0,4 a 0,8 caracteres**, no de cinco. La estimación original usó 7,17px de
+> ancho de carácter para todas; los valores reales van de **6,81 a 7,27px** según
+> el texto. *(De aquellas tres superficies **ADR-014 solo deja en pie el `<Ojo>`**;
+> la medición se conserva porque es la que fijó el número.)*
 
 **La causa es aritmética, y explica por qué un solo número en píxeles no puede
 servir para dos cuerpos.** Un recuadro tiene padding (y `<Ojo>`, además, la
@@ -541,27 +545,30 @@ medido de cada superficie:
 |---|---|---|---|---|
 | Párrafo de teoría · tope 38rem | 17px | 8,17px | 608px | **74,4** |
 | `<Ojo>` · tope **36rem** | 15px | 6,86px | 512px (576 − 32 de `p-4` − 32 de icono y `gap`) | **74,6** |
-| `<dd>` de la alerta en teoría · tope **36rem** | 15px | 7,27px | 544px (576 − 32 de `p-4`) | **74,8** |
-| Ficha de `/erratas` · tope **36rem** | 15px | 7,04px | 528px (576 − 48 de `p-6` desde `sm`) | **75,0** |
 | Tabla · `<TablaClave>` · `<Formula>` | 15px | — | 720px | **medida de consulta — no se capa** |
 
-Las cuatro caen entre **74,4 y 75,0 cpl**: dentro de la banda clásica de lectura
-sostenida (45–75) y ahora sí con **cinco caracteres de margen reales** bajo el 80
-de 1.4.8, en las cuatro superficies y no solo en una.
+Las dos caen entre **74,4 y 74,6 cpl**: dentro de la banda clásica de lectura
+sostenida (45–75) y con **cinco caracteres de margen reales** bajo el 80 de 1.4.8,
+en las dos superficies y no solo en una.
 
-**Por qué no se acepta el 0,4 de margen, que era la otra salida legítima.** Los
-tres pasan el 80 hoy, y 1.4.8 es AAA, no AA: aceptarlo era defendible. Se descarta
-por una razón concreta y con cifra: **el margen no es para el texto de hoy, es
-para el de los pasos 15–17.** Los recuadros de C5 son 5; los 29 módulos meterán
-del orden de 150. Con la caja de la alerta en 576px y el ancho de carácter
-**mínimo** que el auditor midió (6,81px), un texto con más caracteres estrechos de
-la media da `576 ÷ 6,81 = 84,6 cpl` — cruza el 80 sin que nadie lo note, porque
-nadie va a remedir 150 recuadros. Con 36rem el mismo peor caso da **75,2 cpl**. Es
-un tope que se sostiene solo mientras el contenido crece; el de 38rem dependía de
-que el texto futuro se pareciera al de C5.
+> Las otras dos superficies de 15px que esta tabla medía —el `<dd>` de la alerta
+> (74,8) y la ficha de `/erratas` (75,0)— **desaparecen con ADR-014**. Salían de la
+> misma banda y no movían el número: el tope de 36rem no depende de ellas.
 
-**Se descarta bajar a 34rem (544px)**, que era el número «seguro»: deja las tres
-superficies en ~70 cpl, por debajo de la teoría, y crea una diferencia de 64px
+**Por qué no se acepta el 0,4 de margen, que era la otra salida legítima.**
+Pasaban el 80 y 1.4.8 es AAA, no AA: aceptarlo era defendible. Se descarta por una
+razón concreta y con cifra: **el margen no es para el texto de hoy, es para el de
+los pasos 15–17.** Los recuadros de C5 son pocos; los 29 módulos meterán del orden
+de 150. Tomando el ancho de carácter **mínimo** que el auditor midió (6,81px), un
+texto con más caracteres estrechos de la media empuja la línea hasta cruzar el 80
+sin que nadie lo note, porque nadie va a remedir 150 recuadros —el peor caso que
+decidió el número se midió sobre la caja de 576px de la alerta: `576 ÷ 6,81 =
+84,6 cpl`—. **Con 36rem el peor caso del `<Ojo>` da 75,2 cpl.** Es un tope que se
+sostiene solo mientras el contenido crece; el de 38rem dependía de que el texto
+futuro se pareciera al de C5.
+
+**Se descarta bajar a 34rem (544px)**, que era el número «seguro»: deja el
+recuadro en ~70 cpl, por debajo de la teoría, y crea una diferencia de 64px
 entre el párrafo y el recuadro que sí se ve como un escalón. 36rem se separa solo
 **32px** de la prosa: a esa distancia el recuadro se lee alineado con el texto, no
 indentado.
@@ -600,15 +607,14 @@ orden de peso:
 2. **`<Formula>` es `whitespace-nowrap` con `overflow-x-auto`.** Estrecharla la
    hace desplazarse antes, y una fórmula partida o desplazada no se lee.
 3. **El saliente es señal.** Un bloque más ancho que la columna de texto dice,
-   solo por su forma, «esto no es prosa, es un dato que se consulta». Refuerza
-   por geometría la misma distinción que §6.1 hace por marco frente a barra
-   lateral. Con esta regla el saliente pasa a significar **exactamente una cosa**,
-   porque los recuadros de prosa dejan de sobresalir.
+   solo por su forma, «esto no es prosa, es un dato que se consulta». Con esta
+   regla el saliente pasa a significar **exactamente una cosa**, porque el
+   recuadro de prosa no sobresale.
 
 Ese último punto es el cambio respecto a lo que proponía el auditor, que dejaba
-`<Ojo>` y `<AlertaContradiccion>` a 720px junto con las tablas. **Se corrige: los
-dos recuadros contienen frases, no datos, y a 720px su texto interior corre a
-91–96 cpl, peor que la propia teoría.** Van a medida de lectura.
+los recuadros a 720px junto con las tablas. **Se corrige: el recuadro contiene
+frases, no datos, y a 720px su texto interior corre a 91–96 cpl, peor que la
+propia teoría.** Va a medida de lectura.
 
 ⚠ **Todo lo anterior habla de `sm` para arriba.** Por debajo de 640px la tabla
 ancha deja de ser una tabla: se apila en fichas. Es §3.2, y es la decisión que
@@ -622,22 +628,22 @@ que ya existe, **inmediatamente después de la regla base `.prose-idoneo`**:
 
 ```css
   /* Medida de lectura, superficies de 17px (DISENO.md §3.1). Solo hijos
-     DIRECTOS: los <p> que van dentro de <Ojo> o <AlertaContradiccion> no se
-     capan por su cuenta — el <aside> ya viene capado y capar también su interior
-     dejaría un hueco muerto dentro del marco. Tablas, <TablaClave> (div) y
+     DIRECTOS: los <p> que van dentro de un <Ojo> no se capan por su cuenta — el
+     <aside> ya viene capado y capar también su interior dejaría un hueco muerto
+     dentro del marco. Tablas, <TablaClave> (div) y
      <Formula> (figure) quedan fuera de la lista a propósito: §3.1, medida de
      consulta. `ch` no sirve aquí: tabular-nums lo infla a ~88 cpl. */
   .prose-idoneo > :is(p, ul, ol, h2, h3, hr) {
     max-width: 38rem;
   }
 
-  /* Medida de lectura, superficies de 15px: los dos recuadros de prosa. 36rem
-     deja su TEXTO INTERIOR —la caja menos el padding y, en <Ojo>, la columna del
-     icono— en 74,6–74,8 cpl, los mismos 75 que la teoría. Con 38rem caían en
-     79,2–79,3: pasaban el 80 de 1.4.8 con 0,4 caracteres de margen, que no es
-     margen. Va como regla aparte y NO dentro del :is() de arriba, para que la
-     diferencia sea explícita y no dependa del orden de dos selectores empatados
-     en especificidad. */
+  /* Medida de lectura, superficies de 15px: el recuadro de prosa. Hoy el único
+     <aside> hijo directo de .prose-idoneo es <Ojo>. 36rem deja su TEXTO INTERIOR
+     —la caja menos el padding y menos la columna del icono— en 74,6 cpl, los
+     mismos 75 que la teoría. Con 38rem caía en 79,3: pasaba el 80 de 1.4.8 con
+     0,4 caracteres de margen, que no es margen. Va como regla aparte y NO dentro
+     del :is() de arriba, para que la diferencia sea explícita y no dependa del
+     orden de dos selectores empatados en especificidad. */
   .prose-idoneo > aside {
     max-width: 36rem;
   }
@@ -651,18 +657,14 @@ contrario.
 `hr` va en la lista aunque el auditor no lo pusiera: una regla horizontal a 720px
 bajo un texto de 608px sobresaldría por la derecha sin significar nada.
 
-**`/erratas` recibe la misma medida, en la página, y en dos niveles.** No pasa por
-`.prose-idoneo` —monta su propio `FichaErrata`— y son 14 fichas seguidas: es
-lectura sostenida. El envoltorio de la página se queda en **38rem** porque lo que
-gobierna son el `h1` y la entradilla, que son de 17px; **la ficha se capa aparte
-en 36rem**, porque su `<dd>` es de 15px y es la superficie que el auditor midió en
-79,6 cpl.
+**Toda la regla vive en CSS, en un solo archivo.** Hasta ADR-014 había además dos
+clases en `src/app/erratas/page.tsx` —esa ruta ya no existe—: **una página que no
+pase por `.prose-idoneo` y presente prosa seguida se capa en la página**, con
+38rem si su cuerpo es de 17px y 36rem si es de 15px. Hoy no hay ninguna.
 
 | Archivo | Qué | Cómo queda |
 |---|---|---|
 | `src/app/globals.css` | dos reglas en `@layer components`, tras `.prose-idoneo` | el bloque CSS de arriba |
-| `src/app/erratas/page.tsx` | envoltorio de la página, hoy `className="space-y-8 py-2"` | `className="max-w-[38rem] space-y-8 py-2"` — **sin cambio** |
-| `src/app/erratas/page.tsx` | raíz de `FichaErrata`, hoy `'scroll-mt-[calc(var(--alto-encabezado)+1rem)] rounded-lg border p-4 sm:p-6'` | `'max-w-[36rem] scroll-mt-[calc(var(--alto-encabezado)+1rem)] rounded-lg border p-4 sm:p-6'` |
 
 El `<h1>` de la página de módulo, el `RotuloBloque` y los objetivos quedan fuera:
 viven fuera de `.prose-idoneo` y son piezas cortas que nunca alcanzan los 608px.
@@ -914,8 +916,9 @@ real:
 
 La clave es **clave de campo (12px) y no antetítulo (11px)**, y el criterio es el
 de §2.5 aplicado literalmente: *¿el lector vuelve a ella mientras lee?* Vuelve, y
-mucho — 5 claves × 4 fichas en una sola tabla, y la misma tabla en cada módulo. Es
-exactamente el caso del `<dt>` de las fichas de errata.
+mucho — 5 claves × 4 fichas en una sola tabla, y la misma tabla en cada módulo.
+**Desde ADR-014 esta ficha es el único consumidor de la fila «Clave de campo»**, y
+es la que la sostiene: sin ella, §2.5 se quedaría sin razón para existir.
 
 El primer valor sube a la fila `h3` porque **es la identidad de la ficha**: dice de
 qué zona se está hablando y hay que poder saltar de ficha en ficha por él. 18px es
@@ -1112,7 +1115,6 @@ export const componentesMdx: MDXComponents = {
   Formula,
   TablaClave,
   Ojo,
-  AlertaContradiccion,
 
   table: ({ children, ...props }) => {
     // Las claves de columna viajan como custom properties; el CSS de §3.2 las
@@ -1418,69 +1420,50 @@ haga.
 
 ---
 
-## 6. Los recuadros de contenido — `<Ojo>` y `<AlertaContradiccion>`
+## 6. El recuadro de contenido — `<Ojo>`
 
-> Añadida el 2026-07-30 para el Paso 7. Cierra la decisión que **ADR-012** dejó
-> abierta («el tratamiento visual de una `'aclaracion'` no debe ser el
-> destructivo; el token lo decide el `ui-designer`») y el punto correspondiente de
-> `PENDIENTES.md` → Paso 7.
+> Añadida el 2026-07-30 para el Paso 7 como «Los recuadros de contenido», con
+> `<Ojo>` y `<AlertaContradiccion>` descritos **como par**.
+>
+> **Reescrita el 2026-07-30 · ADR-014.** El sistema de erratas se elimina de la
+> app: se van `<AlertaContradiccion>`, la ruta `/erratas`, `content/erratas.ts` y
+> los tipos `Errata` / `TipoErrata`. El criterio nuevo es que **el contenido
+> enseña el dato verdadero, investigado y verificado**; las cartillas son la guía
+> del temario, no la fuente de verdad de cada cifra, y **la app no documenta sus
+> errores en ningún sitio**. ADR-014 supersede ADR-012 y ADR-013.
+>
+> **`<Ojo>` queda como el único recuadro de contenido de la teoría.** Los
+> subapartados suprimidos (§6.2 y §6.4) **no se renumeran**: hay código y
+> documentos que citan §6.1, §6.3, §6.6 y §6.7 por su número, igual que pasa con
+> §5.1 y §5.2.
 
-La app tiene **dos** recuadros que interrumpen la lectura de la teoría, y hay que
-poder distinguirlos de un vistazo. Esta sección fija los dos, no solo el nuevo:
-la mitad de las decisiones de abajo solo tienen sentido como par.
+`<Ojo>` es **la voz del autor dentro de la teoría**: «no hay error, pero aquí te
+vas a equivocar». Título fijo, prosa libre, y nada más.
 
-### 6.1 La regla de forma — lo que separa un recuadro del otro
+### 6.1 La forma — barra lateral, nunca marco
 
-**No los separa el color. Los separa el marco.**
+| | `<Ojo>` (§12.3) |
+|---|---|
+| Marco | **barra lateral izquierda de 4px**, sin borde alrededor |
+| Estructura | título fijo + prosa libre |
+| Qué es | un **aparte dentro del hilo de lectura**, no una interrupción |
 
-| | `<Ojo>` (§12.3) | `<AlertaContradiccion>` (§12.4) |
-|---|---|---|
-| Marco | **barra lateral izquierda de 4px**, sin borde alrededor | **marco completo de 1px**, sin barra lateral |
-| Estructura | título fijo + prosa libre | rótulo + **id** + tema + `<dl>` de tres campos + enlace |
-| Qué es | la voz del autor dentro de la teoría | una **entrada catalogada** del registro de erratas |
+**Regla dura: el `<Ojo>` lleva barra lateral y nunca marco completo.** Hasta
+ADR-014 la barra era además la señal que lo separaba de `<AlertaContradiccion>`,
+que llevaba marco. Esa contraparte ya no existe, **y la regla se queda por su
+propio motivo**: un marco cerrado saca al recuadro del hilo del texto y lo
+convierte en pieza aparte —lo correcto para una entrada catalogada, no para un
+comentario del autor sobre lo que se acaba de leer—. La barra lateral marca el
+pasaje sin encerrarlo.
 
-**Regla dura: la alerta lleva marco completo y nunca barra lateral; el `<Ojo>`
-lleva barra lateral y nunca marco.** Un agente que las intercambie borra la única
-señal estructural que las distingue.
+La consecuencia práctica: **un marco completo queda libre** para el primer
+componente futuro que sea de verdad una interrupción del texto. Que hoy no haya
+ninguno no es razón para gastarlo en el `<Ojo>`.
 
-Que compartan color en un caso concreto (§6.4) es **deliberado**: en Idóneo 2210 el
-ámbar significa siempre «esto se confunde» y el rojo significa siempre «aquí hay
-algo incorrecto». Esa constancia semántica es más valiosa que dos tonos distintos
-para el mismo mensaje, **porque la forma ya carga la diferencia de componente.**
+### 6.3 El título va en `foreground`, no en `text-aviso` — **decidido por medición**
 
-### 6.2 Los tres tipos — token, icono y rótulo
-
-`TipoErrata` tiene tres valores desde ADR-012. El catálogo real
-(`content/erratas.ts`, 14 entradas): **2 `contradiccion` · 11 `errata` ·
-1 `aclaracion`**.
-
-| `tipo` | Token | Icono (`lucide-react`) | Rótulo (fijado en ADR-012) | Qué afirma el cuadro |
-|---|---|---|---|---|
-| `contradiccion` | `destructive` | **`Scale`** | «Las cartillas se contradicen» | dos cartillas oficiales dan valores distintos; hay que **sopesar** según el bloque evaluado |
-| `errata` | `destructive` | **`CircleX`** | «Errata de la cartilla» | la cartilla afirma algo **falso** |
-| `aclaracion` | **`aviso`** | **`CircleAlert`** | «Aclaración: no es un error» | la cartilla **no se equivoca**; el dato se confunde con otro vecino |
-
-**Se retira `TriangleAlert`**, que hoy sirve a los tres. Es el genérico de
-«peligro» y no dice nada que el rótulo no diga ya; tres iconos específicos añaden
-información donde el actual solo añade alarma.
-
-- **`Scale`** (balanza de dos platos) es la metáfora exacta del `comoResponder` de
-  X-01 y X-02: *«responde según el bloque evaluado»*. No hay una verdad, hay dos
-  versiones que se eligen por contexto.
-- **`CircleX`** es la marca de «esto es falso», que es literalmente lo que ocurre
-  en las once E-*.
-- **`CircleAlert`** es advertencia sin afirmación de error — un escalón por debajo
-  del triángulo — y **no es `Eye`**, que es del `<Ojo>`. Los dos recuadros ámbar
-  llevan iconos distintos a propósito.
-
-Los tres verificados como export de `lucide-react ^1.27.0`. El icono va
-`aria-hidden`: **nunca es el único portador**, el rótulo textual siempre lo
-acompaña.
-
-### 6.3 El rótulo va en `foreground`, no en el color del tipo — **decidido por medición**
-
-§12.4 pinta hoy el rótulo en `text-destructive`. **Eso no puede generalizarse al
-tipo `aclaracion`, y el número que lo decide es este:**
+El título «Ojo con esto» no lleva el color del recuadro, y no es una elección
+estética. El número que lo decide es este:
 
 > `text-aviso` sobre `bg-aviso/10` da **4.09:1** en tema claro sobre `background`
 > (4.19:1 sobre `card`). **Falla AA para texto normal (4.5).**
@@ -1490,223 +1473,127 @@ No es un problema del alfa elegido: `--aviso` puro sobre `background` ya está e
 justo hasta el mínimo viable. **Cualquier tinte de aviso en el fondo lo hunde por
 debajo de AA.** A `/5` da 4.36; no hay alfa que lo salve.
 
-**Decisión: el rótulo y el id van en `foreground` en los tres tipos.** El color se
-queda donde no tiene requisito de 4.5:1 — el **icono** (objeto gráfico, 3:1) y el
-**marco** (delimitador).
+**Decisión: el título va en `foreground`.** El color se queda donde no tiene
+requisito de 4.5:1 — el **icono** (objeto gráfico, 3:1) y la **barra lateral**
+(delimitador).
 
-Tres razones más allá de la métrica:
+Dos razones más allá de la métrica:
 
-1. **Es lo que `<Ojo>` ya hace**: su título «Ojo con esto» va sin color, y su
-   ámbar vive en el icono y en la barra lateral. Unifica el patrón en vez de
-   inventar uno.
-2. **El rótulo es la información**, y §1.2 prohíbe que el color sea su único
+1. **El título es la información**, y §1.2 prohíbe que el color sea su único
    portador. Ponerlo en el color de más bajo contraste de la paleta es lo
    contrario de lo que pide esa regla.
-3. Evita una rama de estilo distinta por tipo dentro del mismo componente:
-   los tres se rotulan igual y solo cambian icono, marco y tinte.
+2. El ámbar sigue estando —en el icono y en la barra—, así que el recuadro se
+   identifica igual de lejos sin cargar el color sobre el texto.
 
-**Corrección tipográfica que entra con esto.** El rótulo de §12.4 es
-`font-titulo text-sm` = **Barlow Condensed a 14px**, que viola la regla dura 1 de
-§2.3 («Barlow Condensed nunca baja de 1.125rem»). Pasa a **Inter 600 a 15px**
-(fila «Cuerpo de interfaz»). El **id** (`X-03`) pasa a **JetBrains Mono 500 a
-14px** (fila «Dato / valor / fórmula»): es un código del mismo registro que
-`C5-014`, y en mono se localiza al buscarlo en `/erratas`.
+⚠ **Esta medición es la que sostiene el resto de la sección**, y por eso se deja
+escrita aunque el componente que la motivó (el rótulo de la alerta) ya no exista:
+cualquier intento futuro de pintar texto en `text-aviso` sobre un fondo tintado de
+aviso vuelve a chocar con los mismos 4.09:1.
 
-### 6.4 Por qué `contradiccion` y `errata` siguen compartiendo `destructive`
+### 6.5 El ámbar del `<Ojo>` y el veto del crema de §5.1.1
 
-Se evaluó separarlas: son operativamente distintas para quien presenta el examen
-—ante una errata hay **una** verdad, ante una contradicción hay que **elegir según
-el bloque**—. Se descarta porque **no queda un token honesto para la tercera**:
+En el sistema, **el ámbar significa «esto se confunde»** y eso es exactamente lo
+que dice este recuadro.
 
-| Candidato | Por qué no |
-|---|---|
-| `exito` | verde = «correcto». Sobre un cuadro que marca un defecto del material sería una mentira de color. |
-| `primary` | es el color de acción y de enlace, y **el propio cuadro ya lleva un enlace en `text-primary`** («Ver todas las erratas»). El rótulo competiría con él dentro del mismo recuadro. |
-| un color de bloque | prohibido por §4.2 regla 2: los cuatro categóricos ya tienen trabajo asignado y no se reutilizan como semántica. |
-| un token nuevo | la paleta está cerrada (§1.1–§1.2). |
-
-Las dos comparten el rojo porque comparten el mensaje de fondo — **«el material
-fuente falla aquí»** — y su diferencia la cargan el **rótulo** y el **icono**
-(`Scale` vs `CircleX`), que es donde debe estar: en texto y en forma, no en dos
-matices de rojo que nadie distinguiría.
-
-### 6.5 Que la aclaración comparta ámbar con `<Ojo>` es virtud, no colisión
-
-Los dos dicen lo mismo — *«no hay error, pero aquí te vas a equivocar»* — y en el
-sistema el ámbar significa exactamente eso. Lo que evita la ambigüedad es §6.1: la
-aclaración llega con **marco completo, un id, tres campos etiquetados y un
-enlace**; el `<Ojo>` con **barra lateral y prosa**. Nadie los confunde.
-
-**Alternativa evaluada y descartada: neutro** (`bg-muted`, marco `border-border`,
-rótulo y icono en `foreground`). Es la lectura más literal de «no hay nada mal», y
-resuelve el contraste sin esfuerzo. Se descarta porque **miente por omisión**: X-03
-existe porque confundir «ATP almacenado, 2–3 s» con «sistema fosfágeno, 10–15 s»
-es una trampa real de examen, y un cuadro gris dentro de la teoría se lee como
-nota al pie. El brief pide honestidad, no tibieza: el ámbar dice «no hay error,
-pero cuidado», que es el mensaje entero.
+**Alternativa evaluada y descartada: neutro** (`bg-muted`, barra `border-border`,
+icono en `foreground`). Es la lectura más literal de «no hay nada mal», y resuelve
+el contraste sin esfuerzo. Se descarta porque **miente por omisión**: un `<Ojo>`
+existe donde hay una trampa real de examen, y un cuadro gris dentro de la teoría
+se lee como nota al pie. El brief pide honestidad, no tibieza: el ámbar dice «no
+hay error, pero cuidado», que es el mensaje entero.
 
 **No confundir con el veto de §5.1.1.** `bg-aviso/10` en claro compone `#f2ede4`,
 cerca del crema `#F4F1EA` que está vetado. El veto es al **fondo de la
 aplicación**; aquí es el relleno de un recuadro de ~60 px de alto sobre un lienzo
 azulado. No hay conflicto, y queda dicho para que nadie lo «arregle».
 
-### 6.6 Contrastes medidos — AA en los dos temas, sobre los dos fondos base
+### 6.6 Contrastes medidos — AA en los dos temas
 
-El recuadro aparece sobre `background` (teoría MDX y `/erratas`) y sobre `card`
-(panel de retroalimentación del Paso 9). **Se miden los cuatro escenarios.**
-Fondo del cuadro: el token compuesto al **10 %** sobre la base.
+Hoy el `<Ojo>` solo aparece sobre `background` (la teoría MDX). **Se conservan
+también los pares sobre `card`**: están medidos, no cuestan nada y cubren de
+antemano el día en que un panel monte el recuadro sobre una tarjeta. Fondo del
+cuadro: `--aviso` compuesto al **10 %** sobre la base.
 
 Método: `oklch` → sRGB (Björn Ottosson) + fórmula de contraste WCAG 2.1, con
 composición alfa previa. Los valores de entrada son los de `globals.css` tras D-1
-a D-6.
+a D-6. Las cifras entre paréntesis son la remedición del `accessibility-auditor`
+en navegador sobre el DOM real (coinciden dentro de ±0,10).
 
-**Tipos `contradiccion` y `errata` — `bg-destructive/10`**
+**`bg-aviso/10`**
 
-| Escenario | Fondo compuesto | Rótulo + id (`foreground`) | `<dt>` (`muted-foreground`) | Enlace (`primary`) | Icono (`destructive`) |
-|---|---|---|---|---|---|
-| claro · sobre `background` | `#f6e8e9` | **14.68** | **4.71** | **5.48** | **4.44** |
-| claro · sobre `card` | `#faeaea` | **15.05** | **4.83** | **5.61** | **4.55** |
-| oscuro · sobre `background` | `#23181d` | **13.79** | **5.64** | **6.48** | **5.09** |
-| oscuro · sobre `card` | `#2b2127` | **12.49** | **5.11** | **5.87** | **4.61** |
-
-**Tipo `aclaracion` — `bg-aviso/10`**
-
-| Escenario | Fondo compuesto | Rótulo + id (`foreground`) | `<dt>` (`muted-foreground`) | Enlace (`primary`) | Icono (`aviso`) |
-|---|---|---|---|---|---|
-| claro · sobre `background` | `#f2ede4` | **15.03** | **4.82** | **5.61** | **4.09** |
-| claro · sobre `card` | `#f5f0e5` | **15.40** | **4.94** | **5.74** | **4.19** |
-| oscuro · sobre `background` | `#23201b` | **13.02** | **5.33** | **6.12** | **7.96** |
-| oscuro · sobre `card` | `#2a2925` | **11.68** | **4.78** | **5.49** | **7.14** |
+| Escenario | Fondo compuesto | Título y prosa (`foreground`) | Icono (`aviso`) |
+|---|---|---|---|
+| claro · sobre `background` | `#f2ede4` | **15.03** (14.91) | **4.09** (4.05) |
+| claro · sobre `card` | `#f5f0e5` | **15.40** | **4.19** |
+| oscuro · sobre `background` | `#23201b` | **13.02** | **7.96** (7.96) |
+| oscuro · sobre `card` | `#2a2925` | **11.68** | **7.14** |
 
 | Umbral | Peor caso medido | Margen |
 |---|---|---|
-| Texto normal (4.5) — rótulo, id, `<dd>` | **11.68** (oscuro · `card` · aviso) | +7.18 |
-| Texto normal (4.5) — `<dt>` de 12px | **4.71** (claro · `background` · destructive) | +0.21 |
-| Texto normal (4.5) — enlace | **5.48** (claro · `background` · destructive) | +0.98 |
-| Objeto gráfico (3.0) — icono | **4.09** (claro · `background` · aviso) | +1.09 |
+| Texto normal (4.5) — título y prosa | **11.68** (oscuro · `card`) | +7.18 |
+| Objeto gráfico (3.0) — icono | **4.09** · 4.05 en navegador (claro · `background`) | +1.09 · +1.05 |
 
-**16 pares, 0 fallos.** El caso más ajustado es el `<dt>` a 4.71:1: es la
-consecuencia aceptada de tintar el fondo, y por eso **el alfa del fondo queda
-fijado en 10 % y no sube**. A `/12` el peor `<dt>` baja a 4.57 y a `/15` rompe AA.
+**0 fallos.** El par más justo del recuadro es el **icono a 4.09:1**, sobre un
+umbral de 3.0.
 
-⚠ **Subir el `<dt>` de 11 a 12px (A-16, §2.5) no mueve ni una de estas cifras, y
+⚠ **El alfa del fondo se queda en 10 %, pero su justificación medida ya no
+existe.** El número que clavaba el 10 % era el `<dt>` de la alerta a 4.71:1
+(a `/12` bajaba a 4.57 y a `/15` rompía AA) — y ese `<dt>` desapareció con
+ADR-014. Dentro del `<Ojo>` no queda ningún par de texto cerca del límite: el peor
+es 11.68 contra 4.5. **La regla se conserva por prudencia, no por medición**, y
+está anotada como tal en §6.8: quien quiera subirla tiene que remedir, no basta
+con citar esta sección. Lo que sí sigue vivo es el techo de §6.3 — ningún tinte de
+aviso admite texto en `text-aviso` encima.
+
+⚠ **Subir texto de 11 a 12px (A-16, §2.5) no mueve ninguna de estas cifras, y
 tampoco mueve el umbral.** Conviene dejarlo escrito porque la intuición dice lo
 contrario. WCAG 2.1 SC 1.4.3 tiene **exactamente dos umbrales**: 4.5 para texto
 normal y 3.0 para texto grande, y «grande» empieza en **24px, o 18.66px en
 negrita**. No existe un tercer umbral para texto pequeño del que 11px se pudiera
-estar alejando. 12px semibold sigue siendo texto normal, igual que 11px:
+estar alejando. 12px semibold sigue siendo texto normal, igual que 11px. El mismo
+razonamiento cubre el pie de atribución al pasar de 12 a 13px: sigue siendo texto
+normal, sigue midiendo **5.49 claro · 6.18 oscuro**, sigue pasando AA con holgura.
+Ningún umbral cambia de lado.
 
-| | 11px semibold | 12px semibold |
-|---|---|---|
-| Umbral que aplica | 4.5 | **4.5 — el mismo** |
-| Peor par medido | 4.71 | **4.71 — el mismo** |
-| Margen | +0.21 | **+0.21 — el mismo** |
-
-De ahí dos consecuencias operativas:
-
-1. El cambio de tamaño es **ganancia de legibilidad a coste de contraste cero**.
-   No hay nada que recalcular ni que volver a medir.
-2. **No compra holgura para nada.** El alfa del fondo sigue clavado en 10 %, la
-   prohibición de §6.8 sigue en pie, y el `<dt>` sigue siendo el par más justo de
-   la paleta. Que ahora se lea mejor no lo aleja del límite: lo deja donde
-   estaba, con +0.21.
-
-El mismo razonamiento cubre el pie de atribución al pasar de 12 a 13px: sigue
-siendo texto normal, sigue midiendo **5.49 claro · 6.18 oscuro**, sigue pasando
-AA con holgura. Ningún umbral cambia de lado.
-
-**El marco.** `border-{token}/60` da 2.70:1 (claro) y 2.60–3.99:1 (oscuro) contra
-la base. **Está por debajo de 3:1 y es correcto**, por el mismo criterio con que
-§1.3 exime a `--border`: es un delimitador decorativo, no identifica un control ni
-porta información — la información va en rótulo, icono y `<dd>`. Sube de `/40`
-(1.90:1, prácticamente invisible en claro) a `/60` porque a `/40` el recuadro no
-llega a definirse contra un tinte del 10 %. Coste: cero.
+**La barra lateral.** Va en `--aviso` puro, no en un alfa: **4.65:1** contra
+`background` en claro (§6.3). Aun por debajo de 3:1 sería correcto, por el mismo
+criterio con que §1.3 exime a `--border` —es un delimitador, no identifica un
+control ni porta información, que va en el título y en la prosa—, pero aquí ni
+siquiera hace falta invocar la exención.
 
 ### 6.7 Clases exactas — esto es lo que se escribe
 
-Tailwind **no genera clases dinámicas**: `border-${token}/60` no existe. Mismo
-motivo por el que §1.2 obliga a `CLASES_BLOQUE`. Va un mapa estático, en el propio
-archivo del componente:
-
-```tsx
-// src/components/mdx/alerta-contradiccion.tsx — Server Component. SIN "use client".
-import { CircleAlert, CircleX, Scale } from 'lucide-react';
-import type { TipoErrata } from '@/lib/tipos';
-
-/** Un tratamiento por tipo. Ver DISENO.md §6.
- *  Clases completas y literales: Tailwind no genera `border-${x}/60`. */
-const ESTILO: Record<
-  TipoErrata,
-  { rotulo: string; Icono: typeof Scale; marco: string; fondo: string; tinte: string }
-> = {
-  contradiccion: {
-    rotulo: 'Las cartillas se contradicen',
-    Icono: Scale,
-    marco: 'border-destructive/60',
-    fondo: 'bg-destructive/10',
-    tinte: 'text-destructive',
-  },
-  errata: {
-    rotulo: 'Errata de la cartilla',
-    Icono: CircleX,
-    marco: 'border-destructive/60',
-    fondo: 'bg-destructive/10',
-    tinte: 'text-destructive',
-  },
-  aclaracion: {
-    rotulo: 'Aclaración: no es un error',
-    Icono: CircleAlert,
-    marco: 'border-aviso/60',
-    fondo: 'bg-aviso/10',
-    tinte: 'text-aviso',
-  },
-};
-```
-
-Y el marcado, con cada clase justificada:
+Todas literales. No hay mapa de estilos que consultar: **un solo recuadro, un solo
+tratamiento.** Es lo que sustituye al `ESTILO_ERRATA` que ADR-014 retiró.
 
 | Pieza | Clases | Por qué |
 |---|---|---|
-| `<aside>` | `my-6 rounded-lg border p-4` + `marco` + `fondo` | marco completo (§6.1) · `rounded-lg` y `p-4` de §3 |
-| Icono | `mt-0.5 size-4 shrink-0` + `tinte` + `aria-hidden` | el color vive aquí (§6.3) · `size-4` iguala al rótulo |
-| Rótulo | `text-[0.9375rem] font-semibold text-foreground` | Inter 600 15px (§2.3, «Cuerpo de interfaz»). **Nunca `font-titulo`**: a 14px violaría §2.3 regla 1 |
-| Id | `font-mono text-[0.875rem] font-medium text-foreground` | JB Mono 500 14px (§2.3, «Dato / valor») · mismo registro que `C5-014` |
-| `tema` | `mt-2 text-[0.9375rem] font-medium text-foreground` | cuerpo de interfaz, medio para separarlo del `<dl>` |
-| `<dt>` | `text-[0.75rem] font-semibold uppercase leading-[1.1] tracking-[0.08em] text-muted-foreground` | fila **«Clave de campo»** de §2.3 (12px), literal. **A-16, 2026-07-30:** iba a `text-[0.6875rem]` por la fila «Eyebrow», que era la fila equivocada — ver §2.5. Del resto de la clase no cambia nada: mismo peso, mismas versalitas, mismo `leading-[1.1]`, mismo tracking, mismo token de color |
-| `<dd>` | `text-[0.9375rem] text-foreground` · el de `comoResponder` añade `font-medium` | cuerpo de interfaz. Sustituye a `text-sm` (14px), que no está en la escala |
-| Enlace | `mt-3 inline-block text-[0.9375rem] font-medium text-primary underline underline-offset-2` | se conserva de §12.4, con el tamaño llevado a la escala |
+| `<aside>` | `my-5 flex gap-3 rounded-lg border-l-4 border-aviso bg-aviso/10 p-4` | **barra lateral, nunca marco** (§6.1) · `rounded-lg` y `p-4` de §3 · la barra va en `--aviso` puro (§6.6) |
+| Icono `Eye` | `mt-0.5 size-5 shrink-0 text-aviso` + `aria-hidden` | el color vive aquí (§6.3). **`aria-hidden`: nunca es el único portador**, el título textual siempre lo acompaña |
+| Caja de texto | `text-[0.9375rem] leading-[1.5]` | Inter 15px / 1.5, fila «Cuerpo de interfaz» de §2.3. **Explícito, no heredado**: marca el recuadro como aparte de los 17px de la teoría |
+| Título | `mb-1 font-semibold text-foreground` | Inter 600 sobre la caja de 15px. **Nunca `font-titulo`**: Barlow Condensed a ese cuerpo violaría §2.3 regla 1. Y **nunca `text-aviso`**: §6.3 |
+| Prosa | hereda de la caja · `[&>p:first-child]:mt-0 [&>p:last-child]:mb-0` | los `<p>` conservan el ritmo de párrafo de `.prose-idoneo` (es prosa del autor); solo se recortan los márgenes contra el borde del recuadro |
+| Medida | `.prose-idoneo > aside { max-width: 36rem }` | §3.1, en `globals.css`. No es una clase del componente |
 
-**No cambia nada más de §12.4:** ni el `<dl>` de tres campos, ni el orden («Dice la
-cartilla» → «Lo correcto» → «Cómo responder»), ni el enlace a `/erratas#{id}`, ni
-el `if (!errata) return null`.
-
-**Los tres archivos que toca A-16.** El `<dt>` sale de una única constante, así que
-las 42 instancias de `/erratas` más las de la teoría se arreglan en un sitio:
-
-| Archivo | Qué | Cómo queda |
-|---|---|---|
-| `src/components/mdx/alerta-contradiccion.tsx` | `CLASES_DT_ERRATA` (exportada; la importa también `erratas/page.tsx`, de ahí que cubra las 42 fichas) | `text-[0.6875rem]` → **`text-[0.75rem]`**. El resto de la cadena, idéntico |
-| `src/components/layout/pie.tsx` | `<footer>`, hoy `text-xs` (12px) | **`text-[0.8125rem]`** (13px, §2.5). El `py-3.5` del enlace **no se toca** |
-| — | `tabla-clave.tsx`, `dato.tsx`, `rotulo-bloque.tsx`, `nav-inferior.tsx` y los antetítulos de `/`, `/modulos`, `/erratas`, `error.tsx`, `not-found.tsx` | **sin cambio.** Son antetítulos: se quedan en `text-[0.6875rem]` (§2.5) |
-
-**Nota de accesibilidad para el Paso 7 (a confirmar por el auditor).** Un `<aside>`
-es landmark *complementary*; la teoría de C5 monta cinco recuadros y ninguno tiene
-nombre accesible, así que un lector de pantalla anuncia cinco «complementario»
-idénticos. Se recomienda `aria-labelledby` en el `<aside>` apuntando al `id` del
-`<p>` del rótulo — cambio de dos líneas que nombra el landmark sin tocar el
-aspecto. **Aplica igual al `<Ojo>`**, por el mismo motivo.
+**Nombre accesible — resuelto, no pendiente.** Un `<aside>` es landmark
+*complementary*, y un módulo con varios recuadros anunciaría varios
+«complementario» idénticos. Se resolvió en el Paso 7 con **`role="note"` +
+`aria-label="Ojo con esto"`** (A-09): `note` dice lo que el recuadro es —un aparte
+dentro del hilo de lectura, no contenido complementario— y lo saca de la lista de
+landmarks sin perder el nombre. Se usa `aria-label` y no `aria-labelledby` porque
+el título es fijo y el componente no tiene clave única con la que construir un
+`id` sin arriesgar colisiones cuando un módulo monta varios.
 
 ### 6.8 Prohibiciones que nacen de esta sección
 
 | Prohibido | Por qué |
 |---|---|
-| Pintar una `'aclaracion'` en `destructive` | `destructive` afirma «algo está mal» y en una aclaración no lo hay. ADR-012 lo fija: **no puede ser rojo** |
-| Poner el rótulo de la alerta en el color del tipo | 4.09:1 medido para `aviso`. Falla AA. §6.3 |
-| Usar `font-titulo` en el rótulo | Barlow Condensed a 14px viola la regla dura 1 de §2.3 |
-| Subir el fondo del recuadro por encima del 10 % | a `/12` el `<dt>` cae a 4.57 y a `/15` rompe AA. §6.6 |
-| Darle marco completo al `<Ojo>` o barra lateral a la alerta | es la única señal estructural que los distingue. §6.1 |
-| Volver a `TriangleAlert` para los tres tipos | el icono genérico borra la distinción que §6.2 acaba de introducir |
-| Inventar un token para diferenciar `contradiccion` de `errata` | la paleta está cerrada; la diferencia la cargan rótulo e icono. §6.4 |
+| Poner el título del `<Ojo>` en `text-aviso` | 4.09:1 medido (4.05 en navegador). Falla AA para texto normal. §6.3 |
+| Usar `font-titulo` en el título | Barlow Condensed a 15px viola la regla dura 1 de §2.3 |
+| Subir el fondo del recuadro por encima del 10 % | **Regla conservada por prudencia: su medición murió con ADR-014.** Fijaba el 10 % el `<dt>` de la alerta (4.57 a `/12`), que ya no existe; dentro del `<Ojo>` el peor par de texto está en 11.68. Para subirlo hay que **remedir**, no basta con citar §6.6 |
+| Darle marco completo al `<Ojo>` | saca el aparte del hilo de lectura y gasta la única forma que queda libre para un componente futuro que sí sea una interrupción. §6.1 |
+| Cambiar `Eye` por un icono de alarma (`TriangleAlert` y parientes) | el `<Ojo>` no afirma que haya un error: dice «aquí te vas a equivocar». Un icono de peligro añade alarma y no añade información |
+| Reintroducir un segundo recuadro de contenido sin pasar por §6 | la distinción de forma —barra lateral contra marco— es el presupuesto entero de esta sección. Un tercer tratamiento la anula |
 
 ---
 
@@ -1725,3 +1612,4 @@ aspecto. **Aplica igual al `<Ojo>`**, por el mismo motivo.
 | 2026-07-30 | **§3 — retirada la excepción del enlace de licencia del pie al piso táctil de 44px.** Con el pie a 13px (§2.5) el enlace mide **44,0 px exactos** medidos, no 43: cumple por derecho propio y la excepción sobra. La única válvula del piso vuelve a ser `data-compacto` (D-7). Sin cambio de código — el `py-3.5` de `pie.tsx` es lo que produce los 44,0 px y no se toca. De paso se limpia la frase de §2.5 que había quedado colgando de la estimación errónea de «~49 px». | Vigente |
 | 2026-07-30 | **§6 nuevo — los recuadros de contenido.** Cierra la decisión que ADR-012 delegó: `'aclaracion'` va en `aviso` (no rojo), `contradiccion` y `errata` siguen en `destructive`, y los tres estrenan icono propio (`Scale` · `CircleX` · `CircleAlert`, se retira `TriangleAlert`). El rótulo pasa a `foreground` **por medición** — `text-aviso` sobre `bg-aviso/10` da 4.09:1 y falla AA — y de paso se corrigen dos usos tipográficos fuera de la escala de §2.3 (`font-titulo` a 14px, `text-sm`/`text-xs`). 16 pares medidos en los dos temas sobre `background` y `card`, 0 fallos. Fija además la regla de forma que separa `<AlertaContradiccion>` de `<Ojo>`: marco completo vs barra lateral. El antiguo §6 (registro de cambios) pasa a §7; §5.1 y §5.2 **no se renumeran** porque hay código y documentos que las citan. | Vigente |
 | 2026-07-30 | **§3.2 corregida — A-22: el degradado de A-11 se retira entero, no solo por debajo de `sm`.** §3.2 lo conservaba de 640px para arriba «porque una tabla de 6 columnas todavía puede desbordar a 700px»; medido, **ninguna de las cuatro tablas del fixture desborda en ocho anchos de 640 a 1280px, la de 7 columnas incluida** — `width: 100%` + `table-layout: auto` hacen que las celdas envuelvan. Tampoco desbordan a 375px las de 2 y 3 columnas, que el umbral `:has(...nth-child(4))` dejaba con degradado. Sin ningún viewport donde ayude, conservarlo es CSS muerto que **ciega la comprobación automática de contraste de toda tabla** (49 celdas incompletas a 1280px, 24 a 375px) justo antes de que los pasos 15–17 escriban 28 módulos de tablas. Se retiran los dos bloques de `globals.css` —la regla base y la variante `.dark`, que solo cambiaba el color de la sombra— y el `background-image: none` de la media query, que queda sin objeto. En su lugar, `.prose-idoneo table` estrena **`overflow-wrap: anywhere`**: el caso residual (cadena inquebrable) se **previene** en vez de señalarse; sobre el contenido actual es un no-op. **No se toca nada de accesibilidad:** `overflow-x: auto`, `tabIndex={0}`, `role="group"` y el `aria-labelledby` de A-19 se quedan. Resultado: `/modulos` 49 → 0 incompletas a 1280px y 25 → 1 a 375px. | Vigente |
+| 2026-07-30 | **§6 reescrita — ADR-014 elimina el sistema de erratas de la app.** Se van `<AlertaContradiccion>`, `/erratas`, `content/erratas.ts` y los tipos `Errata`/`TipoErrata`: el contenido enseña el dato verdadero y verificado, y la app no documenta sus errores en ningún sitio. **§6 pasa a ser sobre `<Ojo>`, el único recuadro que queda**, y se reescribe entera para no definirlo por oposición a un componente que ya no existe: la barra lateral se justifica ahora por sí misma (un aparte no se encierra en un marco) y el marco completo queda libre para un futuro componente de interrupción. **§6.2 y §6.4 se suprimen y los números NO se reciclan** —ojo.tsx, `globals.css`, `ACCESIBILIDAD.md` y `BITACORA.md` citan §6.1, §6.3, §6.6 y §6.7 por su número—. La medición de §6.3 (`text-aviso` sobre `bg-aviso/10` = 4.09) se conserva: es lo que impide pintar texto sobre cualquier tinte de aviso. §6.6 queda con los 8 pares que aplican al `<Ojo>`, peor caso el icono a 4.09 sobre umbral 3.0. **Una regla queda sin su medición: el tope del 10 % de alfa del fondo** lo fijaba el `<dt>` de la alerta (4.57 a `/12`); se conserva por prudencia y marcado como tal en §6.8. Tocadas además §1.1 (usos de `--destructive`), §2.4 (tabla de rutas), §2.5 (la fila «Clave de campo» se re-ancla en la ficha por fila de §3.2, su único consumidor), §3.1 (la medida de 36rem se queda con un solo consumidor; se retiran las dos filas de `erratas/page.tsx`), §3.2 y el mapa `componentesMdx`. | Vigente |
