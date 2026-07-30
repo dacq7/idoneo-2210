@@ -315,7 +315,9 @@ export const esqEntradaGlosario = z.object({
 
 export const esqErrata = z.object({
   id: z.string().regex(RE_ID_ERRATA),
-  tipo: z.enum(['contradiccion', 'errata']),
+  // 'aclaracion' es el tercer tipo desde ADR-012: la cartilla no se equivoca,
+  // el dato se confunde con otro. §5 del blueprint solo trae los dos primeros.
+  tipo: z.enum(['contradiccion', 'errata', 'aclaracion']),
   tema: z.string().min(4),
   ubicacion: z.string().min(4),
   diceLaCartilla: z.string().min(10),

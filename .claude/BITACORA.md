@@ -1344,3 +1344,108 @@ Registrado también que la comprobación preferida **no es la cifra sino el `gre
 Sin cambios de código. Compuertas sin tocar: `typecheck` 0 · `lint` limpio · `test` 183 · `validar` verde · `build` verde.
 
 ---
+
+## Paso 6 — Datos de bloques y módulos — 2026-07-30
+
+**Estado:** ⚠️ Completado con ajustes
+
+**Corrección de premisa al empezar.** El paso se planteó como «solo rutas, los datos ya están». No era así: `content/estructura.ts` sí existía desde el Paso 3 (ADR-004), pero los otros cuatro `content/*.ts` seguían siendo cascarones de 11 a 28 líneas. `PENDIENTES.md` → Paso 6 lo tenía bien registrado: a este paso le correspondían §9.2–§9.5 **y** las rutas. Se hicieron las dos cosas, en paralelo y sobre archivos disjuntos.
+
+**Datos transcritos** (`technical-writer`), copia literal de `CLAUDE.md`:
+
+| Archivo | Sección | Contenido |
+|---|---|---|
+| `content/blueprint-examen.ts` | §9.2 | 6 blueprints (`diagnostico`, `final`, `bloque-A`…`D`) + 3 fábricas |
+| `content/erratas.ts` | §9.3 | **14** entradas: `X-01`…`X-03` y `E-01`…`E-11` |
+| `content/datos-duros.ts` | §9.4 | **70** entradas en 10 categorías, 7 con `contradiccion` |
+| `content/glosario.ts` | §9.5 | **22** términos, 8 con sinónimos |
+
+Fidelidad verificada de forma mecánica: extrajo los cuatro bloques `ts` del blueprint y los comparó línea a línea contra el repo — **idénticos**. Sumas cruzadas confirmadas: los 6 blueprints cumplen `reparto == porNivel == totalItems`, `FINAL` también `porTipo == 100`, y su reparto por bloque da A 20 · B 22 · C 33 · D 25, coherente con los `pesoExamen`.
+
+**Rutas construidas** (`frontend-developer`), tres componentes **todos Server, cero altas a §10.3**:
+
+- `/modulos` — los 29 módulos agrupados por bloque, con su color y las 29 insignias «En preparación».
+- `/bloques/A|B|C|D` — prerenderizadas (`● SSG`, 4/4), con `RotuloBloque` cumpliendo §2.4, la descripción del bloque, su meta y sus módulos en orden.
+- `src/components/modulo/{tarjeta-modulo,lista-modulos,meta-bloque}.tsx`.
+
+`/bloques/c` en minúscula resuelve al bloque C, para que la página y `bloqueDeRuta` del riel no se contradigan; `/bloques/Z` da 404 vía `notFound()`.
+
+**Validador: 87 avisos, 0 errores** — exactamente lo que `PENDIENTES.md` anticipaba. 28 de `blueprint/final` + 29 de los cuatro `bloque-*` («necesita N ítems y hay 0») + 29 de «en preparación, sin banco todavía». Los avisos no rompen el build; es el estado correcto con el banco vacío.
+
+**Peso.** `/layout · js 132.0 kB gz` — **el armazón no se movió ni un byte**, porque las dos rutas son Server Components puros. Los 0.2 kB de más son CSS de utilidades nuevas. ADR-010 limpio: `grep -rl "osteomuscular\|conceptosClave" .next/static/chunks/` no encuentra nada en **ningún** chunk, y siguen siendo los mismos 6 clientes.
+
+**Compuertas:** `typecheck` 0 · `lint` limpio · `test` **183 en verde** · `validar` exit 0 · `build` verde.
+
+---
+
+### Hallazgo de peso: `Badge` y `Button` cuestan 77.5 kB gz
+
+Lo encontró el `frontend-developer` y lo verifiqué de forma independiente. `src/components/ui/badge.tsx` y `button.tsx` hacen `import { Slot } from "radix-ui"` — **el paquete paraguas** —, y como `Slot` es cliente, el barrel completo entra al bundle de la ruta.
+
+Medido por diferencia de chunks entre rutas:
+
+| Ruta | js gz | chunks |
+|---|---|---|
+| `/modulos` (marcado propio, sin `Badge`) | **106.2 kB** | 6 |
+| `/not-found` (un `<Button asChild>`) | **183.8 kB** | 7 |
+
+El chunk extra es uno solo: `static/chunks/470-*.js`, **77.5 kB gz**, y contiene `Slot`, `Presence`, `DismissableLayer` y `FocusScope`. Una página 404 paga la maquinaria de diálogos y popovers de Radix por un botón.
+
+**Por qué el `grep` de ADR-010 no lo ve:** no es `content/`. Son dos fugas distintas con la misma forma —un import que parece gratis y arrastra un grafo— y la de hoy es **14 veces más grande** que la que motivó ADR-010.
+
+**El arreglo es de dos líneas y la dependencia ya está instalada:** `@radix-ui/react-slot@1.3.3` existe en `node_modules` como transitiva. Bastaría cambiar en `badge.tsx` y `button.tsx`:
+
+```
+- import { Slot } from "radix-ui"
++ import { Slot } from "@radix-ui/react-slot"
+```
+
+y declarar `@radix-ui/react-slot` en `dependencies` para no depender de una transitiva.
+
+**No se aplicó:** está fuera del Paso 6, toca archivos generados por el CLI de shadcn, y los otros 8 componentes de `ui/` importan el mismo barrel para primitivas que **sí** usan de verdad (`Dialog`, `Select`, `Tabs`, `Tooltip`, `Switch`, `ScrollArea`, `Label`, `Accordion`), así que conviene decidir el criterio completo de una vez y no archivo por archivo. Queda como deuda con dueño: **decidir en el Paso 9 o el 11**, que es cuando entran `Dialog` (reanudar sesión) y `Tabs` (`/herramientas`) y el reparto de chunks cambia de todos modos.
+
+**Un falso positivo anticipado para el `accessibility-auditor`:** `getBoundingClientRect()` sobre los `<a>` de título de las fichas devuelve 22 px de alto. No es un objetivo pequeño — el enlace se estira con `after:absolute inset-0` y esa caja no cuenta en el rect. El `frontend-developer` lo comprobó con `elementFromPoint` en las cuatro esquinas y el centro, y con un clic real. Queda anotado en `COMPONENTES.md`.
+
+**Pendiente que no se corrigió, a propósito** (lo levantó el `technical-writer` durante la transcripción y no es transcripción arreglarlo): **`X-03` está tipada como `'contradiccion'` pero su propio `loCorrecto` dice «No hay conflicto: 2–3 s es correcto»**. Es una nota de desambiguación frente a `X-02`. Como `<AlertaContradiccion>` (§12.4) elige el rótulo según `errata.tipo`, en `/erratas` va a aparecer bajo «Las cartillas se contradicen», que es lo contrario de lo que dice su texto. Decidir antes del Paso 7, que es donde nace `/erratas`.
+
+---
+
+## [2026-07-30 04:05] · vigilancia de peso por ruta y reclasificación de X-03 · Paso 6
+
+**1 · La vigilancia por carpeta tenía un punto ciego, y ya hay una fuga que lo demuestra**
+
+El `grep` de ADR-010 solo mira `content/`. No detecta ninguna otra fuga con la misma forma —un import que parece gratis y arrastra un grafo—, y el barrel de `radix-ui` es **14 veces más grande** que la que motivó ese ADR. Así que la vigilancia pasa de ser por carpeta a ser **por desproporción**.
+
+`COMPONENTES.md` gana una **segunda métrica obligatoria**: el **js gz por ruta**, con su comando exacto, la línea base del 2026-07-30 y una referencia por tipo de ruta — **servidor puro ≈ 103–107 kB gz** es el piso (React + runtime del router + CSS compartido). Más el comando de diagnóstico por diferencia de chunks contra una ruta sana, para localizar el culpable sin adivinar.
+
+**La regla:** si una ruta nueva supera la línea base de su tipo y no hay explicación escrita, **se investiga antes de cerrar el paso**. Un salto de +20 kB gz sobre el piso no es «así es Next»: es un import que arrastró algo. Y queda advertido que los 183.8 kB de `/not-found` **no son licencia ni referencia**, son el caso patológico.
+
+**ADR-011** registra el hallazgo del barrel: la medición por diferencia de chunks, la causa (`import { Slot } from "radix-ui"` en `badge.tsx` y `button.tsx`, con `Slot` cliente, mete `Presence`, `DismissableLayer` y `FocusScope` en la ruta), y el **criterio completo pendiente** planteado como tres preguntas concretas — los diez componentes o solo los dos; ~10 dependencias granulares nuevas o no; y **cómo se evita la regresión cuando el Paso 9 corra `npx shadcn@2 add` y vuelva a escribir `from "radix-ui"`**. Esa tercera es la que decide si el arreglo aguanta. Arreglo asignado al Paso 9 u 11, cuando entren `Dialog` y `ScrollArea` y el reparto de chunks cambie igual. Descartado por escrito adoptar `optimizePackageImports` a ciegas: si se evalúa, se mide.
+
+**2 · X-03 reclasificada — ADR-012**
+
+`X-03` estaba tipada `'contradiccion'` mientras su propio `loCorrecto` dice «No hay conflicto». Como `<AlertaContradiccion>` (§12.4) elige el rótulo con un ternario binario sobre `tipo`, habría aparecido bajo «Las cartillas se contradicen».
+
+El `software-architect` midió primero, como se le pidió: **13 de las 14 entradas están bien clasificadas** — X-01 y X-02 son contradicciones reales, y las once `E-*` son erratas verificables (contenido falso, tablas mal armadas, tipografía). X-03 es la única desalineada.
+
+Esa cuenta decidió **una** cosa y no la otra: descarta rediseñar la taxonomía —nada de jerarquías ni de un campo `severidad`—, pero no obliga a que la única entrada desalineada lleve un rótulo falso. Decisión: **tercer valor `'aclaracion'`** en `TipoErrata`, con el id `X-03` intacto.
+
+El argumento que me convence: un cuadro titulado «Errata de la cartilla» sobre un texto que dice «no hay conflicto» **se contradice dentro del mismo cuadro**, y lo hace en el registro de erratas, que §1 llama el activo defendible del producto. Un usuario que ve que la app clasifica mal deja de creerle cuando le dice qué responder — y ahí se juegan las 3–5 preguntas que separan pasar de no pasar.
+
+El precio es dos líneas, y **hoy es el más bajo que va a ser nunca**: los dos consumidores que tendrían que aprender el tercer rótulo (`<AlertaContradiccion>` y `/erratas`) **no existen todavía**. Radio de explosión en persistencia: **cero** — `Errata` es contenido, no `EstadoProgreso`, así que no hay versión de esquema que subir ni migración. Y `contradiccion` en `ItemBase` y en `DatoDuro` guarda **un id, no un tipo**: `DD-001 → X-03` sigue resolviendo.
+
+**Es la primera desviación de §4**, que hasta hoy era el único archivo byte-idéntico al blueprint.
+
+Descartadas: `tipo: 'errata'` (cambia un rótulo falso por otro menos falso — barato en código, caro donde importa); reescribir el texto de X-03 para que `'errata'` cuadre (doblar el contenido para que quepa en el esquema); y plegarla en un `<Ojo>` de C1 —la alternativa seria, porque `<Ojo>` es el mecanismo que el blueprint ya tiene para «no es error pero se confunde»—, que se cae porque `DD-001` la referencia y el validador rompe ante referencia colgada, porque el dato perdería su ícono en `/ultima-noche`, y porque la teoría de C1 no existe hasta el Paso 16.
+
+**Archivos:** `src/lib/tipos.ts`, `src/lib/esquemas.ts`, `content/erratas.ts`, `src/lib/__tests__/esquemas.test.ts` (+4 tests), `.claude/ARQUITECTURA.md` (ADR-012).
+
+**El test que importa es un pin de regresión:** §9.3 del blueprint sigue diciendo `'contradiccion'`, así que sin el pin una recopia literal revierte esto **en silencio**. Falla si X-03 vuelve a `'contradiccion'`.
+
+**Compuertas:** `typecheck` 0 · `lint` limpio · `test` **187 en verde** (183 → 187) · `validar` 87 avisos, 0 errores, 14 erratas · `build` verde. Peso sin cambios: `/layout` **132.0 kB js gz**, y las dos rutas nuevas en 106.2.
+
+**Pendiente de autorización del usuario: cuatro puntos del blueprint quedan desalineados** y no se editó `CLAUDE.md`. §4 (`TipoErrata`), §5 (`esqErrata.tipo`), §9.3 (el `tipo` de X-03) y **§12.4 (el ternario binario de `<AlertaContradiccion>`)**. El criterio de las enmiendas de ADR-006 y ADR-007 aplica de lleno: la instrucción literal está en el camino de ejecución del Paso 7 y no deja rastro que apunte al ADR. **§12.4 es el punto crítico** — copiarla literal reintroduce el rótulo falso sin que nada falle.
+
+**Lo que hereda el Paso 7:** §12.4 no se copia literal (tres ramas, y para `'aclaracion'` el rótulo es «Aclaración: no es un error»); el tratamiento visual **no puede ser el destructivo**, porque `border-destructive` codifica «algo está mal» y aquí no lo hay — el token coherente es `aviso`, el que ya usa `<Ojo>`; `/erratas` agrupa por tres tipos y conserva el ancla `id="X-03"`, porque `DD-001` llega por ahí.
+
+---

@@ -168,17 +168,26 @@ export interface EntradaGlosario {
   sinonimos?: string[];
 }
 
-export type TipoErrata = 'contradiccion' | 'errata';
+/**
+ * - `contradiccion`: dos cartillas dan valores distintos para el mismo dato.
+ * - `errata`: la cartilla dice algo incorrecto (de contenido, de tabla o tipográfico).
+ * - `aclaracion`: la cartilla NO se equivoca; el dato se confunde con otro vecino.
+ *   Existe para desambiguar, no para corregir. Ver ADR-012.
+ */
+export type TipoErrata = 'contradiccion' | 'errata' | 'aclaracion';
 
 export interface Errata {
-  /** 'X-01' para contradicciones entre cartillas, 'E-01' para erratas de contenido. */
+  /** Familia + consecutivo. 'X-*' nace de una divergencia entre cartillas
+   *  (`contradiccion`, o la `aclaracion` que la desambigua); 'E-*' es errata de
+   *  contenido. El prefijo marca la familia, no el `tipo`. Ver ADR-012. */
   id: string;
   tipo: TipoErrata;
   tema: string;
   ubicacion: string;
   /** Qué dice la cartilla. */
   diceLaCartilla: string;
-  /** Qué es correcto, o cómo responder si hay conflicto. */
+  /** Qué es correcto, o cómo responder si hay conflicto.
+   *  En una `aclaracion`, dice explícitamente que no hay conflicto. */
   loCorrecto: string;
   /** Instrucción operativa para el examen. */
   comoResponder: string;

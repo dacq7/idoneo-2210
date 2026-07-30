@@ -417,3 +417,174 @@ Si devuelve algo, un componente cliente volvió a importar `content/`. Esta comp
 ### Enmienda contable — 2026-07-30
 
 Este ADR decía «tres altas» a §10.3. Son **dos**: `riel-bloques.tsx` y `app/error.tsx`. Lo de `encabezado.tsx` fue **aclarar** que es Server Component, y §10.3 es la lista de archivos que **sí** llevan `"use client"`: aclarar que un archivo no está en ella no es un alta. No cambia ninguna decisión, solo la contabilidad. Verificado el 2026-07-30: los 6 clientes reales coinciden exactamente con §10.3 + las dos altas, **sin desvíos**.
+
+---
+
+## ADR-011 · El barrel de `radix-ui` cuesta 77.5 kB gz por ruta — diagnóstico hecho, arreglo aplazado
+
+**Estado:** Aceptada — **diagnóstico y regla de vigilancia**. El arreglo del código queda asignado al **Paso 9 u 11**.
+**Fecha:** 2026-07-30 · **Autor:** Paso 6
+
+**Contexto:** `src/components/ui/badge.tsx` y `src/components/ui/button.tsx`, generados por el CLI de shadcn 2.x, importan así:
+
+```ts
+import { Slot } from "radix-ui"
+```
+
+`radix-ui` es el **paquete paraguas**, y `Slot` es un componente cliente. Resultado: el barrel completo entra al bundle de cualquier ruta que use un `<Button>` o un `<Badge>`.
+
+**Medición, por diferencia de chunks entre dos rutas del mismo tipo:**
+
+| Ruta | js gz | chunks |
+|---|---|---|
+| `/modulos` — marcado propio, sin `Badge` | **106.2 kB** | 6 |
+| `/not-found` — un solo `<Button asChild>` | **183.8 kB** | 7 |
+
+El chunk extra es **uno**: `static/chunks/470-*.js`, **77.5 kB gz**. Su contenido, verificado buscando símbolos: `Slot`, `Presence`, `DismissableLayer`, `FocusScope`. Es decir, **la página 404 descarga la maquinaria de diálogos, popovers y gestión de foco de Radix para renderizar un botón.**
+
+**Por qué es el mismo error que ADR-010, y por qué es peor.** Las dos fugas tienen idéntica forma: un `import` que parece gratis y arrastra un grafo que el tree-shaking no corta. La diferencia es la escala y la detección:
+
+| | ADR-010 (`content/estructura`) | ADR-011 (barrel de `radix-ui`) |
+|---|---|---|
+| Coste medido | 5,6 kB gz | **77.5 kB gz** |
+| Lo detecta el `grep` de ADR-010 | sí | **no** — no es `content/` |
+| Crece con | el contenido (750 ítems en los pasos 15–17) | el número de rutas que usen `Button` o `Badge` |
+
+**Consecuencia inmediata, y la parte de este ADR que ya está en vigor:** la vigilancia por carpeta es insuficiente. Se añade en `COMPONENTES.md` una **segunda métrica obligatoria** —el **js gz por ruta**, con su comando y la línea base del 2026-07-30— y la regla de que **una ruta que supere la línea base de su tipo sin explicación escrita se investiga antes de cerrar el paso**. Un salto de +20 kB gz sobre el piso de servidor puro (~103–107 kB) no es «así es Next»: es un import que arrastró algo.
+
+**Decisión sobre el código: aplazada al Paso 9 u 11, a propósito.**
+
+El arreglo de `Slot` es trivial —dos líneas— y la dependencia ya está disponible:
+
+```
+- import { Slot } from "radix-ui"
++ import { Slot } from "@radix-ui/react-slot"
+```
+
+`@radix-ui/react-slot@1.3.3` existe en `node_modules` como transitiva; habría que declararla en `dependencies` para no depender de eso.
+
+**Pero el criterio completo no está decidido, y ese es el trabajo real.** Otros **ocho** componentes de `src/components/ui/` importan el mismo barrel, y a diferencia de `Slot` lo hacen para primitivas que **sí** usan de verdad:
+
+| Componente | Primitiva | ¿Se usa ya? |
+|---|---|---|
+| `dialog.tsx` | `Dialog` | Paso 11 — reanudar sesión |
+| `tabs.tsx` | `Tabs` | Paso 18.3 — `/herramientas` |
+| `select.tsx` | `Select` | Paso 18.5 — `/ajustes` |
+| `tooltip.tsx` | `Tooltip` | — |
+| `switch.tsx` | `Switch` | Paso 18.5 |
+| `scroll-area.tsx` | `ScrollArea` | Paso 11 — panel de navegación |
+| `label.tsx` | `Label` | Pasos 9, 18.3, 18.5 |
+| `accordion.tsx` | `Accordion` | — |
+
+Las preguntas que hay que responder de una vez, no archivo por archivo:
+
+1. ¿Se cambian **los diez** a paquetes granulares (`@radix-ui/react-dialog`, `@radix-ui/react-tabs`…), lo que significa **declarar ~10 dependencias nuevas** y desviarse de lo que genera el CLI de shadcn en cada `add` futuro?
+2. ¿O solo los dos que arrastran el barrel **sin necesitarlo** (`Slot` en `badge` y `button`), y los otros ocho se dejan porque ahí el barrel sí trae lo que se usa?
+3. ¿Cómo se evita la regresión cuando el Paso 9 corra `npx shadcn@2 add` para un componente nuevo y vuelva a escribir `from "radix-ui"`?
+
+**Por qué el Paso 9 u 11 y no ahora:** son los pasos que introducen `Dialog` y `ScrollArea`, así que el reparto de chunks cambia de todos modos y la medición de hoy quedaría obsoleta. Decidir con `Dialog` ya en el grafo es decidir con el caso difícil delante, no con el fácil. Y tocar diez archivos generados por el CLI queda fuera del alcance del Paso 6, que era datos y dos rutas.
+
+**Lo que NO se acepta como consecuencia de aplazarlo:** que una ruta nueva pague 77.5 kB en silencio. `/not-found` los paga hoy y está documentado; cualquier otra ruta que los pague debe aparecer en la medición por ruta de su paso, con su explicación. **La cifra de `/not-found` (183.8 kB) no es una licencia ni una referencia: es el caso patológico.**
+
+**Alternativas descartadas ya:**
+
+- **`optimizePackageImports` de Next para `radix-ui`.** No se probó y no se adopta a ciegas: el paquete paraguas reexporta subpaquetes con sus propios efectos de cliente, y la opción es experimental para paquetes fuera de su lista. Si en el Paso 9 se evalúa, hay que **medirlo** con el comando por ruta, no confiar en la promesa.
+- **Prohibir `Button` y `Badge` y usar marcado propio en todas partes**, como hizo `/modulos`. Funciona (106.2 kB) pero renuncia a los 18 componentes que el Paso 1 instaló a propósito, y duplica variantes a mano en cada pantalla. Es la salida de emergencia, no el plan.
+
+---
+
+### Condición de cierre de este ADR
+
+**El barrel no se da por resuelto sin una respuesta escrita a esto: cómo se evita que `npx shadcn@2 add` reescriba `from "radix-ui"`.**
+
+Es la pregunta 3 de arriba, y se eleva a condición de cierre porque las otras dos se resuelven con una decisión y un diff, mientras esta decide si el arreglo **aguanta**. El CLI de shadcn genera los componentes con el import al paquete paraguas, así que cualquier `add` futuro —y los pasos 9, 11, 18.3 y 18.5 van a correr varios— reintroduce la fuga en un archivo nuevo, sin que nada falle: compila, pasa los tests y el validador, y solo se nota en la medición por ruta.
+
+Un arreglo que se deshace solo la próxima vez que alguien corre un comando del flujo normal no es un arreglo, es una limpieza. Así que cerrar este ADR exige elegir un mecanismo y dejarlo escrito, no solo corregir los archivos de hoy. Opciones a evaluar en el Paso 9 u 11, ninguna adoptada todavía:
+
+- Una **comprobación en `npm run lint`** —regla de ESLint `no-restricted-imports` sobre `radix-ui`— que falle el build ante el import al paraguas. Es la única que convierte la regla en compuerta y no en costumbre; hay que ver si molesta a los 8 componentes que sí usan su primitiva del barrel.
+- Un **paso de post-procesado** tras cada `shadcn add` que reescriba los imports. Automático, pero silencioso y fácil de olvidar.
+- **Documentarlo y confiar en la revisión**, apoyándose en la métrica por ruta de `COMPONENTES.md`. Es lo que hay hoy, y es lo que ya falló una vez.
+
+Mientras no haya respuesta, el estado real es: **fuga conocida, medida, contenida por la métrica por ruta, y sin arreglar.** Es honesto llamarlo así y no «pendiente de aplicar dos líneas».
+
+---
+
+## ADR-012 · `TipoErrata` gana un tercer valor: `aclaracion`
+
+**Estado:** Aceptada
+**Fecha:** 2026-07-30 · **Autor:** software-architect
+
+**Contexto:** `content/erratas.ts`, transcrito hoy literal desde §9.3, trae **X-03 con `tipo: 'contradiccion'`** y, en el mismo objeto, un `loCorrecto` que dice **«No hay conflicto: 2–3 s es correcto. El problema es que se confunde con X-02.»** No es una contradicción entre cartillas ni una errata: la cartilla no dice nada incorrecto. Es una **desambiguación** frente a X-02 (ATP libre 2–3 s ≠ sistema fosfágeno 10–15 s).
+
+El `tipo` no es un campo decorativo: **decide el rótulo**. §12.4 resuelve el título con un binario, `errata.tipo === 'contradiccion' ? 'Las cartillas se contradicen' : 'Errata de la cartilla'`, así que hoy X-03 se renderizaría bajo **«Las cartillas se contradicen»** — la frase opuesta a la que el propio cuadro contiene tres líneas más abajo.
+
+**Se midió el catálogo completo antes de decidir, porque la medición manda sobre la elegancia: 13 de las 14 entradas están bien clasificadas.** X-01 y X-02 son contradicciones reales (36–38 vs 30–32 ATP; 5–10 s vs 10–15 s), y las once E-* son erratas verificables: contenido falso (E-01, E-02, E-05, E-11), tablas mal armadas (E-03, E-04, E-07, E-09, E-10) y tipografía (E-06, E-08). **X-03 es la única entrada que no encaja.**
+
+**Decisión:** **`TipoErrata` pasa a `'contradiccion' | 'errata' | 'aclaracion'` y X-03 se reclasifica a `'aclaracion'`. El id `X-03` no cambia.**
+
+La medición de 1 sobre 14 decide una cosa y no la otra. Decide que **esto no es un problema de taxonomía**: no hay que rediseñar la clasificación de las erratas, ni introducir jerarquías, ni un campo `severidad`. No decide que la única entrada desalineada deba llevar un rótulo falso — y ahí es donde entra el invariante: §22 regla 11 («la app dice la verdad») y regla 10 («retroalimentación honesta»). Un cuadro titulado *«Errata de la cartilla»* sobre un texto que dice *«no hay conflicto»* se contradice **dentro del mismo cuadro**, y lo hace en el registro de erratas, que §1 identifica como **el activo defendible del producto**. Un usuario que detecta que la app se equivoca al clasificar deja de creerle cuando le dice qué responder en el examen — que es justamente el valor de estas 3–5 preguntas.
+
+Frente a eso, el precio del tercer valor es de dos líneas:
+
+| Archivo | Cambio |
+|---|---|
+| `src/lib/tipos.ts` | la unión + el docblock de `TipoErrata` y del campo `id` |
+| `src/lib/esquemas.ts` | `esqErrata.tipo: z.enum([… , 'aclaracion'])` |
+| `content/erratas.ts` | `tipo` de X-03 + comentario de cabecera |
+| `src/lib/__tests__/esquemas.test.ts` | 4 tests (§ más abajo) |
+
+**El costo es hoy el más bajo que va a ser nunca**, y eso es lo que hace que se pague ahora y no en el Paso 7: los dos únicos consumidores que tendrían que aprender un tercer rótulo — `<AlertaContradiccion>` (§12.4) y la ruta `/erratas` (§17 paso 7) — **todavía no existen**. Hoy se cambia un enum; en el Paso 7 se cambia además un componente que ya rotula al revés y una ruta que ya lo agrupa mal.
+
+**Radio de explosión: cero en persistencia.** `Errata` es contenido, no estado: no aparece en `EstadoProgreso` ni en `esqEstadoProgreso`, así que no hay versión de esquema que subir, ni migración, ni riesgo para el progreso guardado (§22 regla 12). El campo `contradiccion` de `ItemBase` (§4) y el de `DatoDuro` (§9.4) guardan **un id, no un tipo**: siguen validando contra `RE_ID_ERRATA` sin tocarse, y `DD-001 → X-03` sigue resolviendo. El cambio es puramente aditivo — ninguna entrada existente cambia de significado — y por lo tanto trivialmente reversible: borrar el valor y voltear X-03.
+
+**Por qué el id sigue siendo `X-03` y no pasa a una familia `A-*`.** `RE_ID_ERRATA = /^[XE]-\d{2}$/` se usa en **tres** sitios (`esqErrata.id`, `camposBase.contradiccion` de los ítems y `esqDatoDuro.contradiccion`); una familia nueva obliga a tocar los tres, más `DD-001`, más dos secciones del blueprint, y no compra nada. Y el prefijo sigue siendo honesto bajo una relectura precisa: **`X-*` marca la familia de entradas que nacen de una divergencia entre cartillas, `E-*` las erratas de contenido.** X-03 existe *por causa de* X-02 — es la mitad que desambigua la misma confusión — así que pertenece a la familia X sin ser ella misma una contradicción. **El prefijo marca la familia, no el `tipo`**, y así queda escrito en el docblock de `Errata.id` y en la cabecera de `content/erratas.ts`, que era el otro sitio donde la convención se afirmaba de forma binaria.
+
+**Alternativas descartadas:**
+
+- **`tipo: 'errata'`.** La opción de cero cambios de esquema, y la que descarto con más cuidado porque es la tentadora: cambia un rótulo equivocado por otro menos equivocado. «Errata de la cartilla» afirma que la cartilla se equivocó, y no se equivocó. Ahorra dos líneas hoy a cambio de dejar en la UI una afirmación falsa sobre el material fuente, en la pantalla cuya credibilidad es el producto. Barato en código, caro donde importa.
+- **Dejarla en `'contradiccion'`.** La peor de las tres: el rótulo dice exactamente lo contrario del cuerpo del cuadro.
+- **Reescribir el texto de X-03 para que `'errata'` sea honesto** (p. ej. «la cartilla usa "ATP almacenado" y "sistema fosfágeno" de forma intercambiable»). Es doblar el contenido para que quepa en el esquema, al revés de como debe ir. Y afirmaría algo sobre las cartillas que no está verificado en la transcripción: no se inventa contenido sobre la fuente para salvar un enum.
+- **Borrar X-03 y plegar su contenido en `comoResponder` de X-02, o moverlo a un `<Ojo>` de la teoría de C1.** Es la alternativa seria, porque `<Ojo>` es precisamente el mecanismo que el blueprint ya tiene para «no es un error, pero se confunde» (§12.3, y así está usado en el MDX de C5). Se descarta por tres costos concretos: `DD-001` referencia `X-03` y el validador **rompe** ante una referencia colgada, así que habría que editar también `datos-duros.ts`; el dato perdería su ícono de advertencia y su enlace en `/ultima-noche`, sobre un valor que es una trampa real de examen; y la teoría de C1 **no existe hasta el Paso 16** (`c1-vias-energeticas` está `'en-preparacion'`), así que el contenido quedaría en el piso durante nueve pasos. Plegarlo en X-02 además fusiona dos datos duros distintos (2–3 s y 10–15 s) en una sola entrada, que es la confusión que la entrada existe para deshacer.
+
+**Consecuencias — qué hereda el Paso 7:**
+
+1. **`<AlertaContradiccion>` (§12.4) no puede copiarse literal.** Su ternario binario mandaría cualquier `'aclaracion'` a la rama `else` = «Errata de la cartilla», que es el defecto que este ADR arregla. El rótulo pasa a tres ramas; para `'aclaracion'` el texto es **«Aclaración: no es un error»** — dice lo que el cuadro dice y desactiva la lectura de que la cartilla falló.
+2. **El tratamiento visual de `'aclaracion'` no debe ser el destructivo.** `border-destructive` / `bg-destructive/5` codifica «aquí hay algo mal» y en una aclaración no lo hay; el token coherente es `aviso`, que es el que `<Ojo>` ya usa para «ojo con esto» (§12.3). La decisión final de estilo es del Paso 7 con el diseñador; lo que este ADR fija es que **no** puede ser rojo.
+3. **El nombre del componente queda corto pero no se renombra ahora.** `<AlertaContradiccion>` va a renderizar los tres tipos. Renombrarlo hoy no cuesta nada porque no existe, pero §12.4 y el MDX de C5 (`<AlertaContradiccion id="E-09" />`, `id="X-02"`) ya lo llaman así en dos sitios del blueprint, y el nombre ya era impreciso para las once E-*. Se deja como está para no multiplicar la desviación; si el Paso 7 lo renombra, actualiza también el MDX de C5.
+4. **La ruta `/erratas` (§17 paso 7) agrupa por tres tipos, no por dos**, y conserva el ancla `id="X-03"` — `<AlertaContradiccion>` enlaza a `/erratas#X-03` y `DD-001` llega por ahí.
+
+**El blueprint queda desalineado en cuatro puntos y NO se editó `CLAUDE.md`.** §4 (`TipoErrata` binario), §5 (`esqErrata.tipo`), §9.3 (X-03 como `'contradiccion'`) y §12.4 (el ternario). Aplica el criterio de las enmiendas de ADR-006 y ADR-007 — «se corrige el blueprint cuando su instrucción literal está en el camino de ejecución de un paso y no deja rastro que apunte al ADR» — y aquí aplica de lleno: el Paso 7 copia §12.4 tal cual y reintroduce el rótulo falso en silencio. **La edición la autoriza el usuario, no este agente**, así que queda solicitada y no aplicada. Mientras no se aplique, el guardián es el pin de regresión: `src/lib/__tests__/esquemas.test.ts` falla si X-03 vuelve a `'contradiccion'`.
+
+**Cuarta desviación del código literal del blueprint** — tras ADR-003 (§5), ADR-005 (§8) y ADR-006 (§14.3) — y **la primera que toca `src/lib/tipos.ts`**, que hasta hoy era byte-idéntico a §4.
+
+**Tests (compuerta cumplida, 183 → 187):**
+
+- `esqErrata` acepta los tres valores y rechaza `'aclaración'` con tilde, `'nota'` y `''`.
+- **Pin de regresión:** X-03 en el catálogo real es `'aclaracion'`. Es el test que importa: §9.3 sigue diciendo `'contradiccion'`, y sin este pin una recopia literal del blueprint revierte el arreglo sin que nada se queje.
+- Las 14 entradas reales pasan `esqErrata`.
+- La convención de familia: toda `E-*` es `'errata'`; toda `X-*` es `'contradiccion'` o `'aclaracion'`.
+
+Compuertas al cierre: `typecheck` limpio · `lint` limpio · **187 tests** · `validar` con **87 avisos y 0 errores**, 14 erratas.
+
+### Enmienda — 2026-07-30: se editó `CLAUDE.md` en cinco puntos
+
+Autorizado por el usuario, con el **procedimiento nuevo que queda vigente para cualquier cambio a `CLAUDE.md`: se prepara el diff sobre una copia y se revisa ANTES de aplicar.** Con 6.776 líneas, la diferencia entre una edición quirúrgica y una reescritura no se ve en un resumen.
+
+| Punto | Qué cambió |
+|---|---|
+| §4, `TipoErrata` | tercer valor `'aclaracion'`, con el docblock que explica los tres |
+| §4, docblock de `Errata.id` | decía en binario «'X-01' para contradicciones, 'E-01' para erratas»; ahora dice que **el prefijo marca la familia, no el `tipo`** |
+| §5, `esqErrata.tipo` | `z.enum([… , 'aclaracion'])` |
+| §9.3, X-03 | `tipo: 'contradiccion'` → `'aclaracion'` |
+| §12.4, `<AlertaContradiccion>` | el ternario binario pasa a **tres ramas**; el JSX solo consume `rotulo` |
+
+**19 inserciones, 6 supresiones.** Ninguna otra sección se movió.
+
+**§12.4 es lo que justifica la autorización, y es el único de los cinco que no rompe nada.** Copiado literal, manda `'aclaracion'` al `else`, muestra «Las cartillas se contradicen» sobre un texto que dice «no hay conflicto», y **compila, valida y pasa los tests**. Los otros cuatro se descubren solos: el `typecheck` o el validador los tumban. Es exactamente el criterio de las enmiendas de ADR-006 y ADR-007 — el blueprint se corrige cuando su instrucción literal produce un defecto que no deja rastro.
+
+El docblock del `id` entró como quinto punto por ser la misma corrección incompleta: afirmaba en binario algo que ya no lo es, y está justo donde alguien va a buscar la verdad sobre los prefijos. Su texto es **idéntico** al de `src/lib/tipos.ts`, para que blueprint y código no puedan divergir en una relectura.
+
+**Lo que se dejó fuera a propósito:** el `border-destructive` de §12.4. El componente sigue pintando el cuadro en rojo para los tres tipos, y para una `'aclaracion'` eso es incoherente — `destructive` codifica «algo está mal» y aquí no lo hay. Pero el token y su estilo fino son **decisión del `ui-designer`**, no del blueprint. Queda en `PENDIENTES.md` → Paso 7 con la restricción fijada: **no sea rojo**.
+
+**El pin de regresión se mantiene**, aunque §9.3 ya esté corregido. Sigue siendo el guardián: si alguien recopia el bloque de §9.3 desde una versión vieja del blueprint, desde un fork o desde un pantallazo de la conversación, el pin falla. La edición del blueprint reduce la probabilidad del error; el test es lo que lo detecta si ocurre.
+

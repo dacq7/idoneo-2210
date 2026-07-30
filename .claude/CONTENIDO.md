@@ -27,7 +27,7 @@ Aplica a los 9 módulos de C, incluido el piloto C5.
 | c2-cardiovascular | C | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 16 |
 | c3-respiratorio-vo2 | C | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 16 |
 | c4-nervioso-digestivo-osteomuscular | C | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 16 |
-| c5-umbrales-zonas | C | ⬜ | ⬜ 0 | ⬜ 0/**28** | ⬜ | ⬜ | **Módulo piloto — paso 8.** Plantilla de oro. **28 ítems, no los 25 de §14.3** (ADR-006) |
+| c5-umbrales-zonas | C | ⬜ | ⬜ 0 | ⬜ 0/**28** | ✅ 9 | ⬜ | **Módulo piloto — paso 8.** Plantilla de oro. **28 ítems, no los 25 de §14.3** (ADR-006). Glosario cubierto en paso 6 |
 | c6-biomecanica | C | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 16 |
 | c7-nutricion-deportiva | C | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 16 |
 | c8-psicologia-deporte | C | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 16 |
@@ -41,7 +41,11 @@ Aplica a los 9 módulos de C, incluido el piloto C5.
 | d7-modelos-planificacion | D | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 15 |
 | d8-estructuras | D | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 15 |
 
-**Total:** 0 de 29 módulos completos · 0 ítems · 0 tarjetas.
+**Total:** 0 de 29 módulos completos · 0 ítems · 0 tarjetas · 22 términos de glosario · 14 erratas · 70 datos duros.
+
+El glosario, las erratas y los datos duros se sembraron en el paso 6 desde §9.3–§9.5 (transcripción del
+blueprint, no contenido de autor). Solo **c5** queda con sus `conceptosClave` cubiertos al 100 %; el resto de
+módulos tiene cobertura parcial y su columna Glosario se cierra al escribir el módulo.
 
 Orden de producción (por densidad de retorno, no alfabético):
 C5 (paso 8) → bloque D (paso 15) → resto del bloque C (paso 16) → bloque B y bloque A (paso 17).
