@@ -79,3 +79,117 @@ Copiadas del blueprint en el Paso 1. Son el punto de partida, no discutibles sin
 - **Un solo `superRefine` en la unión, sin funciones nombradas.** Compila y da buenos mensajes, pero deja `esqItemUnica`…`esqItemCaso` exportados **sin** sus refinamientos: quien los use sueltos pierde la validación en silencio, y las reglas quedan duplicadas en dos sitios.
 
 **Consecuencias:** `esqItem` pasa de `ZodDiscriminatedUnion` a `ZodEffects<ZodDiscriminatedUnion>`, así que pierde los accesores `.options` y `.discriminator`. Nadie los usa en el blueprint. `z.infer<typeof esqItem>` sigue siendo asignable a `Item` y sigue estrechando por `tipo`. Es la primera desviación del código literal del blueprint (§22, regla 2, manda copiarlo tal cual): no se edita `CLAUDE.md` porque el Paso 1 fijó `git diff CLAUDE.md` vacío como invariante de integridad, así que la desviación vive aquí y en la bitácora. Si algún día se migra a Zod 4, revisar esto primero: allí `discriminatedUnion` sí admite miembros refinados y la corrección deja de ser necesaria.
+
+---
+
+## ADR-004 · `content/estructura.ts` se adelanta del Paso 6 al Paso 3
+
+**Estado:** Aceptada
+**Fecha:** 2026-07-29 · **Autor:** Paso 3
+
+**Contexto:** §17 reparte el trabajo así: el Paso 3 crea `scripts/validar-banco.ts` y los `content/*.ts` **vacíos pero con la forma correcta**, y el Paso 6 los llena. Ese reparto no funciona, por dos razones verificadas en ejecución:
+
+1. **El validador queda rojo tres pasos.** Con `MODULOS = []`, §8 reporta dos errores legítimos: `hay 0 módulos declarados, deben ser 29` y `los pesos de los bloques suman 0, deben sumar 1`. Enganchar `prebuild` con eso deja `npm run build` rojo desde el Paso 3 hasta el Paso 6 — y `prebuild` con exit 1 **aborta antes de `next build`**, así que ciega el build precisamente en el Paso 5, donde rompen `@theme inline` de Tailwind v4, `next/font` y shadcn: fallos que solo aparecen en `next build`.
+2. **La prueba de fuego del Paso 3 es imposible.** El bucle del banco es `for (const modulo of MODULOS)`: con la lista vacía **nunca corre**, así que un ítem malformado es invisible. Comprobado: registrar un ítem con explicación de 48 caracteres produce una salida byte a byte idéntica a la de `content/` vacío. El entregable declarado del Paso 3 ("el build falla ante un ítem inválido") no se puede demostrar.
+
+**Decisión:** `content/estructura.ts` (§9.1 completo: 4 bloques y 29 módulos) se escribe en el **Paso 3**. Los otros seis archivos de `content/` quedan vacíos con su forma: `ERRATAS = []`, `GLOSARIO = []`, `DATOS_DUROS = []`, `BLUEPRINTS = {}`, `BANCO = {}`, `TARJETAS = {}`. `prebuild` se engancha en este paso, con el validador ya en verde.
+
+**Corrección adicional al copiar §9.1:** el blueprint muestra `c5-umbrales-zonas` con `estadoContenido: 'completo'`, pero §17 paso 8 (viñeta 5) dice que es el Paso 8 el que lo cambia. Copiarlo literal produce **11 errores** (banco inexistente, tarjetas inexistentes y los 9 conceptos clave sin entrada en el glosario) y rompería también el entregable del Paso 6 tal como está escrito. §17 es la fuente de verdad del orden de trabajo por encima de la instantánea de §9.1: **C5 se escribe en `'en-preparacion'` y el Paso 8 lo voltea.**
+
+**Alternativas descartadas:**
+
+- **Enganchar `prebuild` y aceptar el build rojo hasta el Paso 6.** Cambia tres pasos de ceguera en el build por una nota en la bitácora, y deja la prueba de fuego sin demostrar.
+- **Aplazar `prebuild` al Paso 6.** No arregla que `validar` esté rojo, y tampoco permite la prueba de fuego. Estrictamente peor.
+- **Que los chequeos de totales distingan "contenido no escrito" de "contenido mal escrito".** Se cierra sobre sí misma: hay que excepcionar los 29 módulos **y** la suma de pesos, y con las dos excepciones un `content/` completamente vacío pasa en verde, lo que obliga a un tercer chequeo que vuelve a poner rojo. Además viola §22 reglas 2 y 9.
+
+**Consecuencias:** El Paso 3 crece en un archivo de datos puros, copiado literal. El Paso 6 pierde su viñeta 1 (`estructura.ts`) y conserva las demás: §9.2 (blueprints), §9.3 (erratas), §9.4 (datos duros), §9.5 (glosario) y las rutas `/bloques` y `/modulos`. **§9.2 no se adelantó a propósito:** con la estructura ya poblada saldría verde, pero no hay razón para moverlo, y con estructura vacía dispara 35 errores. Cada paso del build vuelve a cerrar con `npm run build` en verde.
+
+---
+
+## ADR-005 · El validador se endureció más allá de §8
+
+**Estado:** Aceptada
+**Fecha:** 2026-07-29 · **Autor:** software-architect
+
+**Contexto:** `scripts/validar-banco.ts` quedó byte-idéntico a §8 y las cuatro compuertas del Paso 3 en verde. Aun así, el `code-reviewer` verificó con sondas ejecutadas **cinco defectos de contenido realistas que el validador declara "Todo en orden."**:
+
+1. **Clave huérfana en `BANCO`/`TARJETAS`.** El bucle es `for (const modulo of MODULOS)` y busca la clave en el índice; nunca recorre el índice en dirección contraria. Registrar `'c5-umbrales-zona'` (sin la `s`) apuntando a un archivo con un ítem que viola ocho reglas a la vez da **exit 0, "Todo en orden.", `Ítems: 0`**, y el único rastro dice `banco/c5-umbrales-zonas — en preparación, sin banco todavía`: un mensaje que **apunta al lado contrario del problema**. Son 58 claves escritas a mano en los pasos 15–17, y la primera se escribe en el Paso 8.
+2. **La teoría MDX no se verifica nunca.** Cero `fs` y cero referencias a `content/teoria/` en §8, aunque la regla 8 de `CLAUDE.md` y la checklist de §14.4 definen `'completo'` como teoría **+** ≥12 tarjetas **+** ≥25 ítems. El validador exige las dos últimas y no la primera: un módulo puede quedar `'completo'` sin su `.mdx` y mostrarle al usuario una pantalla vacía con el build en verde.
+3. **`multiple` no detecta opciones duplicadas**, refinamiento que sí tienen `unica` y `caso`. El ítem resultante es irresoluble: la opción correcta aparece dos veces y solo un índice cuenta.
+4. **`emparejar` vigila el índice izquierdo repetido en `pares`, no el derecho.** `pares: [[0,0],[1,0],[2,2],[3,3]]` pasa: el derecho 0 se usa dos veces, el 1 queda huérfano y la relación deja de ser biyectiva.
+5. **El mínimo de 28 ítems del bloque C no está enforced.** `CUOTAS.minimoItems` es global (25), pero §14.4 pide "28 en el bloque C" y el entregable del Paso 16 dice "≥28 cada uno". Hoy el Paso 16 se puede declarar cumplido con 25: es una cuota escrita en el plan que ningún comando comprueba.
+
+**Por qué un falso negativo es peor que no validar.** Un validador falla de dos maneras y no cuestan lo mismo. Si falla **ruidoso** —marca como malo algo que está bien— el costo es una interrupción: alguien lee el mensaje, comprueba el ítem y afloja la regla. Se paga una vez, en el momento, y con la información a la vista. Si falla **en silencio** —declara bueno algo que está mal— el costo no es una interrupción sino una creencia: *"el banco está validado"*. Y esa creencia es exactamente lo que reemplaza la revisión manual.
+
+Ahí está la asimetría: **sin validador, un humano desconfía y revisa; con un validador que dice "Todo en orden" falsamente, nadie vuelve a mirar.** El falso negativo no solo deja de proteger, retira la protección que existía antes, que era la desconfianza. El hueco 1 es el caso extremo: no calla, **desinforma** — afirma que el módulo no tiene banco cuando hay 25 ítems registrados sin revisar, así que dirige a quien investigue hacia el lado contrario.
+
+El contexto multiplica el daño. Son ~750 ítems escritos a mano por una sola persona en semanas distintas, y el validador es el único guardián: no hay revisión por pares, ni QA, ni tests de contenido. Los defectos no se descubren en el build, se descubren en un simulacro de 120 minutos, y lo que se rompe es la confianza en el banco entero — no en el ítem. De ahí el estándar que se adopta aquí: **el criterio no es "el validador atrapa lo que §8 dice que atrape", sino "lo que el validador declara en verde está realmente en verde".** Un hueco conocido y no tapado es deuda que se cobra con interés en los pasos 15–17.
+
+**Decisión:** los cinco huecos se cierran **antes de comitear el Paso 3**, con test que falla antes del arreglo y pasa después. Los cinco son **error**, ninguno aviso: los cinco son defectos que un humano arregla ya y que degradarían la app, y ninguno es un estado transitorio esperado de los pasos 14–17 (los huecos 2 y 5 solo se evalúan en módulos `'completo'`, así que los 28 en preparación siguen callados).
+
+Para que 1, 2 y 5 sean testeables, la lógica se extrae a una **función pura** `validarCatalogo(catalogo) → Promise<{ errores, avisos }>` en `scripts/validar-catalogo.ts`, y `scripts/validar-banco.ts` queda como **CLI delgado**: importa el contenido real, llama a la función, imprime el informe y hace `process.exit`. La función no toca disco ni reloj ni `process`: recibe todo por parámetro, incluida la existencia de teoría como `slugsConTeoria: ReadonlySet<string>` que el CLI calcula con un `readdirSync` sobre `content/teoria/`. `vitest.config.ts` amplía su `include` a `scripts/**/*.test.ts`; `tsc` y ESLint ya cubren `scripts/` sin tocar nada (verificado con `tsc --listFiles`).
+
+El hueco 5 se declara en `esquemas.ts` como `cuotasDelBloque(bloque)`, que devuelve `{ ...CUOTAS, minimoItems: 28 }` para C y `CUOTAS` para el resto. **`CUOTAS` no se modifica:** subirlo a 28 rompería los otros tres bloques y los 42 tests de `esquemas.test.ts`.
+
+**Alternativas descartadas:**
+
+- **Dejar los cinco huecos como deuda documentada y respetar §8 literal.** Es lo que §22 regla 2 pide al pie de la letra, y es la razón por la que el Paso 3 se cerró sin tocarlos. Se descarta porque la regla 2 protege los *invariantes* del código copiado (determinismo, ausencia de reloj), no sus omisiones, y la regla 9 —"el validador nunca se relaja"— apunta en la dirección contraria: un validador que aprueba en falso ya está relajado. El costo de esperar es asimétrico: cada clave de índice escrita sin la comprobación es un archivo que puede quedar sin validar para siempre.
+- **Tests de integración por subproceso** (`tsx scripts/validar-banco.ts` contra contenido de prueba, afirmando sobre stdout y exit code) **en lugar** del refactor. El validador importa rutas fijas `../content/*`, así que habría que sustituir contenido real: escribir fixtures dentro de `content/` y borrarlos —que es lo que el `code-reviewer` tuvo que hacer a mano con respaldos, y deja el árbol sucio si un test falla—, o montar un directorio temporal con `node_modules` resoluble, o indirectar los imports por variable de entorno. Además cada caso paga el arranque de `tsx` y la transpilación del grafo de contenido. Se conserva **una sola** prueba de subproceso, la que el refactor no puede cubrir: que el CLI real, sin fixtures, siga saliendo 0 e imprimiendo "Todo en orden.".
+- **`validarCatalogo` en `src/lib/`.** Ahorra la línea de `vitest.config.ts`, y §3 dice que la lógica vive en `src/lib/`. Se descarta porque sería el primer módulo de `src/lib/` que la app no importa nunca, e importable desde un Client Component sin que `server-only` sea aplicable (la función es pura, así que la guarda sería mentira). §3 ya le da a las herramientas de build su propia carpeta: `scripts/`.
+- **Un predicado `existeTeoria(slug) => boolean` inyectado** en vez del `Set`. Equivalente para el hueco 2, pero solo responde en una dirección: no permite detectar un `.mdx` huérfano —un `d2-cargas.mdx` con la `s` de más—, que es el mismo error humano del hueco 1 en la otra carpeta. El `readdirSync` da las dos direcciones al mismo precio.
+- **Reutilizar `src/lib/contenido.ts` para leer la teoría.** No existe hasta el Paso 7 y nacerá `server-only`: importarlo desde un script de build sería exactamente el acoplamiento que esa marca previene. El CLI duplica el `path.join` de tres líneas; es más barato que el acoplamiento.
+
+**Consecuencias:** `scripts/validar-banco.ts` **deja de ser byte-idéntico a §8**, así que el proyecto pierde ese diff mecánico como prueba de integridad para este archivo — segunda desviación del código literal del blueprint, después de ADR-003. La compensación es que las ~29 comprobaciones de §8 pasan a tener, por primera vez, una superficie testeable: hoy ninguna tiene test de regresión y su única evidencia son transcripciones de la bitácora. Para que la desviación no introduzca cambios de comportamiento a escondidas, el refactor **mueve código, no lo reescribe**, y se acepta con la misma condición que ADR-003: demostrar equivalencia ejecutando la versión vieja y la nueva sobre los mismos datos, con la misma huella de errores y avisos.
+
+**El hueco 5 choca con el Paso 8 y hay que resolverlo allí.** El módulo piloto C5 es del bloque C y §14.3 le da exactamente **25** ítems, mientras §14.4 y el Paso 16 exigen 28 para ese bloque: el blueprint se contradice consigo mismo. Como la cuota solo se evalúa en módulos `'completo'` y el Paso 8 es el que voltea C5, el choque es seguro. Se resuelve **subiendo C5 a 28 ítems** en el Paso 8, no bajando la regla: convertir el mínimo del bloque C en aviso reintroduciría precisamente la clase de falso negativo que este ADR condena. Queda anotado como desviación de §14.3 a registrar en la bitácora del Paso 8.
+
+Aparece un mensaje de refinamiento nuevo (`el índice derecho N aparece dos veces`) y uno reutilizado (`hay opciones duplicadas`, que ahora comparten tres tipos): el tripwire de `esquemas.test.ts` pasa de 10 reglas / 9 mensajes a **12 / 10**, y las dos entradas nuevas de `REGLAS` van **al final del array**, porque el bloque de tests de ADR-003 lo indexa por posición. Con `cuotasDelBloque`, `verificarCuotas` conserva su firma y su mensaje (`el mínimo es 28` sale del propio parámetro). El validador empieza a depender del sistema de archivos, que es la razón por la que la dependencia entra por parámetro y no por `import`.
+
+---
+
+## ADR-006 · C5 lleva 28 ítems: §14.3 del blueprint queda corregido
+
+**Estado:** Aceptada
+**Fecha:** 2026-07-29 · **Autor:** software-architect
+
+**Contexto:** El blueprint se contradice consigo mismo sobre cuántos ítems lleva el módulo piloto **C5 (`c5-umbrales-zonas`)**, que es del bloque C:
+
+- **§14.3** le da exactamente **25** ítems, y su tabla de verificación de cuotas los declara conformes.
+- **§14.4** ("Cómo replicar esto en los otros 28 módulos"), viñeta 3, pide "≥25 ítems (**28 en el bloque C**)".
+- El **entregable del Paso 16** dice "bloque C completo (9/9 módulos, **≥28 ítems** cada uno)".
+
+Hasta ahora el choque era latente: `CUOTAS.minimoItems` era global (25) y el 28 del bloque C era una cuota escrita en el plan que ningún comando comprobaba. **ADR-005 cerró ese hueco** (hueco 5: `CUOTAS_BLOQUE_C` + `cuotasDelBloque`), y con eso el conflicto pasa de latente a bloqueante: como la cuota solo se evalúa en módulos `'completo'` y el Paso 8 es el que voltea C5 a `'completo'` (ADR-004), el build **rompe en el Paso 8** con `banco/c5-umbrales-zonas — cuota incumplida: tiene 25 ítems, el mínimo es 28`.
+
+**Decisión:** **C5 lleva 28 ítems, no 25.** El Paso 8 escribe tres ítems adicionales sobre los 25 de §14.3. La regla del bloque C no se toca.
+
+La razón es de estándar, no de aritmética: **el bloque C es el 33 % del examen y C5 es la plantilla de oro que copian los otros 28 módulos.** §22 regla 10 dice que un módulo que no se le parezca "en profundidad, tono y calidad" está mal hecho, y §14.4 lo convierte en checklist ejecutable. Si el piloto nace incumpliendo su propia cuota, no queda un defecto aislado en un módulo: queda **un ejemplo que enseña a incumplirla**, replicado 28 veces por un agente que copia la forma del piloto antes que la letra de la regla.
+
+**§14.3 del blueprint queda corregido: donde dice 25 ítems, son 28.** La corrección vive **aquí**, no en `CLAUDE.md`: el Paso 1 fijó `git diff CLAUDE.md` vacío como invariante de integridad, así que el blueprint es de solo lectura y sus correcciones se registran en los ADR. Quien vaya a construir el Paso 8 debe leer §14.3 con este ADR al lado — igual que ADR-003 corrige §5 y ADR-004 corrige la instantánea de §9.1.
+
+**Alternativas descartadas:**
+
+- **Bajar la regla del bloque C a aviso.** Los avisos no rompen el build (§8: son estados transitorios esperados de los pasos 14–17). Convertir el 28 en aviso deja el Paso 16 declarable como cumplido con 25 ítems por módulo y un validador que imprime "Todo en orden.": es **exactamente la clase de falso negativo que ADR-005 condena**, y encima reabre a mano el hueco que ese ADR acababa de tapar con test. Ese ADR ya dejó la resolución anticipada por escrito ("se resuelve subiendo C5 a 28 ítems en el Paso 8, no bajando la regla"); este la formaliza.
+- **Volver `CUOTAS.minimoItems` a 25 global y borrar `cuotasDelBloque`.** Peor que la anterior: no solo silencia el bloque C, sino que borra del código la única constancia de que el mínimo del bloque más pesado del examen es distinto. La cuota volvería a existir únicamente como frase en el plan, que es el estado que ADR-005 diagnosticó como hueco 5.
+- **Aplazarlo: dejar C5 en `'en-preparacion'` y voltearlo en el Paso 16 con los otros 8.** Vacía el Paso 8, cuyo entregable es precisamente "C5 jugable de punta a punta", y con él el punto de corte usable del Paso 14 ("la app es usable de punta a punta con C5"). Cambia un ítem y medio de trabajo por perder el único módulo demostrable durante nueve pasos.
+
+**Consecuencias — qué hereda el Paso 8 en concreto:**
+
+Tres ítems nuevos (`C5-026`, `C5-027`, `C5-028`) sobre los 25 de §14.3, escritos con el mismo estándar: explicación ≥200 caracteres con la estructura *por qué la correcta lo es → por qué falla el distractor más tentador → dato para recordar*, `referencia` a Cartilla 3, y distractores del mismo campo semántico.
+
+**Dos de los tres están forzados por las cuotas de nivel**, porque `verificarCuotas` compara `porNivel[nivel] / n` contra la fracción mínima y al subir `n` de 25 a 28 los umbrales se mueven:
+
+| Nivel | Mínimo | Umbral con n=28 | §14.3 tiene | Con n=28 daría | Veredicto | Hace falta |
+|---|---|---|---|---|---|---|
+| recuerdo | ≥40 % | 11,2 → **12** ítems | 11 | 11/28 = 39,3 % | **incumple** | **+1** |
+| comprensión | ≥30 % | 8,4 → **9** ítems | 8 | 8/28 = 28,6 % | **incumple** | **+1** |
+| aplicación | ≥20 % | 5,6 → **6** ítems | 6 | 6/28 = 21,4 % | cumple, sin margen | libre |
+
+La suma de mínimos es 27, así que el tercer ítem es libre de nivel. **Va a aplicación**, para que los tres niveles queden con holgura en vez de dejar aplicación pegada al umbral (6 contra 5,6 es margen de 0,4 ítems; 7 contra 5,6 es de 1,4): reparto final **12 recuerdo · 9 comprensión · 7 aplicación** = 42,9 % / 32,1 % / 25,0 %.
+
+Las otras dos cuotas **ya sobran y no condicionan nada**: dificultad va 7 · 11 · 7 contra un mínimo de 3 por nivel, y hay 7 tipos distintos contra un mínimo de 4. Los tipos se eligen entonces por criterio pedagógico, no por obligación. Recomendado: **una `unica`** (el tipo dominante del examen, 65 % del blueprint FINAL, y hoy C5 va en 52 %), **una `multiple`** (sube de 2 a 3; es el tipo que mejor discrimina comprensión, evaluando afirmaciones una a una como ya hace `C5-022`) y **una `calculo`** (sube de 3 a 4; coherente con que el bloque C es el que concentra las fórmulas y con que el tercer ítem sea de aplicación). Reparto final de tipos: 14 única · 4 cálculo · 3 caso · 3 múltiple · 2 emparejar · 1 ordenar · 1 V/F.
+
+Nada más del módulo se mueve: las **15 tarjetas** siguen sobre el mínimo de 12 y los **9 conceptos clave** ya están en el glosario, así que la checklist de §14.4 se cierra igual. La cuota de C5 en el blueprint FINAL son 4 ítems sobre 100: 28 sigue dando de sobra para cuatro simulacros sin repetición notoria.
+
+**Los otros 8 módulos del bloque C heredan el mismo mínimo de 28** — C1, C2, C3, C4, C6, C7, C8 y C9 — y lo hacen en el **Paso 16**, donde ya estaba declarado como entregable. Con `cuotasDelBloque` enforzándolo, ese entregable pasa de promesa a compuerta: los nueve módulos del bloque de mayor peso del examen se declaran completos solo cuando `npm run validar` lo confirma. Para los tres bloques restantes el mínimo sigue siendo 25.
+
+Tercera desviación del código literal del blueprint, después de ADR-003 (§5) y ADR-005 (§8), y la primera que toca **contenido** en vez de código. Se registra en la bitácora del Paso 8 al escribir los tres ítems.

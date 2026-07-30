@@ -244,3 +244,294 @@ Los cuatro 🟡 de la revisión del Paso 2, resueltos. Ninguno era del código: 
 **Pendiente:** nada de esta revisión. Queda abierto lo del cierre del Paso 2: el commit de los pasos 1 y 2, y la decisión del usuario sobre añadir `Bash(git:*)` y confirmar si `Bash(npx shadcn:*)` casa con `npx shadcn@2`.
 
 ---
+
+## Paso 3 — Validador de banco — 2026-07-29
+
+**Estado:** ⚠️ Completado con ajustes
+
+**Archivos creados o modificados**
+
+- `scripts/validar-banco.ts` — §8 **literal**, sin una línea cambiada.
+- `content/estructura.ts` — §9.1 completo: 4 bloques y 29 módulos. **Adelantado del Paso 6**, ver ADR-004. C5 en `'en-preparacion'`, no en `'completo'`.
+- `content/erratas.ts` · `content/glosario.ts` · `content/datos-duros.ts` · `content/blueprint-examen.ts` — vacíos con su forma (`[]`, `{}`) y sus helpers, para que el Paso 6 solo rellene arrays sin tocar código.
+- `content/banco/indice.ts` · `content/tarjetas/indice.ts` — §9.6 literal, con los mapas vacíos.
+- `package.json` — añadido `"prebuild": "npm run validar"`, que era la deuda declarada del Paso 1.
+- `.claude/ARQUITECTURA.md` — ADR-004.
+
+**Verificación**
+
+- `npm run typecheck` → 0 errores. `npm run lint` → limpio. `npm test` → **75 tests en verde** (sin cambios).
+- `npm run validar` → **verde, exit 0**: 29 módulos, 0 completos, 29 avisos de "en preparación, sin banco todavía".
+- `npm run build` → **verde**, y la cadena de scripts confirmada en el log:
+
+```
+> idoneo-2210@0.1.0 prebuild
+> idoneo-2210@0.1.0 validar
+  Validación del banco — Idóneo 2210
+  Todo en orden.
+> idoneo-2210@0.1.0 build
+   Creating an optimized production build ...
+```
+
+- `tsx` resuelve los alias `@/lib/*` y `@/content/*` de `tsconfig.json` **sin configuración extra** (verificado por el `software-architect`). `tsc` y `eslint` cubren `scripts/` y `content/` porque el `include` es relativo a la raíz.
+
+**Prueba de fuego — verde → rojo con un solo error → verde**
+
+Escenario A: un ítem `C5-999` con explicación de **48 caracteres**, registrado en el índice, con C5 en `'en-preparacion'`. Salida real de `npm run build`:
+
+```
+> idoneo-2210@0.1.0 prebuild
+> npm run validar
+  Validación del banco — Idóneo 2210
+  Módulos: 29 (0 completos, 29 en preparación)
+  Ítems: 1 · Tarjetas: 0 · Erratas: 0 · Glosario: 0
+  28 aviso(s):
+  1 ERROR(ES) — el build se detiene:
+    ✗ banco/c5-umbrales-zonas/C5-999 — explicacion: la explicación debe tener al menos 200 caracteres
+EXIT DEL BUILD: 1
+```
+
+El delta es **exactamente un error**, nombra el id del ítem y el mensaje literal de la regla, y `next build` nunca llegó a correr. Eso es lo que hace la evidencia concluyente: con `MODULOS` vacío el mismo ítem habría sido invisible.
+
+**Prueba de cuotas** — C5 en `'completo'` con 24 ítems monótonos (todos `unica`, todos `recuerdo`, todos dificultad 1) más cinco defectos sembrados. Salida real de `npm run validar`, 21 errores:
+
+```
+    ✗ banco/c5-umbrales-zonas/C5-021 — referencia: la referencia debe empezar por "Cartilla N, Tema M"
+    ✗ banco/c5-umbrales-zonas/C5-022 — contradicción inexistente "X-99"
+    ✗ banco/c5-umbrales-zonas/C5-023 — campo bloque dice "A", debe ser "C"
+    ✗ banco/c5-umbrales-zonas/C5-024 — campo modulo dice "c9-dopaje"
+    ✗ banco — id de ítem duplicado: C5-020
+    ✗ banco/c5-umbrales-zonas — cuota incumplida: tiene 24 ítems, el mínimo es 25
+    ✗ banco/c5-umbrales-zonas — cuota incumplida: nivel "comprension": 0/24 = 0 %, mínimo 30 %
+    ✗ banco/c5-umbrales-zonas — cuota incumplida: nivel "aplicacion": 0/24 = 0 %, mínimo 20 %
+    ✗ banco/c5-umbrales-zonas — cuota incumplida: dificultad 2: 0 ítems, mínimo 3
+    ✗ banco/c5-umbrales-zonas — cuota incumplida: dificultad 3: 0 ítems, mínimo 3
+    ✗ banco/c5-umbrales-zonas — cuota incumplida: solo 1 tipos distintos (unica), mínimo 4
+    ✗ tarjetas/c5-umbrales-zonas — módulo "completo" sin tarjetas
+    ✗ glosario/c5-umbrales-zonas — el concepto clave "MLSS" no tiene entrada en el glosario
+      (…y los otros 8 conceptos clave de C5)
+```
+
+Cubre los tres requisitos que subrayó el usuario: **id + mensaje exacto de la regla**, **cuotas por módulo** (nivel cognitivo, dificultad, tipos mínimos, explicación de 200+, referencia bien formada) y **casos que deben fallar**. La distinción error/aviso también quedó demostrada: el mismo ítem con `bloque: 'A'` produjo un error por el campo y un **aviso** por la referencia a la Cartilla 3 desde el bloque A.
+
+Ambas sondas se revirtieron: `content/banco/c5-umbrales-zonas.ts` borrado, `indice.ts` y `estructura.ts` restaurados desde respaldo y verificados idénticos con `diff`. `npm run validar` vuelve a salir verde con 0 ítems.
+
+**Ajustes respecto al texto literal del blueprint**
+
+1. **`content/estructura.ts` adelantado del Paso 6 al Paso 3.** Sin datos de módulos, el validador queda rojo tres pasos y la prueba de fuego del propio Paso 3 es indemostrable. Ver ADR-004 con la evidencia de las tres alternativas descartadas.
+2. **C5 se escribe en `'en-preparacion'`, no en `'completo'` como aparece en §9.1.** Copiarlo literal produce 11 errores; §17 paso 8 es el que lo voltea. Ver ADR-004.
+3. **§9.2 (blueprints) NO se adelantó.** `BLUEPRINTS = {}` queda vacío. Pegarlo aquí no aporta y con estructura vacía disparaba 35 errores.
+
+**Notas**
+
+- Dos verrugas cosméticas de §8 que se dejan **tal cual**, documentadas para no arreglarlas en silencio:
+  - Los issues de refinamiento tienen `path` vacío, así que la línea sale con dos puntos huérfanos: `— : hay opciones duplicadas`. El arreglo sería `${i.path.join('.') || 'ítem'}`. Se revisará solo si estorba de verdad en los pasos 15–17.
+  - `conteoPorModulo` guarda `items.length` antes de validar, mientras las cuotas juzgan solo los válidos: la cabecera puede decir "Ítems: 25" y la cuota "tiene 24". Se ve en la sonda de cuotas de arriba. Inofensivo.
+- **Sin tests de Vitest para el validador, a propósito.** Es un script con `process.exit()` en el flujo principal: importarlo desde Vitest mata el runner, y hacerlo testeable exige refactorizar §8 en `validar(datos) → {errores, avisos}`, que es una desviación con su propio ADR y no un efecto colateral de este paso. Su superficie de corrección ya está cubierta: los esquemas y `verificarCuotas` con los 42 tests de `esquemas.test.ts`. La evidencia de este paso son las transcripciones de arriba.
+- `item?.id ?? '??'` de §8 no es redundante aunque `tsc` no lo marque: con un `undefined` dentro del array el validador no revienta, imprime `banco/<slug>/?? — : Required`. Se deja.
+
+**Pendiente**
+
+- **El Paso 6 ya no copia §9.1** (hecho aquí). Sí le corresponden: §9.2 blueprints, §9.3 erratas, §9.4 datos duros, §9.5 glosario, y las rutas `/bloques/[bloqueId]` y el índice de `/modulos`.
+- Paso 4: `src/lib/almacenamiento.ts` y `src/hooks/usar-estado.ts`. El `code-reviewer` del Paso 2 verificó que los `as EstadoProgreso` de §6 **sí compilan**: no hará falta el fallback `as unknown as`.
+- Paso 5: `globals.css` de §11.3 con los 4 tokens de bloque y `@custom-variant dark`; `layout.tsx` sigue con `lang="en"` y título de create-next-app; el pie con la atribución a COLEF/COCED.
+- Paso 8: voltear `c5-umbrales-zonas` a `'completo'` cuando exista su contenido, y registrarlo en los dos índices.
+- Paso 14.4: `page.tsx` y los 5 SVG de create-next-app en `public/`.
+
+---
+
+## [2026-07-29 21:45] · code-reviewer · Paso 3
+
+**Qué revisé:** `scripts/validar-banco.ts`, `content/estructura.ts`, los seis `content/*.ts` de forma vacía (`erratas`, `glosario`, `datos-duros`, `blueprint-examen`, `banco/indice`, `tarjetas/indice`), el enganche `prebuild` de `package.json`, y ADR-004. Alcance: todo lo no comiteado de la rama `paso-3-validador`.
+
+**Compuertas:** typecheck ✅ (exit 0) · test ✅ (75/75, 3 archivos) · validar ✅ (exit 0, 29 avisos, 0 errores) · build ✅ (exit 0, `prebuild` → `validar` → `next build` en el log). Es el primer paso en que las cuatro aplican y las cuatro pasan.
+
+**Fidelidad comprobada por diff mecánico contra `CLAUDE.md`, no de memoria**
+
+- `scripts/validar-banco.ts` vs §8: **byte-idéntico**, 300 líneas, `diff -u` vacío. Ni una línea cambiada.
+- `content/estructura.ts` vs §9.1: el diff son **6 líneas y ninguna es de datos** — 4 de comentario de cabecera, 2 de comentario junto a C5, más `estadoContenido: 'completo'` → `'en-preparacion'`. Es exactamente la única desviación que ADR-004 admite. Los 4 bloques, los 29 módulos, los objetivos, los conceptos clave, los prerequisitos y los 4 helpers son literales.
+
+**Estructura verificada ejecutándola, no leyéndola** (sonda `tsx` propia, no las transcripciones de la bitácora): pesos A=0.2 B=0.22 C=0.33 D=0.25 con suma exacta 1 · 29 módulos, 0 slugs duplicados · `BLOQUES[].modulos` coincide con `MODULOS` **en contenido y en orden** en los cuatro bloques (6+6+9+8), y la vuelta también: todo módulo aparece en el `modulos[]` de su bloque · `orden` es 1..n consecutivo por bloque · 0 prerequisitos inexistentes, 0 autorreferencias, **0 ciclos** · objetivos 3–5 y conceptosClave ≥3 en los 29 · los 4 helpers correctos, incluidos los bordes (`moduloSiguiente` del último y de un slug inexistente devuelven `null`).
+
+**Forma de los seis archivos vacíos:** correcta para que el Paso 6 solo rellene datos. `ERRATAS = []` + `ERRATAS_POR_ID` + `erratasDelModulo` · `GLOSARIO = []` + `normalizarBusqueda` + `buscarGlosario` · `DATOS_DUROS = []` + `CATEGORIAS_DATOS_DUROS` · `BLUEPRINTS = {}` · `BANCO = {}` + los 3 loaders · `TARJETAS = {}` + los 2 loaders. Ningún export que el Paso 6 tenga que crear.
+
+**Los tres requisitos del usuario, repetidos por mí con sondas propias**
+
+(a) **id + mensaje exacto:** ✅ `banco/c5-umbrales-zonas/C5-021 — explicacion: la explicación debe tener al menos 200 caracteres`. Sale el id del ítem y el texto literal de la regla de §5.
+
+(b) **cuotas por módulo:** ✅ con C5 en `'completo'` y 23 ítems monótonos salieron las seis: conteo (`tiene 23 ítems, el mínimo es 25`), `nivel "comprension": 0/23 = 0 %, mínimo 30 %`, `nivel "aplicacion"`, `dificultad 2`, `dificultad 3` y `solo 1 tipos distintos (unica), mínimo 4`. Explicación 200+ y referencia bien formada se verifican por ítem, además del cruce de conceptos clave con el glosario (9 errores) y las tarjetas del módulo completo.
+
+(c) **falla cuando debe:** ✅ 23 errores, exit 1. Sembrados y detectados: explicación corta, referencia sin formato, `contradiccion: 'X-99'` inexistente, `modulo` ajeno, `bloque` ajeno, id duplicado, opciones duplicadas en `unica`, y prefijo de id ajeno al módulo (`A1-001` en c5).
+
+**`prebuild` aborta el build de verdad:** con el validador rojo, `npm run build` sale 1 y el log **no contiene** `Creating an optimized production build`. `next build` nunca corre.
+
+**Invariantes:** cero `Math.random()` en `src/ content/ scripts/` · cero reloj en `content/` y `scripts/`; en `src/` solo `new Date(t)` y `new Date(\`…T12:00:00Z\`)` de `fechas.ts`, ambos con argumento y deterministas · cero `any` · sin `tailwind.config.*` · `localStorage` solo en comentarios de `tipos.ts` · `normalizar()` de §8, `normalizarBusqueda()` de `glosario.ts` y `normalizar()` de `utils.ts` usan la **secuencia de escape** `̀-ͯ` (verificado con `cat -A`: no hay bytes no-ASCII en el rango) y limpian tildes correctamente en `aeróbico`, `VO₂máx`, `cardíaca`, `Prevención`.
+
+**Hallazgos: 🔴 0 · 🟡 5 · 💭 4.** Ningún bloqueante. Los cinco 🟡 son **huecos del propio §8/§5 del blueprint**, no defectos de ejecución de este paso: el validador es fiel al texto y §22 reglas 2 y 9 prohíben "mejorarlo" aquí. Se escalan al `software-architect` para ADR antes de los pasos 15–17.
+
+1. 🟡 **Una clave huérfana en `BANCO`/`TARJETAS` deja un archivo entero sin validar, en silencio.** El bucle es `for (const modulo of MODULOS)` y busca la clave; nunca recorre el índice buscando claves que no correspondan a ningún slug. Sonda: registré `'c5-umbrales-zona'` (sin la `s`) apuntando a un archivo con un ítem que viola ocho reglas a la vez → **exit 0, "Todo en orden.", `Ítems: 0`**, y el único rastro es un aviso que dice `banco/c5-umbrales-zonas — en preparación, sin banco todavía`, es decir un mensaje que **apunta al lado contrario del problema**: afirma que no hay banco cuando hay un archivo registrado con 25 ítems sin revisar. Son 58 claves escritas a mano entre los dos índices en los pasos 15–17, y la primera se escribe en el Paso 8. Arreglo sugerido, ~4 líneas tras el bucle del banco: `for (const clave of Object.keys(BANCO)) if (!slugs.has(clave)) err('banco', \`clave "${clave}" del índice no corresponde a ningún módulo\`)`, e igual para `TARJETAS`.
+2. 🟡 **`multiple` no hereda el refinamiento de opciones duplicadas que sí tienen `unica` y `caso`.** `esqItemMultiple.superRefine` vigila índices repetidos y fuera de rango en `correctas`, pero no el texto de `opciones`. Sonda: ítem `multiple` con la opción 0 repetida literalmente en la posición 2 → pasa. El ítem es irresoluble (la opción correcta aparece dos veces y solo un índice cuenta). Mismo defecto, misma familia, tres tipos con enunciado de opciones y solo dos protegidos.
+3. 🟡 **`emparejar`: `pares` solo vigila el índice izquierdo duplicado, no el derecho.** Sonda: `pares: [[0,0],[1,0],[2,2],[3,3]]` → pasa. El elemento derecho 0 se usa dos veces y el 1 queda huérfano: la relación no es biyectiva y el ítem queda ambiguo. El `Set izq` del superRefine ya está escrito; falta el gemelo para `d`.
+4. 🟡 **La teoría no se verifica nunca.** `grep` sobre §8: cero referencias a `content/teoria/`, cero `fs`. Pero la regla 8 de `CLAUDE.md` y la checklist de §14.4 definen `'completo'` como teoría **+** ≥12 tarjetas **+** ≥25 ítems. El validador exige las dos últimas y no la primera: un módulo puede quedar `'completo'` sin `.mdx`, con el build en verde, mientras su ruta muestra el estado vacío de "en preparación". El validador ya corre en Node; `existsSync` sobre `content/teoria/<slug>.mdx` cierra el hueco.
+5. 🟡 **El mínimo de ítems del bloque C no está enforced.** `CUOTAS.minimoItems = 25` es global y `verificarCuotas` no admite override por bloque, pero §14.4 pide "≥25 ítems (28 en el bloque C)" y el entregable del Paso 16 es "9/9 módulos, ≥28 ítems cada uno". Hoy el Paso 16 puede declararse cumplido con 25. Es una cuota escrita en el plan que ningún comando comprueba.
+
+- 💭 **`calculo`: `tolerancia` solo exige `> 0`.** Sonda: `respuesta: 117, tolerancia: 500` pasa; cualquier número entre −383 y 617 se califica correcto y el ítem es imposible de fallar. Un aviso con una heurística (p. ej. `tolerancia > |respuesta| * 0.25`) atraparía el error de unidad sin falsos positivos molestos. Son 8 ítems `calculo` en el blueprint final.
+- 💭 **Las tarjetas no reciben el cruce prefijo↔módulo que sí reciben los ítems.** Confirmado por sonda doble: `A1-001` en el módulo c5 **sí** produce `el prefijo del id no corresponde al módulo`; 12 tarjetas `D9-T01…D9-T12` con `modulo: 'c5-umbrales-zonas'` pasan **sin una palabra**. Impacto menor —`idsTarjeta` atrapa las colisiones reales cuando los dos módulos existen— pero es una asimetría gratuita en ids que son las claves de la cola SRS.
+- 💭 **`DATOS_DUROS` no se cruza con tarjetas ni con el banco**, aunque el encabezado de §9.4 dice "Cada uno DEBE existir también como tarjeta y como al menos un ítem del banco". Solo se valida su forma y sus referencias a módulo y errata. Es la clase de regla que se cumple sola con 4 datos duros y se pierde con 104.
+- 💭 **Confirmé las dos verrugas cosméticas que la bitácora ya documenta**, sin nada que añadir: el issue de refinamiento sale como `C5-026 — : hay opciones duplicadas` (dos puntos huérfanos, `path` vacío), y `conteoPorModulo` cuenta antes de validar, así que la cabecera dijo `Ítems: 26` mientras la cuota decía `tiene 23 ítems`. Ambas inofensivas y bien registradas.
+
+**Lo bien resuelto:** ADR-004 es el mejor argumento técnico de la bitácora hasta ahora — verifiqué su premisa y se sostiene: con `MODULOS = []` el bucle del banco nunca corre y la prueba de fuego del propio paso es indemostrable, así que adelantar §9.1 no es comodidad sino la única forma de que el Paso 3 pueda demostrar su entregable. Las tres alternativas descartadas están bien cerradas, incluida la tercera, que efectivamente se muerde la cola.
+
+**Veredicto:** APROBADO CON CAMBIOS
+
+**Pendiente antes de cerrar el paso:** nada bloqueante; el paso queda cerrado. Deuda a resolver **antes del Paso 8**, que es donde se escribe la primera clave de índice a mano: llevar los hallazgos 1–5 al `software-architect` para un ADR que decida cuáles se implementan (1, 4 y 5 son los que protegen los pasos 15–17; 2 y 3 son refinamientos de §5 y tocan un archivo que ADR-003 ya modificó). Ningún cambio aplicado por mí: el árbol quedó como lo encontré.
+
+**Reversión de mis sondas:** creé y borré `content/banco/c5-umbrales-zonas.ts` y `content/tarjetas/c5-umbrales-zonas.ts`, y modifiqué temporalmente los dos `indice.ts` y el `estadoContenido` de C5. Todo restaurado desde respaldo previo: `diff -r` vacío en `content/` y `scripts/`, los 12 md5 idénticos a los del inicio, `git status` sin cambios respecto al arranque, y las cuatro compuertas repetidas en verde sobre el árbol restaurado.
+
+---
+
+## [2026-07-29 22:15] · endurecimiento del validador (ADR-005) · Paso 3
+
+Los cinco falsos negativos que encontró el `code-reviewer`, implementados antes de comitear el Paso 3. Decisión y argumento en **ADR-005 · El validador se endureció más allá de §8**, redactado por el `software-architect` sobre el lote completo, no consulta por consulta.
+
+**Refactor previo, sin el cual la regla "sin test no cuenta" era imposible**
+
+Tres de los cinco huecos viven en el validador, que llamaba a `process.exit()` en el flujo principal: importarlo desde Vitest mata el runner. Se extrajo la lógica a `scripts/validar-catalogo.ts` como **función pura** `validarCatalogo(catalogo) → { errores, avisos, resumen }`, sin `fs`, sin reloj, sin `process` y sin `console`. `scripts/validar-banco.ts` queda como CLI delgado: lee `content/`, hace `readdirSync` de `content/teoria/`, delega, imprime y sale.
+
+Vive en `scripts/` y no en `src/lib/` a propósito: la app nunca lo importa, y en `src/lib/` sería el primer módulo importable desde un Client Component sin que `server-only` aplique (la función es pura, la guarda sería mentira). `tsconfig.json` incluye `**/*.ts`, así que `tsc` y `eslint` ya lo cubrían; solo hizo falta ampliar el `include` de `vitest.config.ts` a `['src/**/*.test.ts', 'scripts/**/*.test.ts']`.
+
+**Equivalencia demostrada, con la misma condición que ADR-003:** se capturó la salida de `npm run validar` antes del refactor y después. `diff` **vacío**. El precio honesto: `validar-banco.ts` deja de ser byte-idéntico a §8, segunda desviación del código literal del blueprint tras ADR-003. La compensación es que las ~29 comprobaciones de §8 pasan a tener superficie testeable por primera vez: antes **ninguna** tenía test de regresión.
+
+**Los cinco arreglos**
+
+| # | Hueco | Arreglo | Archivo |
+|---|---|---|---|
+| 1 | Clave huérfana en el índice deja un archivo entero sin validar y el validador sale verde | Recorrido **inverso**: `for (const clave of Object.keys(BANCO))` y su gemelo para `TARJETAS` | `scripts/validar-catalogo.ts` |
+| 2 | La teoría MDX nunca se verificaba, pese a que §22 regla 8 la exige para `'completo'` | `slugsConTeoria: ReadonlySet<string>` inyectado; error solo en módulos `'completo'` | `scripts/validar-catalogo.ts` + CLI |
+| 3 | `multiple` no detectaba opciones duplicadas, que sí vigilaban `unica` y `caso` | `Set` sobre `opciones` en `refItemMultiple`, mensaje reutilizado | `src/lib/esquemas.ts` |
+| 4 | `emparejar` vigilaba el índice izquierdo repetido pero no el derecho | `Set` gemelo `der`, mensaje nuevo `el índice derecho N aparece dos veces` | `src/lib/esquemas.ts` |
+| 5 | El mínimo de 28 ítems del bloque C no estaba enforced | `CUOTAS_BLOQUE_C` + `cuotasDelBloque(bloque)`; el validador pasa las reglas del bloque | `src/lib/esquemas.ts` + validador |
+
+Los cinco son **error**, ninguno aviso: son defectos que un humano arregla ya y que degradarían la app, y ninguno es estado transitorio de los pasos 14–17. Los huecos 2 y 5 solo se evalúan en módulos `'completo'`, así que los 28 en preparación siguen callados. `CUOTAS` no se tocó: subirlo a 28 lo exigiría también a los bloques A, B y D.
+
+**Cada arreglo tiene un test que falla si se quita el arreglo** — verificado por mutación, uno por uno:
+
+| Mutación | Tests que fallan |
+|---|---|
+| Quitar el recorrido inverso del índice | 3 |
+| Quitar la verificación de teoría | 1 |
+| Quitar las opciones duplicadas de `multiple` | 1 |
+| Quitar el `Set` del índice derecho | 1 |
+| `cuotasDelBloque` devuelve siempre `CUOTAS` | 3 |
+
+`esquemas.ts` y `validar-catalogo.ts` restaurados y verificados idénticos con `diff` tras las cinco mutaciones.
+
+**Salida real del validador con los cinco sembrados a la vez** — C5 en `'completo'`, 27 ítems (25 válidos + 1 `multiple` con opciones duplicadas + 1 `emparejar` con derecho repetido), sin `.mdx`, y una clave huérfana `'c5-umbrales-zona'` en el índice:
+
+```
+  Módulos: 29 (1 completos, 28 en preparación)
+  Ítems: 27 · Tarjetas: 12 · Erratas: 0 · Glosario: 9
+
+  6 ERROR(ES) — el build se detiene:
+    ✗ banco/c5-umbrales-zonas/C5-026 — : hay opciones duplicadas
+    ✗ banco/c5-umbrales-zonas/C5-027 — : el índice derecho 0 aparece dos veces
+    ✗ banco/c5-umbrales-zonas — cuota incumplida: tiene 25 ítems, el mínimo es 28
+    ✗ banco/c5-umbrales-zonas — cuota incumplida: solo 3 tipos distintos (unica, vf, calculo), mínimo 4
+    ✗ banco — la clave "c5-umbrales-zona" del índice no corresponde a ningún módulo
+    ✗ teoria/c5-umbrales-zonas — módulo "completo" sin teoría: falta content/teoria/c5-umbrales-zonas.mdx
+EXIT: 1
+```
+
+Sonda revertida: los dos archivos temporales borrados y los cuatro modificados restaurados desde respaldo, verificados con `diff`. `npm run validar` vuelve a dar una salida **idéntica** a la de antes del endurecimiento.
+
+**Compuertas:** `typecheck` 0 errores · `lint` limpio · `test` **94 en verde** (5 archivos) · `build` verde con `prebuild → validar → next build`.
+
+**Notas**
+
+- Se añadió **una sola** prueba de subproceso, `scripts/__tests__/validar-banco-cli.test.ts`: ejecuta el CLI real contra el contenido real y afirma exit 0 y "Todo en orden.". Cubre lo único que la función pura no puede — un error de cableado entre CLI y función. Los tests por fixture van todos a `validarCatalogo`, que no toca disco.
+- El resumen del validador cuenta `items` **antes** de validar mientras las cuotas juzgan solo los válidos. Se ve en la sonda: cabecera "Ítems: 27", cuota "tiene 25". Es la verruga que ya documentó el Paso 3, ahora con evidencia; sigue sin arreglarse.
+- Sigue visible la otra verruga: los issues de refinamiento tienen `path` vacío y la línea sale con dos puntos huérfanos (`C5-026 — : hay opciones duplicadas`). El id del ítem y el mensaje están, que es lo que se necesita para ubicarlo; es cosmético. El arreglo sería `${i.path.join('.') || 'ítem'}` y es otra desviación de §8: **pendiente de decisión del usuario.**
+- **El `.mdx` huérfano no se implementó.** El `readdir` del hueco 2 daría gratis la detección de `d2-cargas.mdx` con una `s` de más, y el arquitecto lo propuso como **aviso** —a diferencia de la clave huérfana, un `.mdx` de más no esconde contenido sin validar, el archivo es inerte—. Queda fuera porque son cinco huecos, no seis; pendiente del OK del usuario.
+
+**Pendiente que hereda el Paso 8**
+
+- `content/teoria/c5-umbrales-zonas.mdx` **debe existir** antes de voltear C5 a `'completo'`, o el hueco 2 rompe el build.
+- **C5 necesita 28 ítems, no los 25 de §14.3.** El blueprint se contradice consigo mismo: §14.3 le da exactamente 25 y §14.4 más el entregable del Paso 16 piden 28 para el bloque C. Recomendación del arquitecto, que comparto: subir C5 a 28 ítems, **no** bajar la regla a aviso — eso reintroduciría justo la clase de falso negativo que ADR-005 condena. Queda como desviación de §14.3 a registrar en la bitácora del Paso 8.
+
+---
+
+## [2026-07-29 22:25] · dos arreglos pendientes y la cuota de C5 · Paso 3
+
+Cerrados los dos puntos que quedaron esperando decisión, y resuelta la contradicción del blueprint sobre C5 antes de que llegue al Paso 8.
+
+**1 · Los dos puntos huérfanos del mensaje de error**
+
+§8 imprimía los issues como `${i.path.join('.')}: ${i.message}`, y los refinamientos de colección tienen `path` vacío, así que salían como `C5-026 — : hay opciones duplicadas`. Se añadió un helper `detalle(issue)` que **omite el prefijo** cuando no hay campo, en vez de inventar una etiqueta: el ámbito (`banco/c5-umbrales-zonas/C5-026`) ya identifica de qué se habla. Aplicado a las **6** formateadoras del validador: estructura, erratas, glosario, datos duros, banco y tarjetas.
+
+Antes → después:
+
+```
+✗ banco/c5-umbrales-zonas/C5-026 — : hay opciones duplicadas
+✗ banco/c5-umbrales-zonas/C5-026 — hay opciones duplicadas
+```
+
+Los errores de campo no cambian: `C5-001 — explicacion: la explicación debe tener al menos 200 caracteres`.
+
+**2 · El `.mdx` huérfano, como AVISO**
+
+`content/teoria/d2-cargas.mdx` (con una `s` de más) no corresponde a ningún módulo. Es el gemelo del hueco 1 en la carpeta de teoría, y el `readdir` que ya hacía el CLI lo da gratis. Va como **aviso, no error**, y la clasificación del arquitecto es la correcta: a diferencia de una clave huérfana en el índice, **un `.mdx` de más no esconde contenido sin validar** — el archivo es inerte, simplemente no se lee. La clave huérfana sí oculta un archivo de ítems entero, y por eso es error.
+
+Salida real, con los dos casos a la vez:
+
+```
+  29 aviso(s):
+    · teoria — content/teoria/d2-cargas.mdx no corresponde a ningún módulo
+
+  1 ERROR(ES) — el build se detiene:
+    ✗ banco/c5-umbrales-zonas/C5-026 — hay opciones duplicadas
+```
+
+**Los dos tienen test que falla sin su arreglo** — verificado por mutación:
+
+| Mutación | Tests que fallan |
+|---|---|
+| Volver a `${path}: ${message}` sin condición | 2 |
+| Quitar el aviso del `.mdx` huérfano | 2 |
+
+`scripts/validar-catalogo.ts` restaurado y verificado idéntico con `diff`.
+
+**3 · C5 lleva 28 ítems — ADR-006**
+
+El blueprint se contradecía: §14.3 le da a C5 exactamente **25** ítems, mientras §14.4 y el entregable del Paso 16 piden **28** para el bloque C. Con el hueco 5 de ADR-005 cerrado, ese choque pasó de latente a bloqueante: rompería el build en el Paso 8, al voltear C5 a `'completo'`.
+
+Decisión registrada en **ADR-006**: **C5 lleva 28 ítems.** La razón es de estándar, no de aritmética — el bloque C es el 33 % del examen y C5 es la plantilla de oro que copian los otros 28 módulos; si el piloto nace con la cuota incumplida, no queda un defecto aislado sino **un ejemplo que enseña a incumplirla**, replicado 28 veces. Se descartó bajar la regla a aviso: reintroduce a mano el falso negativo que ADR-005 acababa de tapar con test.
+
+**§14.3 del blueprint queda corregido: donde dice 25 ítems, son 28.** La corrección vive en el ADR y no en `CLAUDE.md`, que sigue siendo de solo lectura (`git diff CLAUDE.md` vacío es invariante desde el Paso 1).
+
+**La cuenta que hereda el Paso 8, y que no es negociable:** al subir `n` de 25 a 28, los umbrales de `verificarCuotas` se mueven y **dos de los tres ítems nuevos quedan forzados**.
+
+| Nivel | Mínimo | Exige con n=28 | §14.3 tiene | Con n=28 | Falta |
+|---|---|---|---|---|---|
+| recuerdo | ≥40 % | 11,2 → **12** | 11 | 39,3 % ✗ | **+1** |
+| comprensión | ≥30 % | 8,4 → **9** | 8 | 28,6 % ✗ | **+1** |
+| aplicación | ≥20 % | 5,6 → **6** | 6 | 21,4 % ✓ | libre |
+
+Los tres ítems, entonces:
+
+| Id | Nivel | Dificultad | Tipo | Por qué |
+|---|---|---|---|---|
+| `C5-026` | recuerdo | 1 | única | Cierra el mínimo forzado de recuerdo (11→12). Única es el tipo dominante del examen (65 % del blueprint FINAL) y C5 va en 52 %. |
+| `C5-027` | comprensión | 2 | múltiple | Cierra el mínimo forzado de comprensión (8→9). Múltiple sube 2→3: discrimina comprensión evaluando afirmaciones una a una. |
+| `C5-028` | aplicación | 3 | cálculo | El libre. Va a aplicación para dejar margen (7 contra el umbral de 5,6) en vez de quedar pegado en 6. Cálculo sube 3→4, y el bloque C concentra las fórmulas. |
+
+Reparto final: **12 · 9 · 7** por nivel (42,9 / 32,1 / 25,0 %) y **14 única · 4 cálculo · 3 caso · 3 múltiple · 2 emparejar · 1 ordenar · 1 V/F**. Las 15 tarjetas y los 9 conceptos clave del glosario no se mueven.
+
+**Advertencia para quien escriba el Paso 8:** el nivel de esos tres ítems **no es negociable ítem a ítem**. Si al redactar `C5-026` parece más de comprensión que de recuerdo, no basta con cambiarle la etiqueta: recuerdo volvería a 11/28 y el build rompe. Con 28 ítems, 12/9/7 es el único reparto con holgura en los tres niveles.
+
+Los otros 8 módulos del bloque C (C1–C4, C6–C9) heredan el mismo mínimo de 28 en el Paso 16, donde ya estaba declarado como entregable. Con `cuotasDelBloque` enforzándolo, ese entregable pasa de promesa a compuerta.
+
+**Compuertas:** `typecheck` 0 errores · `lint` limpio · `test` **100 en verde** (5 archivos) · `validar` verde · `build` verde.
+
+`.claude/CONTENIDO.md` actualizado: la fila de C5 dice 28 y la regla dura del encabezado nombra el mínimo del bloque C.
+
+---

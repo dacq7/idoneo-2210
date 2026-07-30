@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   CUOTAS,
+  CUOTAS_BLOQUE_C,
+  cuotasDelBloque,
   esqItem,
   esqItemCalculo,
   esqItemCaso,
@@ -274,6 +276,36 @@ const REGLAS: { nombre: string; item: unknown; mensaje: string }[] = [
     item: { ...(VALIDOS.ordenar as object), ordenCorrecto: [0, 1, 5] },
     mensaje: 'ordenCorrecto debe ser una permutación de 0..n-1 (en el ítem canónico: [0,1,2,…])',
   },
+  // Las dos reglas de ADR-005 van AL FINAL: el bloque de exports de ADR-003
+  // indexa REGLAS por posición, así que insertarlas en el medio dejaría cinco
+  // tests verificando la regla equivocada, y en verde.
+  {
+    nombre: 'multiple: opciones duplicadas (ADR-005, hueco 3)',
+    item: {
+      ...(VALIDOS.multiple as object),
+      opciones: [
+        'Aumento de la densidad capilar',
+        'Aumento de la densidad capilar',
+        'Aumento de los triglicéridos intramusculares',
+        'Aumento de la volemia',
+        'Eliminación acelerada de desechos',
+      ],
+    },
+    mensaje: 'hay opciones duplicadas',
+  },
+  {
+    nombre: 'emparejar: índice derecho repetido (ADR-005, hueco 4)',
+    item: {
+      ...(VALIDOS.emparejar as object),
+      pares: [
+        [0, 0],
+        [1, 0],
+        [2, 2],
+        [3, 3],
+      ],
+    },
+    mensaje: 'el índice derecho 0 aparece dos veces',
+  },
 ];
 
 describe('esqItem — refinamientos por tipo', () => {
@@ -287,11 +319,13 @@ describe('esqItem — refinamientos por tipo', () => {
     });
   }
 
-  it('cubre las 10 reglas de refinamiento de §5', () => {
+  it('cubre las 12 reglas de refinamiento (10 de §5 + 2 de ADR-005)', () => {
     // Si alguien añade una regla a esquemas.ts sin añadirla aquí, este número
-    // deja de cuadrar y el descuido sale a la luz.
-    expect(REGLAS).toHaveLength(10);
-    expect(new Set(REGLAS.map((r) => r.mensaje)).size).toBe(9);
+    // deja de cuadrar y el descuido sale a la luz. Subió de 10/9 a 12/10 con
+    // ADR-005: el hueco 3 reutiliza 'hay opciones duplicadas' y el hueco 4
+    // aporta un mensaje nuevo. No aflojar estos números para que pase la suite.
+    expect(REGLAS).toHaveLength(12);
+    expect(new Set(REGLAS.map((r) => r.mensaje)).size).toBe(10);
   });
 });
 
@@ -452,5 +486,32 @@ describe('verificarCuotas', () => {
   it('las cuotas por omisión son las de CUOTAS', () => {
     const items = lote(30, 'recuerdo');
     expect(verificarCuotas(items)).toEqual(verificarCuotas(items, CUOTAS));
+  });
+});
+
+/* ─── 7. Cuota del bloque C (ADR-005, hueco 5) ────────────────────── */
+
+describe('cuotasDelBloque', () => {
+  it('el bloque C exige 28 ítems y los demás 25', () => {
+    expect(cuotasDelBloque('C').minimoItems).toBe(28);
+    expect(cuotasDelBloque('A').minimoItems).toBe(25);
+    expect(cuotasDelBloque('B').minimoItems).toBe(25);
+    expect(cuotasDelBloque('D').minimoItems).toBe(25);
+  });
+
+  it('25 ítems bastan en el bloque D pero no en el C', () => {
+    // §14.4 y el entregable del paso 16 piden ≥28 en el bloque C. Antes de
+    // ADR-005 el mínimo era global y el paso 16 se declaraba cumplido con 25.
+    const items = lote(25);
+    expect(verificarCuotas(items, cuotasDelBloque('C'))).toContain(
+      'tiene 25 ítems, el mínimo es 28',
+    );
+    expect(verificarCuotas(items, cuotasDelBloque('D'))).not.toContain(
+      'tiene 25 ítems, el mínimo es 25',
+    );
+  });
+
+  it('solo cambia el mínimo de ítems, no el resto de las reglas', () => {
+    expect({ ...CUOTAS_BLOQUE_C, minimoItems: CUOTAS.minimoItems }).toEqual(CUOTAS);
   });
 });
