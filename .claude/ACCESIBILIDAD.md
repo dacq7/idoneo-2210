@@ -33,6 +33,9 @@ Solo existen dos rutas en este paso. Las demás llegan en pasos posteriores.
 | `/modulos/[slug]` — estado vacío (los 29 hoy) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **APROBADA** | 2026-07-30 |
 | `/modulos/[slug]` — con teoría MDX (auditada con un `.mdx` temporal) | ✅ | ✅ A-09 · A-10 · A-12 **arreglados** | ✅ | ✅ **A-17 cerrado** | ✅ | ✅ | ~~**PARCIAL** — 2 Moderados (A-10, A-11)~~ → ~~**PARCIAL** por A-17~~ → **APROBADA 2026-07-30** tras la ficha de §3.2: axe **0 violaciones** en los cuatro cruces de tema × ancho · **A-11 y A-17 cerrados** · quedan A-19 a A-22, los cuatro **Menores** y ninguno bloqueante | 2026-07-30 |
 | `/erratas` (14 fichas, 3 grupos, anclas) | ✅ | ✅ **A-13 arreglado** | ✅ | ✅ | ✅ | ✅ | ~~**APROBADA** (con A-13 y A-16, los dos Menores)~~ → **APROBADA sin salvedades** tras la reverificación: A-13 y A-16 cerrados, axe 0/0 en los dos temas | 2026-07-30 |
+| `/modulos/[slug]/practica` — 8 ítems, retroalimentación inmediata | ✅ | ✅ A-25 · A-26 · A-27 **arreglados** | ✅ | ✅ | ✅ A-24 **arreglado** | ✅ 188 px sin desbordamiento | **APROBADA** — axe 0 violaciones en los 4 cruces; queda A-28, Menor y no bloqueante | 2026-07-30 |
+| `/modulos/[slug]/quiz` — 10 ítems, retroalimentación al final | ✅ | ✅ (mismos componentes que práctica) | ✅ | ✅ | ✅ | ✅ | **APROBADA** — comparte controlador, envoltorio y los 7 tipos con práctica; la única diferencia es `feedbackInmediato` | 2026-07-30 |
+| Resumen de tanda (`resumen-sesion.tsx`) | ✅ | ✅ A-27 **arreglado** | ✅ | ✅ | ✅ A-24 **arreglado** | ✅ | **APROBADA con salvedad** — A-28 abierto | 2026-07-30 |
 
 Reverificación del 2026-07-30, con los cuatro arreglos aplicados:
 **axe-core 4.x — 0 violaciones y 0 incompletas en los dos temas**, en `/` y en el
@@ -82,6 +85,11 @@ y la de después. El historial es lo que evita que vuelva.
 | A-21 | Menor | **abierto** (§3.1) — la banda «74,4–75,0 cpl» no se cumple en 2 de 4 superficies. Decide `ui-designer` |
 | A-22 | Menor | **cerrado 2026-07-30** — se retiró el degradado. Su remedio de reemplazo introdujo **A-23**, ya arreglado |
 | A-23 | Serio | **arreglado 2026-07-30** (Paso 8b) — el `overflow-wrap: anywhere` con que se cerró A-22 partía palabras normales en las cabeceras: «Zon/a», «Aeróbi/co», «Sustrat/o» |
+| A-24 | Moderado | **arreglado 2026-07-30** (Paso 9) — «Salir sin terminar» (16 px) y «Volver al módulo» del resumen (19 px) eran objetivos por debajo de 2.5.8. Estirpe de A-05 |
+| A-25 | Moderado | **arreglado 2026-07-30** (Paso 9) — en `ordenar` revisado, la fila ACERTADA no decía que lo era: solo el verde y un ✓ `aria-hidden` |
+| A-26 | Serio | **arreglado 2026-07-30** (Paso 9) — el campo de `calculo` nunca anunciaba su unidad, y ningún enunciado de C5 la menciona |
+| A-27 | Menor | **arreglado 2026-07-30** (Paso 9) — ocho landmarks `region` idénticos «Explicación de la respuesta» en el resumen. Estirpe de A-09 |
+| A-28 | Menor | **abierto** (Paso 9) — el `<h2>` del resumen recibe el foco y no se ve. No incumple 2.4.7; decide `ui-designer` |
 
 ---
 
@@ -1858,3 +1866,410 @@ el que menos se miraba. Se cede que una cadena monstruosa futura vuelva a
 desbordar dentro de `.tabla-desliz`, que existe para eso y ya es enfocable
 (A-10/A-19): un desbordamiento hipotético en un contenedor diseñado para
 desbordarse es mejor trato que un corte real en la tabla de más valor de la app.
+
+---
+
+# Paso 9 — Los 7 tipos de ítem, sus 4 estados y el controlador de sesión · auditoría del 2026-07-30
+
+Rutas vivas auditadas: `/modulos/c5-umbrales-zonas/practica` (8 ítems, con
+retroalimentación inmediata) y `/modulos/c5-umbrales-zonas/quiz` (10 ítems, con
+retroalimentación al final), más la **pantalla de resumen** de cada una.
+
+## Método y su techo
+
+Todo se midió en **navegador real** (Chromium headless, Playwright), nunca
+leyendo clases de Tailwind. Los cuatro cruces: **claro × oscuro × 375 px ×
+1280 px**.
+
+**La semilla se fija.** `armarSimulacro` nace de `Date.now()` en el handler de
+«Empezar», así que la tanda es distinta en cada recarga y auditar «lo que salga»
+no es reproducible. Se inyecta `Date.now = () => N*1000` antes de cargar la
+página, lo que convierte cada tanda en un caso de prueba con nombre:
+
+| Semilla | Tanda que produce |
+|---|---|
+| 1 | `calculo` · única ×6 · `vf` |
+| 3 | `calculo` · única ×3 · `multiple` · única ×3 |
+| **4** | **`ordenar`** · única ×2 · `calculo` · única · `vf` · **`emparejar`** · única |
+
+La semilla 4 es la valiosa: trae en una sola tanda los tres tipos de interacción
+no trivial.
+
+### El instrumento de contraste, y los tres errores que cometió antes de servir
+
+El contraste se mide **por píxel sobre la captura**, no componiendo
+`getComputedStyle`. Es obligatorio aquí: `opacity-50` (el `Boton` inerte) y
+`opacity-80` (la opción apagada en revisión) **no existen** para el método de
+composición de `background-color`, que los habría dado por buenos sin mirarlos.
+
+La primera corrida dio **13 fallos**. Los 13 eran del instrumento, no de la app.
+Queda escrito porque el próximo que mida contraste por píxel va a tropezar igual:
+
+| Error | Qué producía | Arreglo |
+|---|---|---|
+| Render a 1× y **reescalado NEAREST** | en texto de 12–13 px la tinta real no llega a existir como píxel; el antialiasing la diluye y todo mide bajo | `device_scale_factor=3`: el detalle se **renderiza**, no se interpola |
+| **Percentil fijo** (2 % de todos los píxeles) para elegir la tinta | en un `<input>` de 192×52 con cinco cifras, el 2 % caía en el **borde**, no en las cifras: **3,11:1** donde el texto mide **17,49:1** | moda del **cúmulo** de píxeles a más del 85 % de la distancia máxima al fondo — borde y tinta son dos cúmulos, no dos percentiles |
+| **Antialiasing subpíxel LCD** | flecos de color —(154,105,82)— contaminaban el cúmulo **solo en tema claro**; el oscuro casaba y el claro no, y la asimetría parecía de la hoja de estilos | `--disable-lcd-text`: antialiasing en gris |
+
+**Control cruzado.** Cada superficie se mide además con un método **analítico**
+(composición alfa de la cadena de ancestros, incluida la `opacity` acumulada),
+que es exacto para texto plano. Se aceptó el instrumento cuando los dos métodos
+coincidieron: 12 superficies medidas dos veces, **desvío máximo 0,53** —y ese
+0,53 es el `<kbd>` de 12 px, donde el píxel siempre subestima.
+
+**El techo, dicho.** axe dio **0 violaciones en las 20 corridas** (5 estados × 4
+cruces) y eso no es una aprobación: A-25, A-26 y A-27 son invisibles para axe.
+Los tres salieron de leer el árbol de accesibilidad a mano y de preguntarse qué
+oye alguien que no ve la pantalla.
+
+## Lo verificado y correcto — esto es lo que hay que conservar
+
+**No hay arrastrar en ninguna parte, y no es que esté escondido: no existe.**
+`[draggable="true"]` = **0**, `[draggable]` = **0**, `[ondragstart]` = **0**, y
+la cadena `draggable="true"` no aparece en el HTML servido, en ninguno de los 7
+tipos. **2.5.7 Dragging Movements (AA) se cumple por construcción**, que es la
+única forma que cuenta: no hay una vía de arrastre con una alternativa al lado,
+hay una sola vía y sirve para todo el mundo.
+
+**`ordenar` resuelve bien el caso que casi siempre se rompe.** El botón que
+pulsas desaparece cuando el elemento llega a un extremo —↑ ya no tiene sentido en
+la primera posición— y ahí es donde el foco se cae al `<body>` en casi todas las
+implementaciones. Medido, subiendo un elemento desde el fondo hasta la cima solo
+con `Enter`:
+
+```
+golpe 1 → foco en «Subir: R0 …»
+golpe 2 → foco en «Subir: R0 …»
+golpe 3 → foco en «Subir: R0 …»
+golpe 4 → foco en «Bajar: R0 …»   ← llegó a la cima; ↑ desapareció y el foco
+                                     pasó al ↓ del MISMO elemento
+```
+
+El foco nunca se pierde y nunca salta a otro elemento. Es exactamente lo que
+promete el comentario de cabecera del archivo, y es raro verlo cumplido.
+
+**`emparejar` se completa solo con teclado.** `Tab` hasta la izquierda, `Enter`,
+`Tab` hasta la derecha, `Enter`: el chip de la primera fila pasa de `·` a `1`.
+Sin modo especial, sin instrucciones aparte.
+
+**La región viva está montada y vacía antes de tener contenido.** Medido antes y
+después de «Comprobar»:
+
+```
+ANTES:    aria-live=polite · vacía=True  · ''
+DESPUÉS:  aria-live=polite · vacía=False · 'Incorrecta. El modelo polarizado evita…'
+```
+
+El comentario del controlador dice que una región viva que aparece junto con su
+contenido no se anuncia de forma fiable. Es cierto, y aquí está bien resuelto: la
+región es un `<div>` permanente y lo que cambia es su interior.
+
+**El cronómetro no anuncia cada segundo** — no hay cronómetro todavía (`minutos`
+es `null` en práctica y quiz). Se vuelve a mirar en el Paso 11.
+
+**Los objetivos táctiles de los ítems se cumplen con holgura.** Medidos con
+`getBoundingClientRect()` a 375 px: opciones de `unica`/`caso`/`multiple`/`vf`
+entre **52,0 y 107,1 px** (piso 52); filas de `ordenar` y `emparejar` ≥ 52;
+botones ↑ ↓ **44,0 × 44,0** exactos; campo de `calculo` **52,0**; botones de la
+barra de avance **44,0**. Ninguna opción quedó corta en ningún cruce.
+
+**Foco visible en los 4 cruces**: 6/6 controles de la sesión cambian píxeles al
+enfocarse, con contorno sólido de 2 px. Cero trampas de foco: el recorrido con
+`Tab` sale de la sesión hacia el pie y la navegación sin quedarse dentro.
+
+**Zoom 200 %** (ancho efectivo 188 px): `scrollWidth == clientWidth` en los dos
+temas, **sin desbordamiento horizontal**.
+
+**`prefers-reduced-motion: reduce`**: **0 elementos** con transición o animación
+por encima de 50 ms en toda la sesión. La regla global se respeta y ningún
+componente de ítem la pisa.
+
+**Jerarquía de encabezados sin saltos**, en sesión y en resumen:
+`H1 Práctica` → `H2 Terminaste la práctica` → `H2 Revisión, ítem por ítem` →
+`H2 Las cuatro etapas`.
+
+## Hallazgos del Paso 9
+
+### A-24 · Dos enlaces de la sesión son objetivos de 16 y 19 px
+**Criterio:** 2.5.8 Target Size (Minimum) (AA) · **Severidad: Moderado** · **arreglado 2026-07-30**
+**Dónde:** `src/components/sesion/controlador-sesion.tsx:315` («Salir sin terminar») · `src/components/sesion/resumen-sesion.tsx:107` («Volver al módulo»)
+
+**Problema.** Los dos enlaces son `display: inline`, y sobre un elemento en línea
+el `min-height: 44px` que `@layer base` aplica a `a[href]` **no hace nada**: la
+caja de un elemento en línea no tiene altura propia. Medido a 375 px:
+
+| Enlace | Antes | Piso 2.5.8 | Piso propio (`DISENO.md` §3) |
+|---|---|---|---|
+| «Salir sin terminar» | **16,0 px** | 24 | 44 |
+| «Volver al módulo» (resumen) | **19,0 px** | 24 | 44 |
+
+**Por qué no les vale la excepción.** 2.5.8 exime al enlace que va **dentro de una
+frase**, porque ahí el alto lo manda la línea del texto que lo rodea. Estos dos no
+lo están: cada uno es **el único contenido de su párrafo**. Se comprobó en
+runtime (`el.parentElement.textContent === el.textContent`).
+
+**A quién afecta y cómo.** «Salir sin terminar» es la salida de emergencia de una
+tanda y «Volver al módulo» el cierre de la pantalla de resultados. Un objetivo de
+16 px con el pulgar, en el bus, es un toque que falla y cae en el hueco de al
+lado. El público de esta app tiene entre 30 y 60 años y estudia en el celular con
+una mano: es justo el caso que el piso de 44 px existe para cubrir.
+
+**Arreglo** (una clase en cada uno, el mismo remedio que ya usan los enlaces de
+los estados vacíos de las páginas de etapa):
+
+```diff
+-  <Link href={volver.href} className="text-muted-foreground underline …">
++  <Link href={volver.href} className="inline-flex items-center text-muted-foreground underline …">
+```
+
+Con `inline-flex` la caja pasa a tener altura y el `min-height: 44px` de
+`@layer base` entra en vigor solo.
+
+**Después, medido:** «Salir sin terminar» **16,0 → 44,0 px** · «Volver al módulo»
+**19,0 → 44,0 px**, en los dos temas. **Sin regresión de A-08**: los dos enlaces
+son el único contenido de su párrafo, así que no hay texto alrededor que
+descuadrar; comprobado además con captura en claro y en oscuro.
+
+**Lo que NO se tocó, y es deliberado.** El enlace con el título del módulo del
+encabezado —«Etapa 3 de *Umbrales y zonas de entrenamiento*»— mide **41,5 px** y
+**se deja como está**: va dentro de una frase, así que le aplica la excepción
+«Inline» de 2.5.8 y su alto es el interlineado del párrafo. Estirarlo rompería la
+línea de texto, que es exactamente el error que A-08 documentó. Un objetivo por
+debajo de 44 px no es automáticamente un fallo: hay que mirar si está en una
+frase.
+
+---
+
+### A-25 · En `ordenar` revisado, la fila acertada no dice que lo es
+**Criterio:** 1.4.1 Use of Color (A) · 1.3.1 Info and Relationships (A) · **Severidad: Moderado** · **arreglado 2026-07-30**
+**Dónde:** `src/components/items/ordenar.tsx:126-137`
+
+**Problema.** En revisión, cada fila lleva un chip con ✓ o ✕ — y el chip es
+`aria-hidden="true"`. La fila **fallada** además dice «Su lugar era el N» en
+texto, así que se entiende sin ver el color. La fila **acertada** no dice nada:
+su único portador es el verde y un icono oculto al lector.
+
+Medido leyendo el `textContent` de cada `<li>` (que es lo que recorre el árbol de
+accesibilidad, `sr-only` incluido):
+
+```
+[FALLADA ] «…predominio anaeróbico  Su lugar era el 5.»      → SÍ lo dice
+[ACERTADA] «…R1 (VT1) — 65–75 %: máxima oxidación de lípidos» → NO dice nada
+[ACERTADA] «…R2 (VT2) — 80–90 % de la FCmáx: contiene el MLSS»→ NO dice nada
+```
+
+**A quién afecta y cómo.** Quien no ve el color tiene que deducir «esta la acerté»
+de que **no aparezca** «Su lugar era el N». Deducir por ausencia no es informar:
+exige haber entendido antes que las falladas siempre traen nota, y sobre una lista
+de cinco elementos con dos fallos ese razonamiento es carga cognitiva pura.
+
+**Es una inconsistencia dentro del propio código.** `opcion.tsx:105-115` ya hace
+lo correcto para los tres casos —«. Correcta, y es la que elegiste.» / «. Esta era
+la correcta.» / «. Incorrecta, y es la que elegiste.»—. `ordenar` se quedó a
+medias.
+
+**Arreglo** (una línea, con la misma forma que la pieza hermana):
+
+```tsx
+{acertada ? <span className="sr-only">. Bien puesta.</span> : null}
+```
+
+**Después, medido:** las 5 filas dicen su estado con texto — 2 «. Bien puesta.» y
+3 «Su lugar era el N». **De 2 filas mudas a 0.**
+
+---
+
+### A-26 · El campo de `calculo` nunca anuncia su unidad
+**Criterio:** 3.3.2 Labels or Instructions (A) · **Severidad: Serio** · **arreglado 2026-07-30**
+**Dónde:** `src/components/items/calculo.tsx:75, 83-85`
+
+**Problema.** El campo estaba bien etiquetado —`<label for>` = «Tu respuesta»— y
+bien descrito —`aria-describedby` apuntando a la ayuda de la coma decimal—. La
+**unidad** («lpm», «m», «ml/kg/min») vive en un `<span>` hermano que **nadie
+referencia**. Medido:
+
+```
+nombre       = 'Tu respuesta'
+describedby  = ['calculo-C5-028-ayuda']
+descripción  = ['Puedes escribir la coma decimal como coma o como punto…']
+unidad visible al lado = 'lpm'   ← no está ni en el nombre ni en la descripción
+```
+
+**A quién afecta y cómo, y por qué es Serio.** Se revisaron los enunciados de los
+ítems de cálculo de C5: **ninguno menciona la unidad**. C5-011 dice «Calcule esa
+frecuencia usando la fórmula de Fox», C5-023 «¿Qué distancia recorre en cada
+repetición?». La unidad existe **solo** en el sufijo visual. Quien usa lector de
+pantalla llega al campo sin saber si responder en lpm, en metros o en ml/kg/min,
+y `calificar()` compara contra un número con tolerancia: responder «16,2» en vez
+de «810» no es un tropiezo de navegación, es el ítem perdido. Es una barrera con
+rodeo —se puede rastrear el `<span>` navegando por el documento— pero el rodeo
+cuesta y en una tanda cronometrada (Paso 11) no habrá tiempo de hacerlo.
+
+**Arreglo** (dos líneas), respetando la restricción de que **la unidad no puede
+leerse como parte del valor**:
+
+```diff
++ const idUnidad = `${idCampo}-unidad`;
+- aria-describedby={idAyuda}
++ aria-describedby={`${idUnidad} ${idAyuda}`}
+- <span className="flex min-h-[52px] …">{item.unidad}</span>
++ <span id={idUnidad} className="flex min-h-[52px] …">{item.unidad}</span>
+```
+
+La unidad entra como **descripción**, no como nombre ni como valor: el lector la
+lee después de «Tu respuesta», y el `<span>` sigue siendo un hermano del
+`<input>`, no parte de él.
+
+**Después, medido:**
+
+```
+nombre      = 'Tu respuesta'
+descripción = ['lpm', 'Puedes escribir la coma decimal como coma o como punto…']
+valor del campo tras escribir = '117,5'   ← sigue siendo solo el número
+```
+
+---
+
+### A-27 · Ocho landmarks idénticos «Explicación de la respuesta» en el resumen
+**Criterio:** 1.3.1 Info and Relationships (A), en su lectura de landmarks · **Severidad: Menor** · **arreglado 2026-07-30**
+**Dónde:** `src/components/items/retroalimentacion.tsx:47-48`
+
+**Problema.** El panel es un `<section aria-label="Explicación de la respuesta">`,
+y un `<section>` **con nombre accesible** es un landmark `region`. En la sesión
+hay uno y no molesta. En la **pantalla de resumen** se montan los 8 ítems
+revisados a la vez:
+
+```
+8 × region :: Explicación de la respuesta
+```
+
+**A quién afecta y cómo.** Quien navega por landmarks —la forma rápida de moverse
+por una pantalla larga con lector— abre la lista y encuentra ocho entradas
+indistinguibles. La lista de landmarks deja de servir para lo que sirve. Con 10
+ítems (el quiz) son diez.
+
+**Es exactamente A-09 otra vez**, y se cierra con el mismo criterio: la
+explicación de un ítem es un **aparte dentro del hilo de lectura**, no una zona de
+la página. `role="note"` no es landmark y conserva el nombre.
+
+```diff
+- <section aria-label="Explicación de la respuesta" …>
++ <section role="note" aria-label="Explicación de la respuesta" …>
+```
+
+**Después, medido en el resumen:** `region` «Explicación de la respuesta»
+**8 → 0**; `section[role=note]` = **8**, cada uno sigue anunciando su nombre al
+entrar. axe pasa de 26 a **30 reglas pasadas** y sigue en 0 violaciones.
+
+---
+
+### A-28 · El `<h2>` del resumen recibe el foco y no se ve
+**Criterio:** 2.4.7 Focus Visible (AA), **rozándolo** · **Severidad: Menor** · **abierto — decide `ui-designer`**
+**Dónde:** `src/components/sesion/resumen-sesion.tsx:64` · foco movido desde `controlador-sesion.tsx:160-162`
+
+**Qué pasa.** Al cerrar la tanda, el foco salta al `<h2 tabIndex={-1}>`
+«Terminaste la práctica». Es el patrón correcto —el botón que se pulsó desaparece
+del DOM y sin esto el foco caería al `<body>`— y hace que el lector anuncie el
+cambio de pantalla. Pero el indicador no se dibuja: comparando el recorte antes y
+después de enfocar, **0 píxeles cambian**, en los dos temas.
+
+**Por qué es Menor y no un fallo.** 2.4.7 exige indicador visible en la interfaz
+**operable por teclado**; un encabezado con `tabIndex={-1}` no está en el orden de
+tabulación y no es operable. Formalmente no incumple. Lo que sí ocurre es que un
+usuario vidente que navega con teclado se queda sin saber dónde está el cursor
+justo después de un cambio de pantalla completo — y la siguiente pulsación de
+`Tab` arranca de un punto que no vio.
+
+**No lo aplico yo** porque dibujar un anillo sobre un titular es una decisión de
+aspecto, no de accesibilidad pura. La forma habitual es un contorno tenue solo
+cuando el foco llega por programa:
+
+```css
+h2:focus-visible { outline: 2px solid var(--ring); outline-offset: 4px; }
+```
+
+Queda para `ui-designer`, junto con A-15, A-16 y A-21.
+
+## Contraste medido en el Paso 9 — 52 superficies, los dos temas
+
+Por píxel a 3×, con control analítico. **51 de 52 pasan.** La única por debajo del
+umbral en la medición por píxel es el `<kbd>` de 12 px, y el control analítico
+—exacto, porque no hay `opacity` de por medio— la deja en **4,93:1**: pasa. La
+diferencia es dilución de antialiasing, no color.
+
+| Superficie | Claro | Oscuro | Umbral | AA |
+|---|---|---|---|---|
+| Opción CORRECTA, texto sobre `bg-exito/12` | 14,81 | 11,71 | 4,5 | ✅ |
+| Opción FALLADA, texto sobre `bg-destructive/12` | 14,53 | 12,23 | 4,5 | ✅ |
+| Opción APAGADA (`opacity-80`) | 9,36 | 9,25 | 4,5 | ✅ |
+| `Boton` inerte «Anterior» (`opacity-50` + `aria-disabled`) | 9,25 | 18,95 | 4,5 | ✅ |
+| Chip sólido `exito` (icono ✓) | 4,37 | 5,35 | 3,0 | ✅ |
+| Chip sólido `destructive` (icono ✕) | 5,17 | 4,52 | 3,0 | ✅ |
+| Retroalimentación · título sobre `exito/8` · `destructive/8` | 15,14 | 14,21 | 3,0 | ✅ |
+| Retroalimentación · explicación | 15,14 | 14,21 | 4,5 | ✅ |
+| Retroalimentación · referencia `muted` sobre tinte | 4,81 | 5,63 | 4,5 | ✅ |
+| `ordenar` · botón ↑ ↓ (`border-input`) | 4,95 | 5,65 | 3,0 | ✅ |
+| `ordenar` · «Su lugar era el N» `muted` sobre `destructive/12` | 4,61 | 4,84 | 4,5 | ✅ |
+| `emparejar` · chip sin pareja (borde discontinuo) | 17,03 | 15,22 | 3,0 | ✅ |
+| `emparejar` · instrucción viva `role="status"` | 5,55 | 5,51 | 4,5 | ✅ |
+| `calculo` · texto escrito en el campo | 17,49 | 13,92 | 4,5 | ✅ |
+| `calculo` · sufijo de unidad sobre `bg-secondary` | 12,67 | 11,49 | 4,5 | ✅ |
+| `calculo` · campo `readOnly` en revisión | 5,64 | 5,65 | 4,5 | ✅ |
+| `<kbd>` de los atajos sobre `bg-muted` | **4,93** (píxel 4,40) | 5,04 | 4,5 | ✅ al límite |
+| «Salir sin terminar» `muted` | 5,49 | 6,18 | 4,5 | ✅ |
+
+**Los dos tokens que se vigilaban resultaron sanos.** `exito` y `destructive` al
+8 % y al 12 % sostienen texto normal con margen de sobra en los dos temas, y el
+`aria-disabled` con `opacity-50` —el sitio donde esto se rompe casi siempre— mide
+**9,25:1 en claro y 18,95:1 en oscuro**, porque el `Boton` inerte se apaga sobre
+un fondo plano y no sobre un tinte.
+
+**Único margen estrecho: el `<kbd>` a 12 px, 4,93:1.** No es fallo, pero es la
+superficie con menos aire de todo el paso y cualquier retoque de `--muted` o
+`--muted-foreground` la tumba. Anotado para `ui-designer`, sin acción hoy.
+
+## Observaciones que no son hallazgos míos
+
+**`caso` no sale nunca — es de lógica, no de accesibilidad.** El banco de C5 tiene
+3 ítems `caso` (C5-013, C5-020, C5-025), válidos y con niveles alcanzables. En
+**96 ítems servidos** (12 semillas × 8) por `/practica`, y otros tantos por
+`/quiz`, **no apareció ni uno**. Eso deja el tipo `caso` sin poder ejercitarse en
+runtime en esta pasada, y apunta a `armarSimulacro`, que es territorio del
+`code-reviewer`. Lo que sí se puede afirmar: `caso` reutiliza `GrupoOpcionUnica`
+—el mismo control que `unica`, auditado y aprobado— y lo único propio suyo es el
+recuadro de viñeta, que es texto no interactivo. **Cuando se arregle el muestreo,
+hay que volver a pasarle esta auditoría al tipo `caso`.**
+
+**El mensaje de `emparejar` en modo `bloqueado` miente.** Con todas las parejas
+formadas dice «Toca un elemento de la izquierda si quieres cambiar alguna», sin
+mirar si el modo permite cambiarlas (`emparejar.tsx:80-88`: la rama de
+`seleccion === null` va antes que la de `puedeEmparejar`). Hoy es inalcanzable
+—nadie produce `bloqueado` hasta el Paso 11— así que no es hallazgo. **Anotado
+para el Paso 11**, cuando el simulacro cronometrado empiece a producir ese estado.
+
+**Dos `nav` llamados «Navegación principal».** La barra inferior y la barra
+lateral comparten nombre y conviven en el DOM. Es del armazón del Paso 5, no del
+Paso 9, y no se re-reporta aquí; queda apuntado por si el `ui-designer` toca el
+armazón.
+
+**A-20 sigue abierta y es de toda la app**, no de este paso: las versalitas
+(`uppercase` + `tracking`) llegan al árbol de accesibilidad en Chromium, y este
+paso añade superficies que las usan («La situación», «Tu respuesta», «Paso a
+paso», «Elemento», «Su pareja»). No se cuenta como hallazgo nuevo.
+
+**A-18 ya no aplica** en ninguna superficie del Paso 9: no hay degradados.
+
+## Herramientas de esta pasada
+
+```
+Playwright + Chromium headless  --disable-lcd-text --force-color-profile=srgb
+device_scale_factor=3           axe-core 4.x (wcag2a, wcag2aa, wcag21a, wcag21aa, wcag22aa)
+Pillow                          contraste por píxel + control analítico por composición alfa
+```
+
+Guiones en el scratchpad de la sesión: `p9lib.py` (biblioteca de medición),
+`p9-tipos.py` (mapa semilla → tipo), `p9-contraste.py` (52 superficies × 2 temas),
+`p9-cruce.py` (validación del instrumento), `p9-teclado.py` (recorrido, foco,
+extremos de `ordenar`), `p9-lector.py` (árbol, regiones vivas, axe),
+`p9-resumen.py` (resumen, zoom 200 %, movimiento reducido), `p9-despues.py`
+(medición posterior a los cuatro arreglos).

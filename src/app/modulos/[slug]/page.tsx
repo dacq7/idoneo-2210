@@ -24,6 +24,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
+import { cargarBancoModulo } from '@/content/banco/indice';
 import { BLOQUES_POR_ID, MODULOS, MODULOS_POR_SLUG } from '@/content/estructura';
 import { cargarTarjetas } from '@/content/tarjetas/indice';
 import { RotuloBloque } from '@/components/layout/rotulo-bloque';
@@ -59,7 +60,13 @@ export default async function PaginaModulo({ params }: Props) {
   if (!modulo) notFound();
 
   const bloque = BLOQUES_POR_ID.get(modulo.bloque);
-  const [mdx, tarjetas] = await Promise.all([leerTeoria(slug), cargarTarjetas(slug)]);
+  // El banco solo se cuenta aquí (para el estado de las etapas 3 y 4). Los
+  // ítems no se pasan a ningún cliente desde esta ruta.
+  const [mdx, tarjetas, items] = await Promise.all([
+    leerTeoria(slug),
+    cargarTarjetas(slug),
+    cargarBancoModulo(slug),
+  ]);
 
   const prerequisitos = modulo.prerequisitos
     .map((pre) => MODULOS_POR_SLUG.get(pre))
@@ -127,6 +134,7 @@ export default async function PaginaModulo({ params }: Props) {
           bloque: modulo.bloque,
           hayTeoria: mdx !== null,
           totalTarjetas: tarjetas.length,
+          totalItems: items.length,
         }}
         etapaActual={1}
       />

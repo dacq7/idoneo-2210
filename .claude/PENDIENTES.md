@@ -36,17 +36,33 @@ Se transcribieron §9.2–§9.5 (6 blueprints · 14 erratas · 70 datos duros ·
 
 C5 completo: teoría, 15 tarjetas y **28 ítems** con el reparto 12/9/7 de ADR-006, cableado en los dos índices y `estadoContenido: 'completo'`. Validador en 84 avisos y 0 errores.
 
-## Pasos 9 y 11 — Hooks de sesión y cronómetro
+## Paso 9 — Componentes de ítem · ✅ CERRADO el 2026-07-30
+
+Los 7 tipos × 4 estados, el controlador de sesión y las etapas 3 y 4 de C5. ADR-011 cerrada (barrel), ADR-015 (motor adelantado) y ADR-016 (tests de componente) nacen aquí.
+
+- **Pasarle la auditoría de accesibilidad al recuadro de viñeta de `caso`.** No se ejercitó en runtime: la auditoría creyó que el tipo no salía nunca del muestreo, y **sale** —medido, ~10 %, que es su proporción en el banco—. Lo interactivo de `caso` es `GrupoOpcionUnica`, ya auditado; lo propio suyo es la viñeta, que no es interactiva. Es una comprobación corta, no un bloqueo.
+- **A-28 · el foco del `<h2>` del resumen no se ve.** No incumple 2.4.7 (un `tabIndex={-1}` no es operable por teclado), pero deja al usuario vidente de teclado sin saber dónde quedó el cursor. Dibujar un anillo sobre un titular es decisión de aspecto: la toma el `ui-designer`.
+- **El `<kbd>` a 12 px mide 4,93:1.** Pasa, con **0,43 de margen**. Cualquier retoque de `--muted` lo tumba: si se toca ese token, se remide.
+- **A la tercera copia, extraer el botón propio.** Van dos: `sesion/boton.tsx` y el de `mazo-tarjetas.tsx`.
+
+## Paso 11 — Cronómetro y sesión persistente
 
 - ~~`<AlertaContradiccion>` es prematuro, no código muerto~~ **borrado por ADR-014.** El panel de retroalimentación de este paso muestra veredicto → `explicacion` → `pasos` si es cálculo → `referencia`, y **nada más**: el campo `contradiccion` de `ItemBase` ya no existe. **§13 del blueprint sigue describiendo el cuadro en el panel: no copiarlo.**
 
 - **Decidir, EN EL MISMO MOMENTO, la deuda de `src/lib/esquemas.ts`.** Manda al navegador los siete esquemas de ítem, más tarjetas y glosario, donde **ninguno se usa**: en cliente solo hace falta `esqEstadoProgreso`, que `almacenamiento.ts` importa para validar el progreso al leerlo. Evidencia: la cadena de sondeo era `grep "diceLaCartilla" .next/static/chunks/`; con `esqErrata` borrado (ADR-014) **hay que elegir una nueva** antes de volver a medirlo. **No es violación de §5** —§5 sanciona ese import explícitamente—; lo no previsto es el coste. Partirlo en `esquemas-progreso.ts` / `esquemas-contenido.ts` sí es arquitectura y choca con §22 regla 2, así que se reportó en vez de hacerse. Misma deuda que el barrel, mismas rutas, mismo momento.
-- **Decidir la deuda del barrel de `radix-ui`: 77.5 kB gz.** `src/components/ui/badge.tsx` y `button.tsx` hacen `import { Slot } from "radix-ui"` —el paquete paraguas—, y como `Slot` es cliente, el barrel completo entra al bundle de la ruta. Medido: `/not-found` paga **183.8 kB js gz** contra los **106.2** de `/modulos`, y el chunk extra (`470-*.js`, 77.5 kB gz) contiene `Slot`, `Presence`, `DismissableLayer` y `FocusScope` — maquinaria de diálogos que un 404 no usa. **El `grep` de ADR-010 no lo detecta porque no es `content/`.** El arreglo son dos líneas (`import { Slot } from "@radix-ui/react-slot"`, ya presente como transitiva en `1.3.3`) más declararlo en `dependencies`, pero los otros 8 componentes de `ui/` importan el mismo barrel para primitivas que **sí** usan, así que conviene fijar el criterio completo de una vez. Se decide aquí porque es cuando entran `Dialog` (reanudar sesión) y `Tabs` (`/herramientas`) y el reparto de chunks cambia igual.
+- ~~Decidir la deuda del barrel de `radix-ui`~~ **✅ CERRADA en el Paso 9.** Los 13 archivos de `ui/` pasan al subpath (`radix-ui/slot`, `radix-ui/dialog`, …): **−76.9 kB gz en `/not-found`**. La condición de cierre se resolvió con una regla `no-restricted-imports` — no se puede impedir que `npx shadcn@2 add` escriba el barrel, sí que sobreviva a `npm run lint`. Ver el cierre de ADR-011.
 
 - Los hooks se exportan como **`useSesion`** y **`useCronometro`**; los archivos siguen siendo `usar-sesion.ts` y `usar-cronometro.ts` (ADR-007). Con nombre en español, `react-hooks/rules-of-hooks` da error **y deja de auditar el interior de la función** — justo en el controlador de sesión y el auto-envío del cronómetro.
 - **Paso 11, deuda de §6 literal:** `leerSesion()` hace `JSON.parse(crudo) as SesionCronometro` **sin validar**, y no existe `esqSesionCronometro`. Con un payload como `{"foo":1}` devuelve un objeto sin `itemIds` ni `duracionSegundos`: recorrer `itemIds` lanza `TypeError` y `restantes()` daría `NaN`, porque `undefined !== null`. Decidir ahí si se añade el esquema.
 - `leerSesion` **no es libre de efectos**: se autolimpia con `borrarCrudo` si el payload es corrupto. El `dialogo-reanudar` debe llamarla desde un efecto, nunca en render.
 - `reactStrictMode` ya está activo desde el Paso 2, precisamente para que el doble disparo de efectos aparezca aquí y no en producción.
+
+## Paso 11 — Cronómetro y sesión persistente
+
+- **El banco entero viaja en la carga útil RSC**, y con 100 ítems sobre 29 módulos no escala: `/practica` pesa **17.1 kB gz de HTML** contra 9.1 de `/tarjetas`. El simulacro final es el caso difícil y llega aquí, así que es el momento de decidir si se sigue sirviendo desde el servidor o se carga con `import()` bajo interacción, como propone §2.2.
+- **El puntaje se calcula hoy en `usar-sesion.ts`** con la fórmula de §7.5. `src/lib/informe.ts` nace en el Paso 12 y es su dueño: esa línea se sustituye por la llamada. Está marcado en el archivo.
+- **El motor de simulacro ya está** desde el Paso 9 (ADR-015): `src/lib/simulacro.ts` con §7.3, más 199 tests. Este paso aporta lo suyo — `cronometro.ts`, `usar-cronometro.ts`, la persistencia de `SesionCronometro`, el diálogo de reanudar y el auto-envío—, **no vuelve a copiar §7.3**.
+- **`CLAUDE.md` §7.3 quedó desalineado en dos puntos y no se editó** (ADR-015): la rama `multiple` de `calificar` y el `default` de `presentarItem`. No se replica —§7.3 se copia una sola vez y ya está copiado— y los tests lo fijan. Solo importa si algún día se rehace el blueprint desde cero.
 
 ## Paso 12 — Informe
 
