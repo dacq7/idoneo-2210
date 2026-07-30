@@ -173,7 +173,7 @@ idoneo-2210/
 │   ├── glosario.ts                 ← conceptos clave con definición y módulo      §9.5
 │   ├── banco/
 │   │   ├── indice.ts               ← mapa slug → () => Promise<Item[]>            §9.6
-│   │   └── c5-umbrales-zonas.ts    ← 25 ítems del módulo piloto                  §14.3
+│   │   └── c5-umbrales-zonas.ts    ← 28 ítems del módulo piloto                  §14.3
 │   ├── tarjetas/
 │   │   ├── indice.ts               ← mapa slug → () => Promise<Tarjeta[]>
 │   │   └── c5-umbrales-zonas.ts    ← 15 tarjetas del módulo piloto               §14.2
@@ -1434,7 +1434,7 @@ import type { EstadoProgreso } from '@/lib/tipos';
  * a partir del segundo. Todo componente que lo use DEBE renderizar un esqueleto
  * mientras sea null — nunca un valor por defecto que luego "salte".
  */
-export function usarEstado(): EstadoProgreso | null {
+export function useEstado(): EstadoProgreso | null {
   return useSyncExternalStore(suscribir, obtenerSnapshot, obtenerSnapshotServidor);
 }
 ```
@@ -5347,9 +5347,24 @@ export const TARJETAS_MODULO: Tarjeta[] = [
 ];
 ```
 
-### 14.3 `content/banco/c5-umbrales-zonas.ts` — 25 ítems, los 7 tipos
+### 14.3 `content/banco/c5-umbrales-zonas.ts` — 28 ítems, los 7 tipos
 
-Distribución verificada contra las cuotas de §5.4:
+> **Corrección — ADR-006.** El código de esta sección trae **25** ítems, pero C5 es del
+> bloque C, que exige **28** (§14.4 y el entregable del paso 16). Desde ADR-005 el validador
+> lo enforza, así que con 25 el build **rompe** al voltear C5 a `'completo'`. Hay que escribir
+> tres ítems más, y su nivel **no es libre**: al pasar de 25 a 28 los umbrales de
+> `verificarCuotas` se mueven y recuerdo pasa a exigir 12 (no 11) y comprensión 9 (no 8).
+>
+> | Id | Nivel | Dificultad | Tipo |
+> |---|---|---|---|
+> | `C5-026` | recuerdo | 1 | única |
+> | `C5-027` | comprensión | 2 | múltiple |
+> | `C5-028` | aplicación | 3 | cálculo |
+>
+> Reparto final: **12 recuerdo · 9 comprensión · 7 aplicación** (42,9 / 32,1 / 25,0 %).
+> Reetiquetar uno de los tres no sirve: recuerdo volvería a 11/28 y el build rompe igual.
+
+La tabla siguiente verifica los **25 ítems escritos abajo** contra las cuotas de §5.4:
 
 | Dimensión | Reparto | Regla | ✓ |
 |---|---|---|---|
@@ -6292,16 +6307,16 @@ export default defineConfig({
 
 1. `content/teoria/c5-umbrales-zonas.mdx` — copiar §14.1.
 2. `content/tarjetas/c5-umbrales-zonas.ts` — copiar §14.2 (15 tarjetas).
-3. `content/banco/c5-umbrales-zonas.ts` — copiar §14.3 (25 ítems).
+3. `content/banco/c5-umbrales-zonas.ts` — copiar §14.3 y **escribir 3 ítems más hasta 28**: el bloque C exige 28 y el reparto por nivel queda forzado en 12 recuerdo / 9 comprensión / 7 aplicación. Ver **ADR-006** y `.claude/PENDIENTES.md`.
 4. Registrar C5 en los dos índices de `content/*/indice.ts`.
 5. Cambiar `estadoContenido` de `c5-umbrales-zonas` a `'completo'` en `estructura.ts`.
-6. `src/components/modulo/etapas-modulo.tsx` (`"use client"`): las 4 etapas con su estado leído de `usarEstado()`; esqueleto mientras el estado es `null`.
+6. `src/components/modulo/etapas-modulo.tsx` (`"use client"`): las 4 etapas con su estado leído de `useEstado()`; esqueleto mientras el estado es `null`.
 7. `src/components/modulo/marcador-lectura.tsx` (`"use client"`): `IntersectionObserver` sobre un centinela al final; marca `teoriaLeida`.
 8. `src/app/modulos/[slug]/tarjetas/page.tsx` + `src/components/modulo/mazo-tarjetas.tsx` (`"use client"`): tarjeta con frente/reverso, "la sabía / no la sabía", contador. Al terminar registra `tarjetasVistas` y encola las tarjetas en el SRS (la cola se activa en el paso 10).
 
 > **Dependencia declarada:** las etapas 3 y 4 (práctica y quiz) necesitan los componentes de ítem del paso 9. Este paso deja C5 con contenido completo, validado, y las etapas 1 y 2 funcionando de punta a punta.
 
-**Entregable:** `npm run validar` en verde con 25 ítems y 15 tarjetas. C5 legible y con tarjetas. `CONTENIDO.md` actualizado.
+**Entregable:** `npm run validar` en verde con 28 ítems y 15 tarjetas. C5 legible y con tarjetas. `CONTENIDO.md` actualizado.
 
 ---
 
@@ -6637,7 +6652,7 @@ El banco de ítems y las tarjetas son **módulos TS importables desde el cliente
 - Server Component por defecto. `"use client"` solo con estado, eventos, localStorage, temporizador o API del navegador.
 - Los motores de `src/lib/` **no llaman al reloj**: reciben `ahoraISO: string` o `ahoraMs: number`. Solo efectos y handlers leen `Date.now()`.
 - Todo acceso a localStorage pasa por `src/lib/almacenamiento.ts`. Esquema versionado con `migrar()`.
-- `usarEstado()` devuelve `null` en el primer render. Todo componente que lo use muestra un esqueleto mientras tanto.
+- `useEstado()` devuelve `null` en el primer render. Todo componente que lo use muestra un esqueleto mientras tanto.
 - Aleatoriedad: `crearRng(semilla)` de `src/lib/simulacro.ts`. **Nunca `Math.random()`.**
 
 ## Reglas de código

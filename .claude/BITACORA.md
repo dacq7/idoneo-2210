@@ -3,6 +3,10 @@
 Registro cronológico de construcción. **Una entrada por paso completado, siempre.**
 Se escribe al final, nunca sobre una entrada anterior.
 
+> **Antes de ejecutar un paso, lee `PENDIENTES.md`.** Ahí está, agrupado por paso, lo que
+> los pasos anteriores dejaron decidido o pendiente y que rompe algo si se ignora.
+> Las razones completas viven en `ARQUITECTURA.md` (los ADR) y en las entradas de aquí.
+
 Dos formatos conviven:
 
 - **Cierre de paso** (lo escribe quien ejecuta el paso):
@@ -533,5 +537,240 @@ Los otros 8 módulos del bloque C (C1–C4, C6–C9) heredan el mismo mínimo de
 **Compuertas:** `typecheck` 0 errores · `lint` limpio · `test` **100 en verde** (5 archivos) · `validar` verde · `build` verde.
 
 `.claude/CONTENIDO.md` actualizado: la fila de C5 dice 28 y la regla dura del encabezado nombra el mínimo del bloque C.
+
+---
+
+## Paso 4 — Almacenamiento — 2026-07-29
+
+**Estado:** ⚠️ Completado con ajustes
+
+**Archivos creados**
+
+- `src/lib/almacenamiento.ts` — §6 más los dos cambios de ADR-008. Sin `"use client"`: módulo neutro con guardas de SSR.
+- `src/hooks/usar-estado.ts` — §6.1, con la función exportada como `useEstado` (ADR-007). El nombre del archivo no cambia.
+- `src/lib/__tests__/almacenamiento.test.ts` — **59 tests**.
+- `.claude/ARQUITECTURA.md` — ADR-007 y ADR-008.
+
+**Verificación**
+
+- `npm run typecheck` → 0 errores. `npm run lint` → limpio. `npm test` → **159 tests en verde** (6 archivos). `npm run validar` y `npm run build` sin cambios, en verde.
+
+**Ajustes respecto al texto literal del blueprint**
+
+1. **El hook se exporta como `useEstado`, no `usarEstado`** (ADR-007). Con el nombre de §6.1, `npm run lint` queda **rojo**: `react-hooks/rules-of-hooks` tiene el prefijo `use` hardcodeado y no hay configuración que lo evite. Demostrado en ejecución: con `usarEstado` hay 1 error, con `useEstado` hay 0. Lo grave no es el error sino lo que se pierde — sin reconocer la función como hook, **la regla deja de auditar su interior**, y eso afectaría también a `usarSesion` (Paso 9) y `usarCronometro` (Paso 11), que son el código del cronómetro y el auto-envío. Los nombres de archivo se conservan, así que §10.3 sigue exacto.
+2. **Cuarentena del estado ilegible** (ADR-008). §6 no solo abandonaba el progreso: **`leerEstado` lo destruía en el acto**, en la primera lectura de cualquier componente, porque `guardarEstado(crearEstadoInicial(...))` pisa la clave ahí mismo. Eso choca con §22 regla 12 y con el propio comentario de §6. Ahora el payload se aparta bajo `idoneo2210:estado-ilegible` con su motivo antes de sobrescribir.
+3. **`localStorageUsable = false` en el `catch` de `escribirCrudo`** (ADR-008). Una línea que corrige pérdida de datos real: la sonda de 1 byte pasa con el disco casi lleno, así que `leerCrudo` seguía leyendo de `localStorage` y devolvía el valor **viejo**. Verificado que `leerSesion()` devolvía la sesión vieja con cero respuestas tras guardar la nueva — en un simulacro final, reanudar perdiendo respuestas.
+4. **Guard `version > VERSION_ESQUEMA`** en `intentarMigrar`, y el motivo `version-futura` en la cuarentena, para distinguir "viene de una app más nueva" de "está corrupto". Mismo comportamiento, distinta etiqueta, para que /ajustes pueda decir la verdad.
+
+**Requisito 1 · migraciones defensivas — un test por caso**
+
+| Caso | Motivo de cuarentena | Resultado |
+|---|---|---|
+| Estado v1 válido | — | se conserva íntegro, no entra en cuarentena |
+| Versión vieja (`version: 0`) | `invalido` | apartado |
+| Versión futura (`version: 2`) | `version-futura` | apartado |
+| JSON malformado / truncado | `no-json` | apartado |
+| JSON que no es objeto | `no-json` | apartado |
+| Sin campo `version` | `sin-version` | apartado |
+| Campo requerido faltante | `invalido` | apartado |
+| localStorage no disponible (modo privado) | — | degrada a memoria, nada revienta |
+| localStorage lleno (cuota) | — | degrada a memoria, avisa, y lee el valor NUEVO |
+
+Cada caso de cuarentena verifica tres cosas, no una: que el usuario recibe un estado usable (no ve la app en blanco), que el payload original sigue recuperable **byte a byte**, y que el motivo está bien clasificado. Más: la primera cuarentena gana, `descartarIlegible` la borra, `reiniciarTodo` también, y un registro de cuarentena corrupto no revienta.
+
+**Requisito 2 · `useSyncExternalStore`**
+
+- `obtenerSnapshot()` devuelve la **misma referencia** en llamadas sucesivas (`toBe`), y `null` de forma estable cuando no hay estado o es ilegible (`Object.is`).
+- `guardarEstado` invalida el caché y la referencia siguiente es la nueva.
+- `obtenerSnapshotServidor()` devuelve `null` **incluso con el caché ya poblado**.
+- Sincronización entre pestañas: el evento `storage` de la clave de estado invalida y notifica **una** vez; el de otra clave no notifica; `desuscribir()` quita el oyente y el listener de `window`; y otra pestaña puede *arreglar* un estado ilegible.
+
+**Verificación por mutación** — cada requisito tiene test que falla al quitar su garantía:
+
+| Mutación | Tests que fallan |
+|---|---|
+| Quitar `apartarIlegible` de `leerEstado` | 8 |
+| Quitar `localStorageUsable = false` del `catch` | 1 |
+| `obtenerSnapshot` sin caché (objeto nuevo cada vez) | 4 |
+| `obtenerSnapshotServidor` devuelve el estado cacheado | 1 |
+
+La última **no fallaba** en el primer intento: el test llamaba a `obtenerSnapshotServidor()` sin haber poblado el caché, así que pasaba por la razón equivocada. Corregido para poblar el caché primero, que es lo que le da valor. `almacenamiento.ts` restaurado y verificado idéntico con `diff` tras las cuatro mutaciones.
+
+**Cómo se testeó sin dependencias nuevas**
+
+`vitest.config.ts` usa `environment: 'node'`, así que no hay `window` y las guardas de SSR de §6 dejan el módulo inerte. Se descartó jsdom (dependencia nueva que ADR-002 no admite, y con menos control: para simular cuota habría que parchear `setItem` igual). En su lugar, un doble de `window` de ~35 líneas en el propio archivo de test, montado con `vi.stubGlobal` — que acepta `unknown`, así que **no hace falta ningún `as any`**.
+
+El módulo cachea estado (`snapshot`, `memoria`, `localStorageUsable`, `oyentes`), así que cada caso lo carga con `vi.resetModules()` + `await import()`. **Trampa que hay que respetar:** el archivo de test no puede tener un `import` estático de las funciones bajo prueba — `resetModules` solo afecta a las importaciones dinámicas posteriores. Solo `import type`. Está anotado en un comentario al inicio del archivo.
+
+**Notas**
+
+- **`necesitaRespaldo` se copió tal cual, con un hueco documentado en un test.** §18.5 dice "cada 7 días de uso", pero la rama sin `ultimoRespaldo` mira `racha.dias`, que son días **consecutivos** y se reinicia a 1 al saltarse uno: un entrenador que estudia 3 noches por semana durante dos meses **nunca** ve el recordatorio de respaldo. El blueprint gana y el hueco queda visible para decidirlo en el Paso 18.5, que es donde existe la UI y el contexto.
+- **Defecto menor que se dejó sin arreglar, a propósito:** con un estado ilegible guardado, `snapshot` queda en `null` y la guarda `if (snapshot)` nunca corta, así que `obtenerSnapshot` vuelve a hacer `JSON.parse` + Zod + `console.warn` en **cada** llamada — o sea, N warns por render mientras el dato siga ilegible. No hay riesgo de bucle (devuelve `null` de forma estable y `Object.is(null, null)` es `true`): es ruido y coste, no corrupción, y además transitorio, porque el primer `leerEstado` en un efecto lo reemplaza por un estado válido. El arreglo (una bandera `snapshotIlegible`) habría que limpiarla en tres sitios, incluido el handler del evento `storage`, o otra pestaña arreglaría el estado y esta se quedaría en `null` para siempre. No vale ese acoplamiento hoy.
+- `crearEstadoInicial` produce un estado que su propio esquema acepta: exportar e importar cierra el círculo desde el minuto uno. Hay test.
+
+**Pendiente**
+
+- **Paso 18.5 hereda una obligación concreta:** la UI de /ajustes **debe exponer la cuarentena** — avisar de que hay progreso apartado, permitir descargarlo y descartarlo. Sin eso, el mecanismo de ADR-008 existe sin que nadie pueda usarlo. Y debe decir la verdad: la cuarentena hace el progreso recuperable, no lo restaura.
+- **Paso 12, riesgo ya registrado en ADR-008:** `esqIntento.desglose.porBloque` es `z.record(esqConteo)`, así que un intento sin los bloques B/C/D pasa Zod, pero el cast afirma las cuatro claves y `construirInforme` de §7.5 hace `porBloque[b.id].total` → `Cannot read properties of undefined`. Vía de entrada: `importarJSON` acepta ese respaldo. El arreglo toca `esquemas.ts` (Paso 2) y el crash está en el Paso 12: se decide allí, no aquí.
+- Pasos 9 y 11 heredan la convención de ADR-007: `useSesion` y `useCronometro`, archivos `usar-sesion.ts` y `usar-cronometro.ts`.
+- Paso 5: `globals.css` de §11.3 con los 4 tokens de bloque y `@custom-variant dark`; `layout.tsx` sigue con `lang="en"`; el pie con la atribución a COLEF/COCED.
+
+---
+
+## [2026-07-29 22:58] · code-reviewer · Paso 4
+
+**Qué revisé:** los tres archivos del entregable — `src/lib/almacenamiento.ts`, `src/hooks/usar-estado.ts` y `src/lib/__tests__/almacenamiento.test.ts` (59 tests) — más `.claude/ARQUITECTURA.md` (ADR-007, ADR-008) y la entrada "Paso 4" de esta bitácora. Diff mecánico contra §6 y §6.1 del blueprint, verificación de la regla 6 sobre la cuarentena de ADR-008, campaña de mutación de 64 mutantes y 28 sondas propias. No apliqué ningún cambio al código.
+
+**Compuertas:** typecheck ok · lint ok · test ok (159 tests, 6 archivos) · validar ok (29 avisos, todos "en preparación") · build ok. Repetidas al final con el árbol restaurado: las cinco siguen en verde.
+
+**Invariantes verificados:**
+- `grep -rn "Math.random" src/ content/ scripts/` → vacío.
+- `grep -rn "Date.now()\|new Date()" src/lib/` → solo dos comentarios en `fechas.ts`. **`almacenamiento.ts` no llama al reloj:** recibe `ahoraISO` por parámetro en las 12 funciones que lo necesitan.
+- `grep -rn "localStorage" src/ --include=*.ts --include=*.tsx | grep -v almacenamiento.ts` → solo comentarios de `tipos.ts` y el doble de `window` del test. Ningún acceso real fuera del wrapper.
+- Directiva `"use client"` por primera línea real: `usar-estado.ts` **sí** la lleva; `almacenamiento.ts`, `tipos.ts` y `esquemas.ts` **no** (solo la nombran en comentarios). Concuerda con §10.3.
+- `grep -rn ": any\|as any\|<any>" src/ scripts/ content/` → vacío. El doble de `window` va con `vi.stubGlobal`, que acepta `unknown`.
+- Tailwind v4: `tailwind.config.*` no existe · sin `@tailwind ` en `globals.css` · `components.json` con `"config": ""`.
+- **Regla 6 (sin efectos en render):** rastreados los call sites. `escribirCrudo` se alcanza desde `guardarEstado`, `apartarIlegible` y `guardarSesion`; `apartarIlegible` **solo** desde `leerEstado` (línea 268). El camino de render (`obtenerSnapshot` → `leerCrudo` + `intentarMigrar`) no escribe. Sonda propia: 5 rondas de `obtenerSnapshot`/`obtenerSnapshotServidor`/`intentarMigrar` sobre un payload ilegible dejan el almacén byte a byte igual. Mutar el código para mover la cuarentena a `obtenerSnapshot` mata 5 tests, así que hay presión de regresión sobre la trampa.
+
+**Fidelidad a §6/§6.1:** diff mecánico limpio. Las únicas diferencias son las cuatro documentadas (comentario de encabezado, `localStorageUsable = false` en el `catch`, guard `version > VERSION_ESQUEMA`, bloque de cuarentena de ~70 líneas) más el rename de ADR-007 en §6.1. **Verificado literal:** los 12 mutadores de dominio, `conModulo`, `necesitaRespaldo`, `importarJSON`, `exportarJSON`, `leerSesion`/`guardarSesion`/`borrarSesion` y el bloque de snapshot/suscripción no tienen ni una línea alterada.
+
+**Campaña de mutación — 64 mutantes, 48 muertos, 16 supervivientes.** Verifiqué con sondas propias que **en los 16 casos el código es correcto**: son tests ausentes, no defectos. Los tres que el usuario señaló:
+- *Clasificación de `MotivoIlegible`*: **sí discrimina.** Intercambiar `sin-version`↔`invalido` mata 3 tests; `no-json`↔`version-futura`, 1; colapsar los cuatro motivos, 4. Además truncar el `payload` mata 6 y falsear `guardadoEn` mata 7.
+- *"La primera cuarentena gana"*: **cubierta**, quitarla mata 1 test.
+- *Modo `cuota` del doble de `window`*: **no miente.** La sonda de 1 byte pasa y la escritura real lanza, que es exactamente el fallo de ADR-008; quitar `localStorageUsable = false` mata 1 test.
+
+**Hallazgos:** 🔴 0 · 🟡 11 · 💭 6. Ninguno es un defecto de código: 10 son huecos de test y 1 es deriva de documentación. Los de mayor consecuencia:
+- `guardarEstado` no tiene test de `notificar()`: es el único cable entre una escritura y la UI **en la misma pestaña**, y todos los componentes de los pasos 8–13 dependen de él. Los tests de `suscribir` solo ejercen la vía `storage` entre pestañas.
+- `obtenerIntento` solo prueba el caso negativo: devolver `intentos[0]` pasa la suite, y `/resultados/[intentoId]` del Paso 12 se apoya entero en esa búsqueda.
+- `borrarSesion` sin test: si no borra, el `dialogo-reanudar` del Paso 11 ofrece reanudar un simulacro ya cerrado.
+- `marcarTeoriaLeida` nunca verifica `teoriaLeida`; convertirla en no-op pasa la suite (`marcarPracticaCompletada` sí está cubierta: asimetría).
+- `importarJSON` no prueba la pureza del camino de éxito; si persistiera, la confirmación explícita de §18.5 quedaría sin efecto (regla 12).
+- `necesitaRespaldo` "es false sin intentos" **pasa por la razón equivocada**: con `racha.dias: 5` la segunda rama devuelve `false` igual, así que quitar la guarda no cambia nada.
+- `CLAUDE.md` sigue diciendo `usarEstado`: línea 1437 lo define y las 6298 y 6640 instruyen a los pasos siguientes a consumirlo. El Paso 8 (`etapas-modulo.tsx`) se escribiría contra un símbolo que no existe.
+
+**Requisitos subrayados por el usuario, verificados con sondas propias (28, todas en verde):**
+- *(a) Migraciones defensivas:* seis escenarios (versión vieja, versión futura, JSON malformado, campo faltante, no-objeto, vacío) más cuota llena y SSR sin `window`. En todos el usuario recibe un estado usable, `obtenerSnapshot` no lanza y el payload original sigue recuperable byte a byte. Nadie pierde progreso ni ve la app en blanco.
+- *(b) `useSyncExternalStore`:* `obtenerSnapshotServidor()` devuelve `null` en los **tres** estados del caché (vacío, poblado por lectura, poblado por escritura). `obtenerSnapshot()` devuelve la misma referencia en 50 llamadas seguidas, y `null` estable sin estado y con estado ilegible.
+
+**Veredicto:** APROBADO CON CAMBIOS
+
+**Pendiente antes de cerrar el paso:**
+1. Los 10 tests que faltan (los cinco primeros son los que protegen a los pasos 10–13): `guardarEstado` notifica · `obtenerIntento` caso positivo · `borrarSesion` · `guardarColaRepaso` · `guardarDatosPersonales` · `marcarTeoriaLeida` pone la bandera · `importarJSON` puro en éxito · `necesitaRespaldo` sin intentos con racha ≥7 · `necesitaRespaldo` en la frontera `ultimoRespaldo === ayerHace7` · `desuscribir` comprobado sobre el Set interno con dos suscriptores.
+2. Alinear `CLAUDE.md` con ADR-007 (líneas 1437, 6298, 6640) o el Paso 8 arranca roto.
+3. Ratificación del `software-architect` para ADR-008: añade una tercera clave donde §6 dice "dos claves, deliberadamente separadas" y amplía la API pública del wrapper. No lo bloqueo —corrige una violación real de la regla 12 y está bien argumentado— pero es un desvío de una decisión cerrada y no me corresponde ratificarlo.
+4. Heredado al Paso 11, ya visible hoy: `leerSesion` hace `JSON.parse ... as SesionCronometro` **sin validar** y no existe `esqSesionCronometro` en `esquemas.ts`. Sonda propia: con `{"foo":1}` guardado devuelve un objeto sin `itemIds` ni `duracionSegundos`; recorrer `sesion.itemIds` lanza `TypeError` y `restantes()` daría `NaN` porque `undefined !== null`. Es §6 literal, así que no es desvío: es deuda que detona en el cronómetro.
+5. Nota para 18.5 y 11: `leerIlegible` y `leerSesion` **no** son libres de efectos (hacen `borrarCrudo` al autolimpiarse). Llamarlas en el cuerpo de un render sería escritura en render.
+
+**Estado del árbol:** lo dejé exactamente como lo encontré. Verificado con `sha256sum -c` (3 sumas coinciden), `diff` contra copias pristinas (idénticos) y `git status --porcelain` (2 docs modificados + 3 sin seguimiento, igual que al inicio). La sonda temporal se borró.
+
+---
+
+## [2026-07-29 23:05] · cierre de los cambios del code-reviewer · Paso 4
+
+Los once 🟡 de la revisión del Paso 4. **Ninguno era defecto de código**: el revisor mutó el código 64 veces, dejó 16 supervivientes y verificó con 28 sondas propias que en los 16 el código estaba bien y lo que faltaba era el test. Diez eran huecos de la suite; el undécimo no es de test y queda pendiente de tu decisión.
+
+**Diez tests añadidos**, de 59 a 69 en el archivo (169 en total):
+
+| Hueco | Por qué importaba |
+|---|---|
+| `guardarEstado` no probaba `notificar()` | Es el **único cable escritura → UI dentro de la misma pestaña**: los navegadores no emiten `storage` en la pestaña que escribió. Sin él, la app no se refresca al responder un ítem en los pasos 8–13, y la suite seguía verde. |
+| `reiniciarTodo` tampoco lo probaba | Igual. |
+| `desuscribir` afirmaba sobre el registro de `window`, no sobre el Set interno | Dejar el oyente dentro del Set pasaba. Ahora se verifica vía `guardarEstado`. |
+| `obtenerIntento` solo probaba el caso negativo | Devolver `intentos[0]` pasaba, y `/resultados/[intentoId]` del Paso 12 se apoya entero en esa búsqueda: mostraría el informe equivocado. |
+| `marcarTeoriaLeida` solo afirmaba `ultimaVisita` | Volverla no-op pasaba. Asimetría con `marcarPracticaCompletada`, que sí estaba cubierta. |
+| `guardarColaRepaso` sin test | La escribe `lib/srs.ts` en el Paso 10. |
+| `guardarDatosPersonales` sin test | La usan los pasos 13 y 18.5. |
+| `borrarSesion` sin test | Si no borra, el `dialogo-reanudar` del Paso 11 ofrece reanudar un simulacro ya cerrado. |
+| `leerSesion` con sesión corrupta sin test | Debe descartar y limpiar. |
+| `importarJSON` sin test de pureza en el **éxito** | Si persistiera, la confirmación explícita que pide §18.5 no serviría de nada (§22 regla 12). |
+| `necesitaRespaldo` "sin intentos" pasaba por la razón equivocada | Con `racha.dias: 5` la segunda rama daba `false` igual. Ahora se prueba con racha 30, así el `false` solo puede venir del corte temprano. Añadida también la frontera inclusiva de `ultimoRespaldo`. |
+
+**Verificación por mutación de los nuevos:**
+
+| Mutación | Test que falla |
+|---|---|
+| `guardarEstado` sin `notificar()` | 1 |
+| `obtenerIntento` devuelve `intentos[0]` | 1 |
+| `marcarTeoriaLeida` como no-op | 1 |
+| `borrarSesion` como no-op | 1 |
+| `importarJSON` persiste al aceptar | 1 |
+
+`almacenamiento.ts` restaurado y verificado idéntico con `diff` tras las cinco.
+
+**Lo que el revisor confirmó que sí estaba bien**
+
+Fidelidad a §6 limpia por diff mecánico: los 12 mutadores, `conModulo`, `necesitaRespaldo`, `importarJSON`, `exportarJSON` y el bloque de sesión están literales, y solo aparecen las cuatro desviaciones documentadas. La cuarentena **no rompe la regla 6**: `apartarIlegible` se llama desde un único sitio, `leerEstado`, y cinco rondas de render sobre un payload ilegible dejan el almacén byte a byte igual — además, mover la cuarentena a `obtenerSnapshot` mata 5 tests, así que la trampa tiene presión de regresión. Y los tres puntos que pedí con lupa aguantaron: `MotivoIlegible` sí discrimina (intercambiar `sin-version` por `invalido` mata 3 tests, truncar el `payload` mata 6), "la primera cuarentena gana" está cubierta, y el modo `cuota` del doble no miente.
+
+**Estado:** `typecheck` 0 · `lint` limpio · `test` **169 en verde** (6 archivos) · `validar` verde · `build` verde.
+
+**Pendiente de decisión del usuario — no es un hueco de test**
+
+**`CLAUDE.md` contradice ADR-007.** Define `usarEstado` en la línea 1437 y manda consumirlo en la 6298 y la 6640. El Paso 8 arrancaría roto si su ejecutor sigue el blueprint literal, porque la función se llama `useEstado`. Hay dos salidas y ninguna la tomo por iniciativa propia:
+
+1. **Editar `CLAUDE.md`** en esos tres puntos. Rompe el invariante que fijó el Paso 1 (`git diff CLAUDE.md` vacío), que hasta ahora ha sostenido que el blueprint es de solo lectura y que sus correcciones viven en los ADR (§5 en ADR-003, §9.1 en ADR-004, §8 en ADR-005, §14.3 en ADR-006).
+2. **Dejarlo como está** y confiar en que quien ejecute el Paso 8 lea ADR-007. Es lo coherente con los cuatro ADR anteriores, pero esta corrección es distinta: las otras se descubren al fallar el build o el validador, y esta se descubre como un `TypeError` en runtime o un import que no resuelve.
+
+**Otras notas del revisor, registradas para más adelante**
+
+- **Paso 11, deuda de §6 literal:** `leerSesion` hace `JSON.parse(crudo) as SesionCronometro` **sin validar**, y no existe un `esqSesionCronometro`. Con `{"foo":1}` devuelve un objeto sin `itemIds` ni `duracionSegundos`: recorrer `itemIds` lanza `TypeError`, y `restantes()` daría `NaN` porque `undefined !== null`. No es desviación, es deuda del blueprint; se decide en el Paso 11.
+- `leerIlegible` y `leerSesion` **no** son libres de efectos: se autolimpian con `borrarCrudo` si el payload es corrupto. El Paso 18.5 y el `dialogo-reanudar` deben llamarlas desde un efecto, no en render.
+- Los guards de versión de `intentarMigrar` son **redundantes hoy**: `esqEstadoProgreso.version` es `z.literal(1)` y Zod ya rechaza ambos casos. Su valor real está en `clasificarIlegible`, que sí está probado. Con la v2 pasan a ser portantes y necesitarán test propio.
+- **El doble de `window` tiene una etiqueta imprecisa:** el modo `privado` hace que `setItem` lance siempre, y el Safari privado moderno (≥11) ya no hace eso — da un `localStorage` funcional con cuota pequeña que se borra al cerrar. El escenario que reproduce de verdad es "localStorage inutilizable" (cookies bloqueadas, iframe de terceros, Firefox estricto), que es igual de válido. La etiqueta es imprecisa, el escenario no.
+- El revisor escaló **ADR-008** al `software-architect` para ratificación, por la tercera clave de `localStorage` y la API pública nueva. No lo bloqueó: corrige que §6 destruyera el progreso y restaura un invariante en vez de romperlo.
+
+---
+
+## [2026-07-29 23:20] · se editó CLAUDE.md y se creó PENDIENTES.md · Paso 4
+
+Resuelto el undécimo hallazgo del `code-reviewer`, el único que no era hueco de test.
+
+**1 · `CLAUDE.md` editado — tres líneas, primera vez que se toca el blueprint**
+
+| Línea | Antes | Ahora |
+|---|---|---|
+| 1437 | `export function usarEstado(): EstadoProgreso \| null {` | `useEstado` |
+| 6298 | Paso 8, viñeta 6: "…estado leído de `usarEstado()`" | `useEstado()` |
+| 6640 | §21: "`usarEstado()` devuelve `null` en el primer render" | `useEstado()` |
+
+`git diff --stat CLAUDE.md` → **3 insertions(+), 3 deletions(-)**. Ni una línea más.
+
+Decisión del usuario, y la razón queda registrada como enmienda de **ADR-007**: no es preferencia de nomenclatura. Con `usarEstado`, `react-hooks/rules-of-hooks` **deja de auditar el interior del hook**, y eso apagaría la verificación en `usarSesion` (Paso 9) y `usarCronometro` (Paso 11) — el controlador de sesión y el cronómetro con auto-envío. El invariante de "blueprint de solo lectura" que fijó el Paso 1 protege la integridad de la fuente, **no cubre errores que rompen el build**.
+
+Por qué esta corrección sí y las cuatro anteriores no: ADR-003 (§5), ADR-004 (§9.1), ADR-005 (§8) y ADR-006 (§14.3) corrigen cosas que **se descubren solas** — rompen `tsc`, el validador o el build, así que quien las tropieza busca la razón y encuentra el ADR. Esta no: un ejecutor del Paso 8 que siguiera el blueprint literal escribiría `import { usarEstado } from '@/hooks/usar-estado'` y eso falla como import que no resuelve, sin señal que apunte a ningún ADR.
+
+**Verificación:** `grep -c usarEstado CLAUDE.md` → **0**. Cero ocurrencias funcionales en `src/`, `scripts/` y `content/`. La única mención que sobrevive en código es el docstring de `src/hooks/usar-estado.ts`, que explica la decisión a quien lea el archivo, y es deliberada. Los nombres de archivo no se tocaron, así que §10.3 sigue exacto. `npm run lint` limpio.
+
+**2 · `.claude/PENDIENTES.md` — nuevo archivo**
+
+Las obligaciones heredadas estaban dispersas en cinco entradas de bitácora y seis ADR, y ninguna estaba donde el paso que debe cumplirlas la va a leer. Ahora hay un índice **agrupado por paso**, con la regla de que cada línea rompe algo si se ignora, y un puntero en el encabezado de esta bitácora para que se lea antes de empezar cualquier paso.
+
+Consolida lo acumulado en los pasos 1 a 4: los tokens de bloque y `@custom-variant dark` del Paso 5, el `lang="en"` que sigue en `layout.tsx`, los 28 ítems de C5 con su reparto forzado 12/9/7 del Paso 8, la convención `useSesion`/`useCronometro` de los pasos 9 y 11, el `leerSesion` sin validar del Paso 11, el crash del `desglose` parcial del Paso 12, los SVG de create-next-app del Paso 14.4, el mínimo de 28 del Paso 16, `reactStrictMode` que debe sobrevivir al 18.1, y el README del 18.9.
+
+**La obligación que motivó el archivo, en `PENDIENTES.md` → Paso 18.5:** la UI de /ajustes **debe** exponer la cuarentena de ADR-008, con las tres acciones concretas — **avisar** (traduciendo `motivo` a lenguaje de usuario: `version-futura` es "viene de una versión más nueva de la app", no "está corrupto"), **descargar** el payload como archivo, y **descartar** con confirmación. Y decir la verdad en el texto: la cuarentena hace el progreso recuperable, **no lo restaura**. Sin esa UI, el mecanismo existe y nadie puede alcanzar el progreso apartado.
+
+**Compuertas:** `typecheck` 0 · `lint` limpio · `test` **169 en verde** · `validar` verde · `build` verde.
+
+---
+
+## [2026-07-29 23:35] · CLAUDE.md corregido también en la cuota de C5 · Paso 4
+
+Segunda corrección al blueprint, mismo criterio que la del hook: **se edita cuando la instrucción literal rompe el build y no deja rastro que apunte al ADR.**
+
+`CLAUDE.md` seguía diciendo 25 ítems para C5 en cuatro sitios, contra el ADR-006:
+
+| Línea | Antes | Ahora |
+|---|---|---|
+| 176 | árbol: "25 ítems del módulo piloto" | 28 |
+| 5350 | título de §14.3: "— 25 ítems, los 7 tipos" | "— 28 ítems" + nota con los 3 que faltan y su nivel forzado |
+| 6295 | Paso 8, viñeta 3: "copiar §14.3 (25 ítems)" | "copiar §14.3 y escribir 3 ítems más hasta 28", con el reparto 12/9/7 y el puntero a ADR-006 |
+| 6319 | Paso 8, entregable: "en verde con 25 ítems" | 28 — con 25 el validador **no** estaría verde |
+
+**El escenario que evita:** el Paso 8 lee su viñeta 3, copia los 25 ítems, voltea C5 a `'completo'`, y **entonces** el validador rompe por la cuota del bloque C — con el trabajo de redacción ya hecho y el ejecutor entre dos fuentes que se contradicen.
+
+**El título de §14.3 no se cambió a secas.** Esa sección contiene 25 objetos de ítem: poner "28" sin más sería un título que promete lo que el código no trae. La nota dice que trae 25 y que faltan 3, con la tabla de los tres (`C5-026` recuerdo/1/única, `C5-027` comprensión/2/múltiple, `C5-028` aplicación/3/cálculo) y la advertencia de que reetiquetar uno no sirve. La tabla de verificación que sigue quedó rotulada como "los 25 ítems escritos abajo", que es lo que verifica de verdad.
+
+**Cinco referencias a `≥25` se dejaron intactas** (líneas 51, 2940, 5913, 6684, 6771): son el mínimo **global**, correcto para A, B y D, y no contradicen nada para C porque 28 ≥ 25. La de §14.4 ya decía "≥25 ítems (28 en el bloque C)".
+
+Diff acumulado de `CLAUDE.md` en el Paso 4: **24 insertions(+), 9 deletions(-)** — 3 líneas por el hook (ADR-007) y 4 por la cuota (ADR-006), más la nota explicativa de §14.3. Registrado como enmienda en ADR-006 y actualizado en `PENDIENTES.md`.
 
 ---

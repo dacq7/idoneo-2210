@@ -193,3 +193,118 @@ Nada más del módulo se mueve: las **15 tarjetas** siguen sobre el mínimo de 1
 **Los otros 8 módulos del bloque C heredan el mismo mínimo de 28** — C1, C2, C3, C4, C6, C7, C8 y C9 — y lo hacen en el **Paso 16**, donde ya estaba declarado como entregable. Con `cuotasDelBloque` enforzándolo, ese entregable pasa de promesa a compuerta: los nueve módulos del bloque de mayor peso del examen se declaran completos solo cuando `npm run validar` lo confirma. Para los tres bloques restantes el mínimo sigue siendo 25.
 
 Tercera desviación del código literal del blueprint, después de ADR-003 (§5) y ADR-005 (§8), y la primera que toca **contenido** en vez de código. Se registra en la bitácora del Paso 8 al escribir los tres ítems.
+
+### Enmienda — 2026-07-29: se editó `CLAUDE.md`
+
+Mismo criterio que la enmienda de ADR-007: **el blueprint se corrige cuando su instrucción literal rompe el build y no deja rastro que apunte al ADR.** Cuatro líneas, todas sobre C5:
+
+| Línea | Qué decía | Ahora |
+|---|---|---|
+| 176 | árbol de directorios: "25 ítems del módulo piloto" | 28 |
+| 5350 | título de §14.3: "— 25 ítems, los 7 tipos" | "— 28 ítems", más una nota con los 3 ítems que faltan y su nivel forzado |
+| 6295 | Paso 8, viñeta 3: "copiar §14.3 (25 ítems)" | "copiar §14.3 y **escribir 3 ítems más hasta 28**", con el reparto 12/9/7 y el puntero a este ADR |
+| 6319 | Paso 8, entregable: "`validar` en verde con 25 ítems" | 28 — con 25 el validador **no** estaría verde |
+
+**Por qué era urgente y no bastaba con el ADR.** El Paso 8 lee su propia viñeta 3, copia los 25 ítems de §14.3, voltea C5 a `'completo'` y **entonces** el validador rompe por la cuota del bloque C — con todo el trabajo de redacción ya hecho, y dejando al ejecutor entre dos fuentes que se contradicen: el blueprint dice 25, el ADR dice 28. El ADR solo no lo evita, porque nada en el camino del Paso 8 obliga a leerlo.
+
+**El título de §14.3 no se cambió a secas.** Esa sección **contiene** 25 objetos de ítem: poner "28 ítems" sin más habría creado una inconsistencia nueva — un título que promete lo que el código no trae. La nota dice explícitamente que el código trae 25 y que faltan 3, y la tabla de verificación que sigue quedó rotulada como "los **25 ítems escritos abajo**", que es lo que verifica de verdad.
+
+**Cinco referencias a `≥25` se dejaron intactas a propósito** (líneas 51, 2940, 5913, 6684 y 6771): son el **mínimo global**, correcto para los bloques A, B y D, y no contradicen nada para C porque 28 ≥ 25. La de §14.4 ya decía "≥25 ítems (28 en el bloque C)", que es justamente la regla que este ADR hizo valer.
+
+---
+
+## ADR-007 · Los hooks se exportan con prefijo `use`, los archivos siguen en español
+
+**Estado:** Aceptada
+**Fecha:** 2026-07-29 · **Autor:** Paso 4
+
+**Contexto:** §6.1 del blueprint exporta el hook como `usarEstado`, coherente con la regla 5 de `CLAUDE.md` ("nombres en español, igual que el dominio"). Con ese nombre, `npm run lint` queda **rojo**:
+
+```
+error  React Hook "useSyncExternalStore" is called in function "usarEstado" that is
+neither a React function component nor a custom React Hook function
+react-hooks/rules-of-hooks
+```
+
+`eslint-plugin-react-hooks` tiene el prefijo hardcodeado (`isHookName`: `s === 'use' || /^use[A-Z0-9]/`), y `additionalHooks` solo afecta a `exhaustive-deps`, no a `rules-of-hooks`. No hay configuración que lo resuelva.
+
+Y el costo mayor no es el error, es lo que se pierde: **al no reconocer la función como hook, la regla deja de auditar su interior.** Un `if (x) useEffect(...)` dentro de `usarSesion` (Paso 9) o `usarCronometro` (Paso 11) pasaría inadvertido — y esos dos son el código más delicado del proyecto, el que maneja el cronómetro y el auto-envío de un simulacro de 120 minutos.
+
+**Decisión:** La **función exportada** lleva prefijo `use`: `useEstado`, `useCronometro`, `useSesion`. Los **nombres de archivo no cambian**: `src/hooks/usar-estado.ts`, `usar-cronometro.ts`, `usar-sesion.ts`, así §10.3 del blueprint sigue siendo correcto letra por letra.
+
+La regla 5 no se viola: gobierna el **vocabulario de dominio** (`armarSimulacro`, `colaDelDia`, `verificarCuotas`), y `use` no es vocabulario sino un **marcador de protocolo** que consumen el linter, React DevTools y el compilador de React — del mismo orden que el `_` de un campo privado o el sufijo `.test.ts`.
+
+**Alternativas descartadas:**
+
+- **`// eslint-disable-next-line react-hooks/rules-of-hooks`.** Silencia el error pero conserva exactamente el problema que importa: el interior de la función sigue sin auditarse. Cambia una compuerta roja por un agujero silencioso, que es peor.
+- **Renombrar también los archivos a `use-estado.ts`.** Obligaría a corregir §10.3 del blueprint y las 3 rutas de import que ya menciona. Cambio innecesario: el linter mira el nombre de la función, no el del archivo.
+
+**Consecuencias:** Verificado: con `usarEstado` hay 1 error de lint; con `useEstado`, 0. Los pasos 9 y 11 heredan la convención, y con ella el chequeo interno de hooks. Al importar se lee `import { useEstado } from '@/hooks/usar-estado'`, que mezcla los dos idiomas en una línea; es el precio, y es visible en 3 archivos.
+
+### Enmienda — 2026-07-29: se editó `CLAUDE.md`
+
+**Es la primera vez que se toca el blueprint**, y rompe a propósito el invariante que fijó el Paso 1 (`git diff CLAUDE.md` vacío). Tres líneas, `usarEstado` → `useEstado`:
+
+| Línea | Qué era |
+|---|---|
+| 1437 | `export function usarEstado(): EstadoProgreso \| null {` — el código de §6.1 |
+| 6298 | Paso 8, viñeta 6: "las 4 etapas con su estado leído de `usarEstado()`" |
+| 6640 | §21, el `CLAUDE.md` del proyecto destino: "`usarEstado()` devuelve `null` en el primer render" |
+
+**Por qué esta corrección sí justifica editar el blueprint, y las cuatro anteriores no.** ADR-003 (§5), ADR-004 (§9.1), ADR-005 (§8) y ADR-006 (§14.3) corrigen cosas que **se descubren solas**: rompen el `tsc`, el validador o el build, así que quien las tropiece va a buscar la razón y la va a encontrar en el ADR. Esta no. Un ejecutor del Paso 8 que siga el blueprint literal escribiría `import { usarEstado } from '@/hooks/usar-estado'`, y eso falla como un import que no resuelve o un `TypeError` en runtime, sin ninguna señal que apunte al ADR.
+
+Y el fondo no es de nomenclatura: **con `usarEstado`, `react-hooks/rules-of-hooks` deja de auditar el interior del hook.** Eso apagaría la verificación en `usarSesion` (Paso 9) y `usarCronometro` (Paso 11), que son el controlador de sesión y el cronómetro con auto-envío — el código más delicado del proyecto. El invariante de "blueprint de solo lectura" existe para proteger la integridad de la fuente, no para conservar un error que rompe el build y apaga una compuerta.
+
+**Alcance de la edición:** exactamente 3 líneas (`git diff --stat` → `3 insertions(+), 3 deletions(-)`), y cero referencias a `usarEstado` restantes en `CLAUDE.md`. La única mención que sobrevive en el repo está en el docstring de `src/hooks/usar-estado.ts`, donde es deliberada: explica la decisión a quien lea el archivo. Los nombres de archivo siguen intactos, así que §10.3 no cambió.
+
+---
+
+## ADR-008 · El estado ilegible se aparta en cuarentena, no se descarta
+
+**Estado:** Aceptada
+**Fecha:** 2026-07-29 · **Autor:** Paso 4
+
+**Contexto:** §22 regla 12 dice: *"Nunca destruir el progreso del usuario. Ni al migrar el esquema, ni al importar un JSON inválido, ni al reiniciar sin doble confirmación."* El propio §6 lo repite en un comentario: *"NUNCA borrar el progreso del usuario por un cambio de esquema."*
+
+Pero el código de §6 hace lo contrario, y no de forma diferida: **`leerEstado` destruye el progreso en el acto**, en la primera lectura de cualquier componente.
+
+```ts
+const actual = obtenerSnapshot();
+if (actual) return actual;
+const nuevo = crearEstadoInicial(ahoraISO);
+guardarEstado(nuevo);        // ← pisa la clave aquí mismo
+```
+
+Cualquier fallo de `esqEstadoProgreso.safeParse` —versión desconocida, campo faltante, JSON truncado— hace que `intentarMigrar` devuelva `null`, y a partir de ahí el payload original desaparece. Verificado: con `{version: 2, racha: {dias: 5}}` guardado, tras un `leerEstado` ya no existe en `localStorage`.
+
+**Decisión:** Antes de sobrescribir, el payload ilegible se **aparta** bajo una tercera clave, `idoneo2210:estado-ilegible`, con su motivo y la fecha. API nueva de tres funciones y un tipo, sin cambiar ninguna firma existente:
+
+```ts
+export type MotivoIlegible = 'no-json' | 'sin-version' | 'version-futura' | 'invalido';
+export interface EstadoIlegible { motivo: MotivoIlegible; guardadoEn: string; payload: string }
+export function apartarIlegible(ahoraISO: string): EstadoIlegible | null
+export function leerIlegible(): EstadoIlegible | null
+export function descartarIlegible(): void
+```
+
+Tres decisiones de diseño que importan:
+
+1. **`intentarMigrar` no se toca y sigue sin efectos secundarios.** Se llama desde el snapshot de React, es decir durante el render (§22 regla 6). La escritura de cuarentena vive en `leerEstado`, que es camino de efecto o handler. Poner la cuarentena en `obtenerSnapshot` es la trampa obvia y rompería la regla 6.
+2. **La primera cuarentena gana**, nunca se pisa: si no, un segundo fallo posterior borraría el payload bueno que ya estaba apartado.
+3. **`reiniciarTodo` sí la borra.** "Reiniciar todo con doble confirmación" significa todo.
+
+Se añade también el guard `if (candidato.version > VERSION_ESQUEMA) return null;` para que una v2 futura no se "migre hacia abajo" por accidente, y el motivo `version-futura` para que /ajustes pueda decir *"tu progreso viene de una versión más nueva de la app"* en vez de *"el archivo estaba corrupto"*. Mismo comportamiento, distinta etiqueta.
+
+**Honestidad sobre el alcance:** la cuarentena **no restaura** el progreso. Un payload que no parsea es irrecuperable en el caso general. Lo que hace es volverlo **inspeccionable, exportable y recuperable a mano**, en vez de silenciosamente permanente. Eso es lo máximo que la regla 12 puede significar aquí, y así debe comunicárselo /ajustes al usuario en el Paso 18.5.
+
+**Segundo cambio, de una línea, por la misma razón:** en el `catch` de `escribirCrudo` se añade `localStorageUsable = false`. La sonda de 1 byte de `hayLocalStorage()` **pasa** con el disco casi lleno, así que sin esa línea la bandera se queda en `true` y `leerCrudo` sigue leyendo de `localStorage` — devolviendo el valor **viejo** mientras el nuevo está en `memoria`. Para el estado el daño lo tapa el caché de `snapshot`, pero **`leerSesion()` no tiene caché**: verificado que devolvía la sesión *vieja*, con cero respuestas, después de guardar la nueva. En un simulacro final eso es reanudar perdiendo respuestas, justo lo que el Paso 11 promete blindar. El precio es perder la sincronización entre pestañas a partir del fallo, que con el disco lleno ya estaba rota.
+
+**Alternativas descartadas:**
+
+- **Recuperación parcial**, quedándose con los campos que sí validan. Es una feature con superficie de test propia (validar entrada por entrada de `modulos`, `colaRepaso`, `intentos`), inventa política que el blueprint no tiene, y produce una pérdida **más silenciosa** que la cuarentena: un estado que parece sano al que le faltan intentos. El caso realista que la motivaría —v2 añade un campo requerido— es justo para lo que existe el gancho `if (candidato.version === 1)`. Escalera de migración para lo previsible, cuarentena para lo imprevisible.
+- **Dejar §6 tal cual**, entendiendo que "no perder progreso" solo aplica al import de /ajustes. La regla 12 dice explícitamente "ni al migrar el esquema".
+- **Trato asimétrico real para `version-futura`** (no sobrescribir nunca, dejar el payload v2 intacto). Suena correcto para un rollback de deploy, pero exigiría que `leerEstado` devuelva un estado sin persistirlo **y** que `guardarEstado` respete un modo solo-lectura en toda la capa. Es una feature, no un mínimo. Con cuarentena el dato v2 sobrevive igual: recuperable, no automático.
+
+**Consecuencias:** §6 crece ~70 líneas, la mitad comentarios, y `localStorage` pasa de dos claves a tres — §6 dice "dos claves, deliberadamente separadas", y esta tercera se justifica por la regla 12. El Paso 18.5 hereda una obligación concreta: **la UI de /ajustes debe exponer la cuarentena** (avisar de que hay un progreso apartado, permitir descargarlo y descartarlo), o el mecanismo existe sin que nadie pueda usarlo. Queda anotado en la bitácora del Paso 4.
+
+**Riesgo latente registrado aquí, que detona en el Paso 12 y NO se arregla en este paso:** `esqIntento.desglose.porBloque` es `z.record(esqConteo)`, así que un intento **sin** los bloques B/C/D pasa Zod, pero el cast afirma `Record<BloqueId, …>` con las cuatro claves. `construirInforme` de §7.5 hace `porBloque[b.id].total` y **revienta** con `Cannot read properties of undefined`. Vía de entrada: un respaldo así se acepta como válido en `importarJSON`. El arreglo toca `src/lib/esquemas.ts` (archivo del Paso 2) y el sitio del crash es el Paso 12: se decide allí.
