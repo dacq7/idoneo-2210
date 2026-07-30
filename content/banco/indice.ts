@@ -5,6 +5,7 @@
 import type { Item } from '@/lib/tipos';
 
 export const BANCO: Record<string, () => Promise<Item[]>> = {
+  'c5-umbrales-zonas': () => import('./c5-umbrales-zonas').then((m) => m.ITEMS),
   // Los 29 módulos se registran aquí a medida que su contenido existe.
   // C5 entra en el paso 8; los 28 restantes en los pasos 15–17.
 };

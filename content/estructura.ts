@@ -382,9 +382,10 @@ export const MODULOS: Modulo[] = [
       'SIT',
     ],
     prerequisitos: ['c1-vias-energeticas', 'c2-cardiovascular', 'c3-respiratorio-vo2'],
-    // §9.1 lo muestra en 'completo'; el paso 8 lo voltea cuando exista su
-    // contenido. Ver ADR-004.
-    estadoContenido: 'en-preparacion',
+    // Volteado en el paso 8, cuando su contenido pasó a existir (ADR-004).
+    // Con esto el validador le exige teoría + ≥12 tarjetas + ≥28 ítems (bloque C,
+    // ADR-005 hueco 5 y ADR-006) + sus 9 conceptos clave en el glosario.
+    estadoContenido: 'completo',
   },
   {
     slug: 'c6-biomecanica',

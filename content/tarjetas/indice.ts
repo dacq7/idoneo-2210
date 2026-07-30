@@ -3,6 +3,7 @@
 import type { Tarjeta } from '@/lib/tipos';
 
 export const TARJETAS: Record<string, () => Promise<Tarjeta[]>> = {
+  'c5-umbrales-zonas': () => import('./c5-umbrales-zonas').then((m) => m.TARJETAS_MODULO),
   // C5 entra en el paso 8; los 28 restantes en los pasos 15–17.
 };
 
