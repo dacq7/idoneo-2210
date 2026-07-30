@@ -15,7 +15,7 @@
 // exports individuales) y a la unión (con un switch). Reglas y mensajes idénticos.
 
 import { z } from 'zod';
-import type { Item, NivelCognitivo, TipoItem } from './tipos';
+import type { BloqueId, Item, NivelCognitivo, TipoItem } from './tipos';
 
 /* ─── Primitivos ──────────────────────────────────────────────────── */
 
@@ -77,6 +77,12 @@ const objItemMultiple = z.object({
 });
 
 const refItemMultiple: Refinamiento<typeof objItemMultiple> = (it, ctx) => {
+  // [ADR-005, hueco 3] `unica` y `caso` ya vigilaban las opciones duplicadas;
+  // `multiple` no. Es irresoluble para quien responde: la correcta aparece dos
+  // veces y solo un índice cuenta. Mensaje reutilizado a propósito.
+  if (new Set(it.opciones).size !== it.opciones.length) {
+    ctx.addIssue({ code: 'custom', message: 'hay opciones duplicadas' });
+  }
   if (new Set(it.correctas).size !== it.correctas.length) {
     ctx.addIssue({ code: 'custom', message: 'correctas tiene índices repetidos' });
   }
@@ -109,6 +115,10 @@ const refItemEmparejar: Refinamiento<typeof objItemEmparejar> = (it, ctx) => {
     ctx.addIssue({ code: 'custom', message: 'debe haber un par por cada elemento de izquierda' });
   }
   const izq = new Set<number>();
+  // [ADR-005, hueco 4] §5 solo vigilaba el índice izquierdo. Sin el gemelo,
+  // pares como [[0,0],[1,0],[2,2],[3,3]] pasan: el derecho 0 se usa dos veces,
+  // el 1 queda huérfano y la relación deja de ser biyectiva.
+  const der = new Set<number>();
   for (const [i, d] of it.pares) {
     if (i >= it.izquierda.length || d >= it.derecha.length) {
       ctx.addIssue({ code: 'custom', message: `el par [${i},${d}] está fuera de rango` });
@@ -117,6 +127,10 @@ const refItemEmparejar: Refinamiento<typeof objItemEmparejar> = (it, ctx) => {
       ctx.addIssue({ code: 'custom', message: `el índice izquierdo ${i} aparece dos veces` });
     }
     izq.add(i);
+    if (der.has(d)) {
+      ctx.addIssue({ code: 'custom', message: `el índice derecho ${d} aparece dos veces` });
+    }
+    der.add(d);
   }
 };
 
@@ -220,6 +234,15 @@ export const CUOTAS: ReglasCuota = {
   minPorDificultad: 3,
   minTiposDistintos: 4,
 };
+
+/** [ADR-005, hueco 5] El bloque C pesa el 33 % del examen y §14.4 le pide 28
+ *  ítems por módulo, no 25. El entregable del paso 16 dice "≥28 cada uno".
+ *  CUOTAS no se toca: subirlo a 28 lo exigiría también a los otros 3 bloques. */
+export const CUOTAS_BLOQUE_C: ReglasCuota = { ...CUOTAS, minimoItems: 28 };
+
+export function cuotasDelBloque(bloque: BloqueId): ReglasCuota {
+  return bloque === 'C' ? CUOTAS_BLOQUE_C : CUOTAS;
+}
 
 /** Verifica las cuotas de un módulo. Devuelve la lista de incumplimientos
  *  (vacía = pasa). Se usa en scripts/validar-banco.ts y en los tests. */

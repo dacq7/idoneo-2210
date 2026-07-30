@@ -14,6 +14,7 @@ obliga a RECHAZADO.
 |---|---|---|---|---|---|---|---|
 | 1 | 2026-07-29 | ✅ | n/a | n/a | n/a | APROBADO CON CAMBIOS | Andamiaje sin comitear (rama con 0 commits; los `.gitkeep` inertes hasta entonces) · Pendiente incompleta: falta `layout.tsx` (`lang="en"`, metadata de CNA → paso 5), `page.tsx` y los 5 SVG de CNA en `public/` (→ paso 14.4, borrar antes del precache de Serwist) · `"prebuild": "npm run validar"` aplazado al paso 3 por decisión documentada: es condición de cierre de ese paso |
 | 2 | 2026-07-29 | ✅ | ✅ 66 | n/a | n/a | APROBADO CON CAMBIOS | Los tests no protegen las dos garantías centrales de ADR-003: 4 de los 5 exports refinados pueden perder su refinamiento con la suite en verde, y ningún test afirma el texto de un mensaje · 2 de las 10 reglas de `emparejar` sin test (par por elemento, par fuera de rango) · `.claude/settings.json` perdió `Bash(mkdir:*)`, fuera del recorte pedido · Pasos 1 y 2 siguen sin comitear y mezclados en el árbol · Conteo "nueve reglas" de ADR-003: son 10 reglas / 9 mensajes |
+| 3 | 2026-07-29 | ✅ | ✅ 75 | ✅ 29 avisos | ✅ | APROBADO CON CAMBIOS | Una clave huérfana en `BANCO`/`TARJETAS` deja un archivo entero sin validar en silencio, con un aviso que apunta al lado contrario (58 claves a mano en los pasos 15–17; la primera en el Paso 8) · `multiple` no hereda el refinamiento de opciones duplicadas de `unica`/`caso` · `emparejar` solo vigila el índice izquierdo repetido en `pares`, no el derecho · la teoría no se verifica nunca, aunque define `'completo'` (regla 8) · el mínimo de 28 ítems del bloque C que pide §14.4 y el Paso 16 no está enforced (`minimoItems` es global) · `tolerancia` de `calculo` sin cota de cordura · tarjetas sin el cruce prefijo↔módulo que sí tienen los ítems · `DATOS_DUROS` sin cruce con tarjetas ni banco · Pasos 1–3 siguen sin comitear |
 
 ## Notas por paso
 
@@ -57,3 +58,42 @@ La deuda es de la **suite**, no del código. Mutando una a una las 10 reglas de 
 regresiones más: 8/10 reglas detectadas y 6 de 7 regresiones **sobreviven** en verde. Lo que
 justifica la desviación (que `esqItemUnica`…`esqItemCaso` conserven su refinamiento sueltos, y
 que los mensajes sigan siendo los de §5) es precisamente lo que la suite no protege.
+
+### Paso 3 — Validador de banco
+
+Primer paso con las **cuatro** compuertas aplicables, y las cuatro en verde: `typecheck` exit 0,
+75/75 tests, `validar` exit 0 con 29 avisos y 0 errores, `build` exit 0 con la cadena
+`prebuild → validar → next build` visible en el log.
+
+Fidelidad por diff mecánico contra `CLAUDE.md`: `scripts/validar-banco.ts` es **byte-idéntico** a
+§8 (300 líneas, `diff -u` vacío). `content/estructura.ts` difiere de §9.1 en **6 líneas, ninguna de
+datos**: 4+2 de comentario y el `estadoContenido` de C5 — exactamente la desviación que ADR-004
+admite. La estructura se verificó además ejecutándola: pesos con suma exacta 1, `BLOQUES[].modulos`
+coincide con `MODULOS` en contenido y orden en los cuatro bloques y también en la dirección
+inversa, `orden` consecutivo, 0 prerequisitos inexistentes y **0 ciclos**, y los 4 helpers correctos
+en sus bordes.
+
+Los tres requisitos que subrayó el usuario se repitieron con sondas propias, sin fiarse de las
+transcripciones: **(a)** sale el id del ítem y el mensaje literal de la regla; **(b)** las seis
+cuotas por módulo disparan (conteo, dos niveles, dos dificultades, tipos distintos), más
+explicación 200+, referencia bien formada, conceptos clave y tarjetas; **(c)** 23 errores y exit 1
+con ocho defectos sembrados. Y `prebuild` **aborta de verdad**: con el validador rojo el log no
+contiene `Creating an optimized production build`.
+
+**Lo que aporta esta revisión por encima de la bitácora: la caza de falsos negativos.** Cinco
+defectos de contenido realistas pasan hoy en silencio, y el más grave es estructural — una clave
+mal escrita en `content/banco/indice.ts` deja un archivo de 25 ítems **completamente sin validar**,
+con salida `exit 0` / "Todo en orden." y un aviso que afirma que el módulo *no tiene banco*. Con 58
+claves escritas a mano en los pasos 15–17 y la primera en el Paso 8, es el hueco que más conviene
+tapar antes de producir contenido.
+
+Los cinco 🟡 son huecos del **propio §8/§5 del blueprint**, no defectos de ejecución: el validador
+es fiel al texto y §22 reglas 2 y 9 prohíben "mejorarlo" en este paso. Por eso el veredicto es
+APROBADO CON CAMBIOS y no RECHAZADO, y por eso la deuda se escala al `software-architect` para ADR
+en vez de arreglarse aquí. No apliqué ningún cambio: el árbol quedó verificado idéntico al de
+partida (12 md5 iguales, `diff -r` vacío, `git status` sin novedades, cuatro compuertas repetidas
+en verde).
+
+ADR-004 merece mención aparte: verifiqué su premisa y se sostiene. Con `MODULOS = []` el bucle del
+banco nunca corre, así que la prueba de fuego del propio Paso 3 sería indemostrable. Adelantar
+§9.1 no es comodidad, es la condición para que el paso pueda probar su entregable.

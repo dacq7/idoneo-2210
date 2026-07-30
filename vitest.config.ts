@@ -11,5 +11,7 @@ export default defineConfig({
       { find: /^@\//, replacement: path.resolve(__dirname, 'src') + '/' },
     ],
   },
-  test: { environment: 'node', include: ['src/**/*.test.ts'] },
+  // scripts/ entra porque el validador de banco vive ahí y desde ADR-005 su
+  // lógica es una función pura con tests propios.
+  test: { environment: 'node', include: ['src/**/*.test.ts', 'scripts/**/*.test.ts'] },
 });
