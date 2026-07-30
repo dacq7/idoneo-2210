@@ -119,9 +119,12 @@ exactamente con §10.3 + ADR-009, sin desvíos.
   | | gz |
   |---|---|
   | **`/layout` js — MÉTRICA OFICIAL** | **132.0 kB** |
-  | `/layout` css | 12.3 kB |
-  | `/layout` total | 144.3 kB |
+  | `/layout` css | 12.3 kB → **12.5 kB** tras el Paso 6 |
+  | `/layout` total | 144.3 kB → **144.4 kB** tras el Paso 6 |
   | chunk `app/layout` solo | 3.2 kB (8 717 B raw) |
+
+  El Paso 6 **no movió el js del armazón** (132.0 kB, idéntico: sus dos rutas son
+  Server Components puros). Los 0.2 kB son CSS: utilidades nuevas de las fichas.
 
   **El comando exacto que las produce.** Cualquier paso que reporte peso usa
   este, sin variantes, o la comparación no vale:
@@ -130,7 +133,7 @@ exactamente con §10.3 + ADR-009, sin desvíos.
   npm run build && node -e 'const fs=require("fs"),p=require("path"),z=require("zlib");const m=JSON.parse(fs.readFileSync(".next/app-build-manifest.json","utf8")).pages["/layout"];const gz=f=>z.gzipSync(fs.readFileSync(p.join(".next",f))).length;const s=a=>a.reduce((t,f)=>t+gz(f),0);const js=m.filter(f=>f.endsWith(".js")),css=m.filter(f=>f.endsWith(".css"));console.log(`/layout · js ${(s(js)/1000).toFixed(1)} kB gz · css ${(s(css)/1000).toFixed(1)} kB gz · total ${(s(m)/1000).toFixed(1)} kB gz`)'
   ```
 
-  Salida esperada hoy: `/layout · js 132.0 kB gz · css 12.3 kB gz · total 144.3 kB gz`.
+  Salida esperada hoy (tras el Paso 6): `/layout · js 132.0 kB gz · css 12.5 kB gz · total 144.4 kB gz`.
 
   Y la detección rápida de la regresión que ADR-010 previene, que **no depende de
   ninguna cifra** y por eso es la comprobación preferida:
@@ -140,6 +143,54 @@ exactamente con §10.3 + ADR-009, sin desvíos.
   ```
 
   Si devuelve algo, un componente cliente volvió a importar `content/`.
+
+- **Segunda métrica, obligatoria: el js gz POR RUTA.** El `grep` de arriba tiene
+  un **punto ciego**: solo vigila `content/`. No detecta ninguna otra fuga con la
+  misma forma —un import que parece gratis y arrastra un grafo—, y ya hay una
+  **14 veces más grande** que la que motivó ADR-010: el barrel de `radix-ui`,
+  77.5 kB gz (ver **ADR-011**). Por eso la vigilancia no puede ser por carpeta:
+  tiene que ser por **desproporción**.
+
+  ```bash
+  npm run build && node -e 'const fs=require("fs"),p=require("path"),z=require("zlib");const pg=JSON.parse(fs.readFileSync(".next/app-build-manifest.json","utf8")).pages;const gz=f=>z.gzipSync(fs.readFileSync(p.join(".next",f))).length;const s=a=>a.reduce((t,f)=>t+gz(f),0);for(const k of Object.keys(pg).sort()){const js=pg[k].filter(f=>f.endsWith(".js"));console.log(`${k.padEnd(30)} ${(s(js)/1000).toFixed(1).padStart(6)} kB gz · ${js.length} chunks`);}'
+  ```
+
+  **Línea base del 2026-07-30, tras el Paso 6:**
+
+  | Ruta | js gz | chunks | Tipo |
+  |---|---|---|---|
+  | `/page` | 102.8 kB | 5 | servidor puro |
+  | `/_not-found/page` | 102.8 kB | 5 | servidor puro |
+  | `/modulos/page` | **106.2 kB** | 6 | servidor puro |
+  | `/bloques/[bloqueId]/page` | **106.2 kB** | 6 | servidor puro |
+  | `/error` | 118.9 kB | 7 | cliente obligado por Next |
+  | `/layout` | 132.0 kB | 8 | armazón (métrica principal) |
+  | `/not-found` | **183.8 kB** | 7 | ⚠️ **anomalía conocida**, ADR-011 |
+
+  **Referencia de un tipo de ruta:**
+  - **servidor puro ≈ 103–107 kB gz.** Es el piso: React, el runtime del router y
+    el CSS compartido. Una ruta hecha solo de Server Components debe caer aquí.
+  - **+ un cliente pequeño propio:** unos pocos kB más. Nada que se acerque a 20.
+  - **`/not-found` a 183.8 kB no es una licencia**, es el caso patológico
+    documentado en ADR-011. No se copia su patrón ni se usa como referencia.
+
+  ### La regla
+
+  > **Si una ruta nueva supera la línea base de su tipo y no hay una explicación
+  > escrita, se investiga ANTES de cerrar el paso.** Un salto de +20 kB gz sobre
+  > el piso de servidor puro no es «así es Next»: es un import que arrastró algo.
+  > Se localiza por diferencia de chunks contra una ruta sana, no adivinando:
+
+  ```bash
+  node -e 'const fs=require("fs"),p=require("path"),z=require("zlib");const pg=JSON.parse(fs.readFileSync(".next/app-build-manifest.json","utf8")).pages;const gz=f=>z.gzipSync(fs.readFileSync(p.join(".next",f))).length;const sana=new Set(pg["/modulos/page"]);const rara=process.argv[1];for(const f of pg[rara].filter(f=>f.endsWith(".js")))if(!sana.has(f))console.log((gz(f)/1000).toFixed(1).padStart(7),"kB gz ",f)' "/not-found"
+  ```
+
+  Y para saber **qué** hay dentro del chunk culpable, se busca un símbolo
+  reconocible: `node -e "console.log(require('fs').readFileSync('.next/<chunk>','utf8').includes('DismissableLayer'))"`.
+
+  **Cuándo se mide:** al cerrar cualquier paso que añada una ruta o un componente
+  cliente. Las dos métricas —`/layout` js gz y el js gz por ruta— van en la
+  entrada de bitácora de ese paso, con su cifra, no con un «sin cambios».
 - **Foco de teclado:** no hace falta añadir clases de foco a nada.
   `globals.css` pinta 2px sólidos a `--ring` completo sobre todo elemento
   interactivo. Solo se sobrescribe el `outline-offset` cuando el contorno se
@@ -150,6 +201,113 @@ exactamente con §10.3 + ADR-009, sin desvíos.
 - **`text-muted-foreground` sobre `bg-accent` no es AA en tema oscuro** (4.47:1
   medido). Si un elemento cambia a `hover:bg-accent`, tiene que subir el texto a
   `text-foreground` en el mismo estado, como hacen las dos barras de navegación.
+
+---
+
+## Índices de bloques y módulos (Paso 6)
+
+| Componente | Archivo | S/C | Props | Quién lo usa |
+|---|---|---|---|---|
+| `PaginaBloque` | `src/app/bloques/[bloqueId]/page.tsx` | Server | `params: Promise<{ bloqueId }>` | ruta `/bloques/[bloqueId]` · los 4 ids se prerenderizan con `generateStaticParams` |
+| `PaginaModulos` | `src/app/modulos/page.tsx` | Server | — | ruta `/modulos`, destino «Módulos» de las dos barras |
+| `TarjetaModulo` | `src/components/modulo/tarjeta-modulo.tsx` | Server | `modulo: ModuloEnLista`, `bloque: BloqueId` | `ListaModulos` |
+| `aModuloEnLista` | `src/components/modulo/tarjeta-modulo.tsx` | proyección | `Modulo` → `ModuloEnLista` | las dos páginas |
+| `ListaModulos` | `src/components/modulo/lista-modulos.tsx` | Server | `modulos: readonly ModuloEnLista[]`, `bloque: BloqueId` | las dos páginas |
+| `MetaBloque` | `src/components/modulo/meta-bloque.tsx` | Server | `pesoExamen`, `numeroCartilla`, `totalModulos` (`DatosMetaBloque`) | las dos páginas |
+
+Los tres componentes viven en `src/components/modulo/` —carpeta que ya existía en
+§3 del blueprint— y no en una carpeta `bloques/` nueva: la pantalla de bloque
+**es** un índice de módulos acotado, y el reparto real es «una ficha de módulo y
+su lista», no «cosas de bloque». Sin carpeta nueva, sin ADR.
+
+### Contratos de este paso
+
+- **`TarjetaModulo` no recibe un `Modulo`, recibe un `ModuloEnLista`.** Es Server
+  Component, así que ADR-010 no la obligaría, pero la proyección la deja
+  reutilizable desde cualquier página y hace explícito qué se muestra. La regla de
+  `enPreparacion` (`estadoContenido !== 'completo'`) vive **solo** en
+  `aModuloEnLista`: si un paso futuro la duplica, las dos rutas divergirán.
+- **La insignia sale de `estadoContenido`, no del progreso del usuario.** Hoy los
+  29 módulos están `'en-preparacion'` (ADR-004), así que las 29 fichas llevan
+  «En preparación». Ninguna cifra está escrita a mano: la portada del índice dice
+  «Los {MODULOS.length} módulos» y el conteo de publicados se calcula, así que el
+  texto se corrige solo cuando el Paso 8 voltee C5.
+- **El enlace estirado, y el falso positivo que va a producir en la auditoría.**
+  La ficha es un `<article class="group relative">` con el `<Link>` dentro del
+  `<h3>` y `after:absolute after:inset-0`. Así el **nombre accesible del enlace es
+  solo el título del módulo** (un `<Link>` envolviendo la ficha leería también
+  subtítulo, minutos e insignia) y a la vez **toda la tarjeta es el objetivo
+  táctil**. Consecuencia: `getBoundingClientRect()` sobre el `<a>` devuelve 22 px
+  de alto y **cualquier auditoría que mida cajas lo va a reportar como objetivo
+  pequeño**. No lo es: verificado con `document.elementFromPoint` en las cuatro
+  esquinas y el centro de la ficha —los cinco puntos caen dentro del `<a>`— y con
+  un clic real en la esquina inferior derecha, que navega a `/modulos/<slug>`.
+- **`group-hover:text-foreground` en los dos textos apagados de la ficha es
+  obligatorio, no estético.** La tarjeta pasa a `hover:bg-accent`, y
+  `text-muted-foreground` sobre `bg-accent` mide 4.47:1 en tema oscuro. Misma
+  solución que las dos barras de navegación. Si alguien quita el `hover:bg-accent`,
+  puede quitar los dos `group-hover`; nunca uno sin el otro.
+- **El código del módulo (`C5`) es el portador no-cromático del color de bloque en
+  la ficha.** Chip con `CLASES_BLOQUE[bloque].fondo` + `text-bloque-contraste`, en
+  JetBrains Mono `rounded-md size-8` — el mismo tratamiento que la letra de opción
+  de un ítem (DISENO.md §2.1), **no** una insignia (que serían `rounded-full`). El
+  código empieza por la letra del bloque, así que color y letra viajan en el mismo
+  elemento y §1.2 se cumple sin texto extra. Contraste ya verificado en §1.3:
+  4.84:1 en el peor caso (C). Y no es la numeración decorativa que veta §5.2: es
+  el prefijo real de los ids de ítem (`C5-014`).
+- **Bandas de color de bloque, `h-1 w-8 rounded-none`, `aria-hidden`.** En
+  `/modulos` cada grupo lleva una encima de su `<h2>`; en «Los otros bloques» de
+  la página de bloque va vertical (`h-5 w-1`). Es el vocabulario que ya existe —la
+  lengüeta de 4 px del destino activo (§4.5) y los segmentos del riel (§4.3)—, no
+  un instrumento nuevo: relleno puro, esquinas rectas, sin tipografía encima. Son
+  decorativas porque el texto contiguo siempre dice «Bloque X · Título».
+- **Jerarquía de encabezados, medida en las 5 rutas:** `/modulos` es
+  `h1 → h2` por bloque `→ h3` por módulo; `/bloques/[id]` es `h1 → h2` («Módulos,
+  en orden de estudio» y «Los otros bloques») `→ h3` por módulo. Sin saltos y con
+  un solo `h1`. Si un paso posterior añade una sección a estas rutas, entra como
+  `h2`.
+- **`/bloques/[bloqueId]` tolera minúsculas** (`/bloques/c` → bloque C), igual que
+  `bloqueDeRuta` para el riel: así la página y el riel del encabezado no pueden
+  contradecirse. Un id ajeno (`/bloques/Z`) responde **404** con `notFound()`.
+- **`/modulos` NO monta `RotuloBloque`** (DISENO.md §2.4: solo con **exactamente
+  un** bloque en contexto). `/bloques/[bloqueId]` **sí**, y por eso su `<h1>`
+  repite el título del bloque que ya dice el rótulo: la redundancia la prescribe
+  §2.4 y es deliberada.
+- **Ninguna de las dos rutas del Paso 6 lee el progreso del usuario.** Ni racha,
+  ni dominio, ni `mejorQuiz`: eso llega en los Pasos 8 y 14 y **no debe colarse
+  aquí** por conveniencia — la ficha es Server Component y leer progreso la
+  volvería cliente, lo que la haría importar `content/` desde el navegador o
+  duplicar props. Cuando el Paso 8 quiera marcar «dominado», el patrón correcto es
+  un envoltorio cliente por ficha, como el de `OcultaEnSimulacro`.
+
+### ⚠ Hallazgo de peso: `Badge` y `Button` arrastran el barrel de `radix-ui`
+
+Medido en este paso, con el comando oficial de más abajo:
+
+| Ruta | js gz | Qué la infla |
+|---|---|---|
+| `/page` (portada, sin shadcn) | 102.8 kB | — |
+| `/modulos` y `/bloques/[id]` **con `<Badge>`** | **183.4 kB** | chunk de **76 kB gz** (259 kB raw) de `radix-ui` |
+| `/modulos` y `/bloques/[id]` **sin `<Badge>`** | **106.2 kB** | — |
+| `/not-found` (usa `<Button asChild>`) | **183.8 kB** | el mismo chunk |
+
+La causa: `badge.tsx` y `button.tsx` hacen `import { Slot } from "radix-ui"` —el
+**paquete paraguas**, que reexporta todas las primitivas— y `Slot` es cliente, así
+que la frontera se abre y el barrel entero entra al bundle de esa ruta. No es
+`content/`, así que el `grep` de ADR-010 no lo detecta.
+
+**Decisión de este paso:** la insignia «En preparación» se escribe con marcado
+propio (`<span>` con las mismas clases que `badgeVariants.secondary`), idéntica en
+pantalla y sin el barrel. **76 kB gz en la ruta más visitada del estudio, a cambio
+de una píldora de texto, no se paga.** No se editaron los 18 archivos de
+`src/components/ui/`.
+
+**Deuda que queda abierta, con dueño:** `/not-found` paga hoy esos 76 kB por un
+`<Button asChild>` (Paso 5). Cuando alguna pantalla necesite `Button`, `Dialog` o
+`Select` de verdad —Pasos 9, 11, 18— conviene decidir si se cambian los imports de
+`radix-ui` a los paquetes por primitiva (`@radix-ui/react-slot`), que es un cambio
+mecánico en `src/components/ui/` y **sí** requiere registrar la excepción a «no se
+editan a mano». Mientras el barrel entre por una sola ruta secundaria, no urge.
 
 ---
 

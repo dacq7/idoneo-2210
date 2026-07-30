@@ -24,10 +24,16 @@ Las cuatro obligaciones se cumplieron. Se dejan escritas porque explican por qu�
 - **Paso 11:** el pie se oculta con `hidden` desde `Shell` durante un simulacro activo — no se desmonta (ADR-001).
 - **Cualquier paso:** no añadir clases de foco a los componentes; `globals.css` ya pinta 2 px sólidos a `--ring` completo sobre todo elemento interactivo, en `@layer utilities` para ganarle al `outline-none` de shadcn. Y si un elemento usa `hover:bg-accent`, su texto sube a `text-foreground` en el mismo estado: `text-muted-foreground` sobre `bg-accent` mide 4.47:1 en tema oscuro.
 
-## Paso 6 — Datos de bloques y módulos
+## Paso 6 — Datos de bloques y módulos ✅ HECHO el 2026-07-30
 
-- **Ya no copia §9.1**: `content/estructura.ts` se escribió en el Paso 3 (ADR-004). Le corresponden §9.2 (blueprints), §9.3 (erratas), §9.4 (datos duros), §9.5 (glosario) y las rutas `/bloques/[bloqueId]` y el índice de `/modulos`.
-- `content/blueprint-examen.ts` está hoy con `BLUEPRINTS = {}`. Al pegar §9.2, el validador cruzará las cuotas por módulo contra el banco: esperar avisos, no errores.
+Se transcribieron §9.2–§9.5 (6 blueprints · 14 erratas · 70 datos duros · 22 términos) y se construyeron `/modulos` y `/bloques/[bloqueId]`. El validador quedó en 87 avisos y 0 errores, como estaba previsto.
+
+## Paso 7 — Renderizado MDX
+
+- **§12.4 NO se copia literal.** `<AlertaContradiccion>` usa un ternario binario sobre `errata.tipo`, y desde **ADR-012** hay un tercer valor, `'aclaracion'`: cualquier `'aclaracion'` caería en el `else` y se rotularía «Errata de la cartilla», que es exactamente el defecto que ADR-012 arregla. **Tres ramas**, y para `'aclaracion'` el rótulo es **«Aclaración: no es un error»**.
+- **El tratamiento visual de una `'aclaracion'` no puede ser el destructivo.** `border-destructive` codifica «algo está mal» y en una aclaración no lo hay. El token coherente es `aviso`, el que ya usa `<Ojo>`. El estilo fino se acuerda con el `ui-designer`; lo fijado es que **no sea rojo**.
+- `/erratas` agrupa por **tres** tipos y conserva el ancla `id="X-03"`: `DD-001` de `datos-duros.ts` enlaza por ahí.
+- ~~Decidir el `tipo` de `X-03`~~ **resuelto en el Paso 6 (ADR-012)**: es `'aclaracion'`.
 
 ## Paso 8 — Módulo piloto C5
 
@@ -46,6 +52,8 @@ Las cuatro obligaciones se cumplieron. Se dejan escritas porque explican por qu�
 - El componente `etapas-modulo.tsx` consume el hook como **`useEstado`**, no `usarEstado` (ADR-007).
 
 ## Pasos 9 y 11 — Hooks de sesión y cronómetro
+
+- **Decidir la deuda del barrel de `radix-ui`: 77.5 kB gz.** `src/components/ui/badge.tsx` y `button.tsx` hacen `import { Slot } from "radix-ui"` —el paquete paraguas—, y como `Slot` es cliente, el barrel completo entra al bundle de la ruta. Medido: `/not-found` paga **183.8 kB js gz** contra los **106.2** de `/modulos`, y el chunk extra (`470-*.js`, 77.5 kB gz) contiene `Slot`, `Presence`, `DismissableLayer` y `FocusScope` — maquinaria de diálogos que un 404 no usa. **El `grep` de ADR-010 no lo detecta porque no es `content/`.** El arreglo son dos líneas (`import { Slot } from "@radix-ui/react-slot"`, ya presente como transitiva en `1.3.3`) más declararlo en `dependencies`, pero los otros 8 componentes de `ui/` importan el mismo barrel para primitivas que **sí** usan, así que conviene fijar el criterio completo de una vez. Se decide aquí porque es cuando entran `Dialog` (reanudar sesión) y `Tabs` (`/herramientas`) y el reparto de chunks cambia igual.
 
 - Los hooks se exportan como **`useSesion`** y **`useCronometro`**; los archivos siguen siendo `usar-sesion.ts` y `usar-cronometro.ts` (ADR-007). Con nombre en español, `react-hooks/rules-of-hooks` da error **y deja de auditar el interior de la función** — justo en el controlador de sesión y el auto-envío del cronómetro.
 - **Paso 11, deuda de §6 literal:** `leerSesion()` hace `JSON.parse(crudo) as SesionCronometro` **sin validar**, y no existe `esqSesionCronometro`. Con un payload como `{"foo":1}` devuelve un objeto sin `itemIds` ni `duracionSegundos`: recorrer `itemIds` lanza `TypeError` y `restantes()` daría `NaN`, porque `undefined !== null`. Decidir ahí si se añade el esquema.

@@ -437,10 +437,18 @@ export interface EntradaGlosario {
   sinonimos?: string[];
 }
 
-export type TipoErrata = 'contradiccion' | 'errata';
+/**
+ * - `contradiccion`: dos cartillas dan valores distintos para el mismo dato.
+ * - `errata`: la cartilla dice algo incorrecto (de contenido, de tabla o tipográfico).
+ * - `aclaracion`: la cartilla NO se equivoca; el dato se confunde con otro vecino.
+ *   Existe para desambiguar, no para corregir. Ver ADR-012.
+ */
+export type TipoErrata = 'contradiccion' | 'errata' | 'aclaracion';
 
 export interface Errata {
-  /** 'X-01' para contradicciones entre cartillas, 'E-01' para erratas de contenido. */
+  /** Familia + consecutivo. 'X-*' nace de una divergencia entre cartillas
+   *  (`contradiccion`, o la `aclaracion` que la desambigua); 'E-*' es errata de
+   *  contenido. El prefijo marca la familia, no el `tipo`. Ver ADR-012. */
   id: string;
   tipo: TipoErrata;
   tema: string;
@@ -925,7 +933,7 @@ export const esqEntradaGlosario = z.object({
 
 export const esqErrata = z.object({
   id: z.string().regex(RE_ID_ERRATA),
-  tipo: z.enum(['contradiccion', 'errata']),
+  tipo: z.enum(['contradiccion', 'errata', 'aclaracion']),
   tema: z.string().min(4),
   ubicacion: z.string().min(4),
   diceLaCartilla: z.string().min(10),
@@ -3718,7 +3726,7 @@ export const ERRATAS: Errata[] = [
   },
   {
     id: 'X-03',
-    tipo: 'contradiccion',
+    tipo: 'aclaracion',
     tema: 'Reservas de ATP libre',
     ubicacion: 'Cartilla 3',
     diceLaCartilla: 'El ATP almacenado en el músculo alcanza para 2–3 s.',
@@ -4878,14 +4886,19 @@ export function AlertaContradiccion({ id }: { id: string }) {
   // se renderiza nada roto.
   if (!errata) return null;
 
-  const esContradiccion = errata.tipo === 'contradiccion';
+  const rotulo =
+    errata.tipo === 'contradiccion'
+      ? 'Las cartillas se contradicen'
+      : errata.tipo === 'aclaracion'
+        ? 'Aclaración: no es un error'
+        : 'Errata de la cartilla';
 
   return (
     <aside className="my-6 rounded-lg border border-destructive/40 bg-destructive/5 p-4">
       <div className="flex items-center gap-2">
         <TriangleAlert className="size-4 shrink-0 text-destructive" aria-hidden />
         <p className="font-titulo text-sm font-semibold text-destructive">
-          {esContradiccion ? 'Las cartillas se contradicen' : 'Errata de la cartilla'} · {errata.id}
+          {rotulo} · {errata.id}
         </p>
       </div>
       <p className="mt-2 text-sm font-medium">{errata.tema}</p>
