@@ -308,3 +308,112 @@ Se añade también el guard `if (candidato.version > VERSION_ESQUEMA) return nul
 **Consecuencias:** §6 crece ~70 líneas, la mitad comentarios, y `localStorage` pasa de dos claves a tres — §6 dice "dos claves, deliberadamente separadas", y esta tercera se justifica por la regla 12. El Paso 18.5 hereda una obligación concreta: **la UI de /ajustes debe exponer la cuarentena** (avisar de que hay un progreso apartado, permitir descargarlo y descartarlo), o el mecanismo existe sin que nadie pueda usarlo. Queda anotado en la bitácora del Paso 4.
 
 **Riesgo latente registrado aquí, que detona en el Paso 12 y NO se arregla en este paso:** `esqIntento.desglose.porBloque` es `z.record(esqConteo)`, así que un intento **sin** los bloques B/C/D pasa Zod, pero el cast afirma `Record<BloqueId, …>` con las cuatro claves. `construirInforme` de §7.5 hace `porBloque[b.id].total` y **revienta** con `Cannot read properties of undefined`. Vía de entrada: un respaldo así se acepta como válido en `importarJSON`. El arreglo toca `src/lib/esquemas.ts` (archivo del Paso 2) y el sitio del crash es el Paso 12: se decide allí.
+
+---
+
+## ADR-009 · El sistema de diseño se desvía de §11.2 y §11.3 para cumplir AA
+
+**Estado:** Aceptada
+**Fecha:** 2026-07-29 · **Autor:** Paso 5 (propuesto por `ui-designer`, aprobado por el usuario)
+
+**Contexto:** §11.3 del blueprint entrega el `globals.css` completo con la paleta en `oklch()`, y §11.2 fija las tres fuentes. El Paso 5 instruye "copiar §11.3 **entero**". Al medirlo —convirtiendo cada `oklch()` a sRGB y calculando WCAG 2.1 sobre 59 pares en los dos temas— el tema oscuro sale **impecable, 0 fallos en 29 pares**, pero el tema claro tiene **seis violaciones AA reales**:
+
+| Par | §11.3 | Mínimo |
+|---|---|---|
+| `--aviso` como texto sobre el fondo | **3.11** | 4.5 |
+| `--bloque-a` como texto | **3.94** | 4.5 |
+| `--bloque-a` sobre su `-suave` | **3.54** | 4.5 |
+| `--bloque-c` sobre su `-suave` | **4.42** | 4.5 |
+| `--bloque-d` sobre su `-suave` | **4.47** | 4.5 |
+| `--input`, borde que identifica un control (WCAG 1.4.11) | **1.30** | 3.0 |
+
+Ninguna es teórica: `text-aviso` se usa en el `<Ojo>` de §12.3 y en el cronómetro cuando quedan 10 minutos —un aviso ilegible en un simulacro cronometrado es el peor sitio posible—; el panel tintado con el color del bloque es el patrón principal de una pantalla de módulo; y `--input` toca el campo del ítem de cálculo, `/ajustes` y `/herramientas`. Verificado de forma independiente por el hilo principal antes de aprobarse.
+
+**Decisión:** ocho desviaciones aprobadas, todas de **valor**, ninguna de **nombre**.
+
+| # | Qué | De | A |
+|---|---|---|---|
+| D-1 | `--aviso` claro | `0.66 0.145 72` | `0.560 0.120 72` → 4.65 |
+| D-2 | `--aviso-foreground` claro | casi negro | casi blanco (forzado por D-1; alinea `--aviso` con `--destructive` y `--exito`, que ya eran «oscuro + primer plano claro») |
+| D-3 | `--bloque-a` claro | `0.60 0.125 72` | `0.535 0.115 72` → 5.16 |
+| D-4 | los 4 `--bloque-*-suave` claros | `L 0.955` | `L 0.972` → C y D pasan sin tocar su color |
+| D-5 | `--input` en los dos temas | igual a `--border` | claro `0.66 0.014 250` · oscuro `0.51 0.022 255` → 3.03 |
+| D-6 | `--border` claro | `0.902` | `0.87`. **No es AA, es legibilidad**: `--card` blanco sobre `--background` está a 1.03:1, así que la tarjeta solo existe si su borde se ve |
+| D-7 | fuente display (§11.2) | Barlow | **Barlow Condensed** |
+| D-8 | piso táctil de 44px (§11.3) | sin excepción | válvula `:not([data-compacto])` |
+
+**`--bloque-b`, `--bloque-c` y `--bloque-d` conservan exactamente el valor de §11.3.** Solo cambia A, que fallaba en sus tres roles: el ámbar es el matiz que en sRGB no puede ser claro y oscuro a la vez.
+
+**Por qué D-7.** Dos razones medibles y una de vernáculo. Los títulos reales son largos —«Sistemas nervioso, digestivo y osteomuscular» son 44 caracteres— y a 375 px con `px-4` un `h1` de 28 px en Barlow normal los parte en **tres** líneas; condensada entran en **dos**. Además Barlow e Inter son la misma voz (las dos neogrotescas de bajo contraste), así que a tamaño de titular el rol display no cumplía su función. Y la grotesca condensada es la letra del peto de competencia y del marcador: sale del mundo del sujeto. Misma familia y mismo diseñador que Barlow, así que convive con Inter y JetBrains Mono sin roce. **Regla de mitigación, que es parte de la decisión: Barlow Condensed nunca baja de 1.125rem y nunca se usa en cuerpo** — las condensadas pierden legibilidad en tamaños pequeños.
+
+**Por qué D-8.** El piso de §11.3 (`min-height: 44px` sobre `button, [role=button], a[href], input, select, textarea`) es correcto en móvil, pero `min-height` gana sobre `height` y **rompe el `panel-navegacion` del Paso 11**: una cuadrícula de 100 botones a 44 px no cabe en pantalla. La válvula `:not([data-compacto])` permite excluir solo esa cuadrícula y los `TabsTrigger` de `/herramientas`, garantizando el objetivo táctil con `gap`. Sin ella, el Paso 11 lo resolvería con `!important`, que es peor. Los enlaces en línea de la teoría no se ven afectados: `min-height` no aplica a cajas `inline`.
+
+**Alternativas descartadas:**
+
+- **Renombrar tokens** para no chocar con shadcn: imposible y innecesario. Los 18 componentes generados dependen de `--primary`, `--border`, `--input`, `--ring`, `--muted`, `--accent`, `--popover` y `--radius`; se auditaron las 29 clases de token y las 4 vars crudas que usan, y §11.3 **las cubre todas**. Cambiar valores no rompe nada.
+- **Oscurecer `--background`** para separar la tarjeta en vez de D-6. Medido: la separación pasa de 1.03:1 a **1.08:1, sigue imperceptible**, y estrecha el margen AA de los diez tokens que se leen encima. Mal negocio.
+- **Una cuarta familia tipográfica** más «marcador» (Azeret/Martian Mono) en lugar de JetBrains Mono. Se descarta: JetBrains Mono distingue `0/O` y `1/l`, y esta app hace teclear valores de biomarcadores. El carácter de marcador sale del tratamiento, no de otra opinión tipográfica.
+
+**Consecuencias:** con las seis correcciones de paleta, **0 fallos en los 59 pares** de los dos temas. `.claude/DISENO.md` §1.3 deja los números calculados para que el `accessibility-auditor` audite contra ellos y no descubra deuda después.
+
+Dos efectos visibles de D-5 que se aceptan: el `Switch` de shadcn usa `bg-input` como pista apagada y pasa de gris invisible a gris medio —mejora, por fin tiene affordance—, y en oscuro `Button variant="outline"` usa `bg-input/30`, así que los botones fantasma se vuelven visibles. Es un cambio respecto al aspecto por defecto de shadcn.
+
+`--border` queda a propósito por debajo de 3:1: solo dibuja separadores y filos, que son decorativos y están exentos de 1.4.11. Los bordes que **sí** identifican un control usan `--input`, que cumple. Documentado en `DISENO.md` §1.3 para que no se reporte como deuda.
+
+**También aprobado en este ADR:** **dos altas** a la lista cerrada de §10.3 — `riel-bloques.tsx` y `app/error.tsx` como Client Components (**el segundo lo exige Next**, no es elección) — y la aclaración de que `encabezado.tsx` es Server Component, y omitir la línea `manifest: '/manifest.webmanifest'` de §11.2 hasta el Paso 18.1, porque ese archivo no existe hasta entonces y produciría un 404 en consola desde el Paso 5.
+
+**El elemento firma** —el «instrumento de umbral»: riel de bloques con anchos proporcionales a `pesoExamen`, y escala de umbral para el veredicto— no es una desviación: §11 no define ninguno. Su gramática completa, con las siete reglas, vive en `DISENO.md` §4.
+
+---
+
+## ADR-010 · Ningún Client Component importa `content/estructura`
+
+**Estado:** Aceptada
+**Fecha:** 2026-07-30 · **Autor:** Paso 5
+
+**Contexto:** `riel-bloques.tsx` es Client Component (necesita `usePathname` para saber en qué bloque está el usuario) e importaba `BLOQUES` de `@/content/estructura`. Parecía gratis: `BLOQUES` son 4 objetos pequeños. **No lo era.** Los 29 módulos completos —con `objetivos`, `conceptosClave`, `subtitulo` y `minutosEstimados`— viajaban al bundle del navegador. Verificado buscando cadenas en el chunk: `"Prescribir la zona correcta"`, `"conceptosClave"` y `"osteomuscular"` estaban en `static/chunks/app/layout-*.js`.
+
+**La causa no es obvia y es lo que hay que recordar.** `content/estructura.ts` evalúa esto en el ámbito del módulo:
+
+```ts
+export const MODULOS_POR_SLUG = new Map(MODULOS.map((m) => [m.slug, m]));
+```
+
+Ese `Map` se construye al importar el módulo, así que **ancla `MODULOS`**: el empaquetador no puede eliminarlo por tree-shaking aunque solo se importe `BLOQUES`. Se probó `"sideEffects": false` en `package.json` y **no lo arregla** (149.9 → 149.6 kB, ruido). Lo mismo aplicaría a `MODULOS_POR_SLUG`, `BLOQUES_POR_ID`, `modulosDelBloque` y `moduloSiguiente`: cualquier import desde cliente los trae todos.
+
+**Decisión:** **ningún Client Component importa `@/content/estructura`, ni `content/erratas`, `glosario`, `datos-duros`, `blueprint-examen` o los índices de `banco/` y `tarjetas/`.** Los datos entran **por prop desde un Server Component**, reducidos al subconjunto serializable que el componente necesita.
+
+Implementado así en el Paso 5: `Encabezado` (servidor) importa `BLOQUES`, lo proyecta a `SegmentoRiel[]` —`{ id, peso, titulo }`— y lo pasa como prop. `RielBloques` no conoce `content/`.
+
+**Medición, con builds reales:**
+
+| | `/layout` js gz | `/layout` total gz | chunk `app/layout` raw |
+|---|---|---|---|
+| Antes | ~137,6 kB | 149.9 kB | 28 100 B |
+| **Después** | **132.0 kB** | **144.3 kB** | **8 717 B** (−69 %) |
+
+Las dos columnas de gz miden lo mismo con distinto alcance: la primera solo los 8 chunks `.js`, la segunda añade el chunk `.css` de 12.3 kB. **La métrica oficial del proyecto es la de `.js`** — ver `COMPONENTES.md`, que fija el comando exacto. El valor «antes» de la columna js es derivado, no medido: solo se midió el total antes del arreglo, y recomputarlo exigiría revertir el cambio. **La evidencia dura del arreglo es el chunk `app/layout`, medido en las dos corridas: 28 100 → 8 717 B raw.**
+
+**Por qué importa mucho más de lo que parece hoy.** Con 29 módulos y 0 ítems el costo son 5,6 kB. **En los pasos 15–17 `content/` llega a ~750 ítems**, cada uno con enunciado, 4–5 opciones, una explicación de ≥200 caracteres, pasos de resolución y etiquetas. Un solo `import` descuidado desde un componente cliente metería el banco entero en el bundle inicial de una app que **debe cargar en menos de 3 s en 4G** (§3, métricas de éxito) y funcionar offline. El daño escala con el contenido, no con el código, así que el momento de fijar la regla es ahora, cuando el costo de cumplirla es un `map` de tres campos.
+
+Esto **no contradice** la asimetría de §2.2 («el banco es importable desde el cliente»): ahí lo que se busca es `import()` **dinámico**, bajo interacción del usuario, con code splitting real —`cargarBancoModulo`, `cargarBancoCompleto`—. Lo que esta regla prohíbe es el import **estático** en el grafo del bundle inicial. Son cosas distintas: una carga 25 ítems cuando el usuario pulsa «Empezar», la otra carga 750 antes de que vea nada.
+
+**Alternativas descartadas:**
+
+- **`"sideEffects": false`.** Medido, no funciona: el `new Map(...)` es una expresión evaluada, no un efecto declarado.
+- **Quitar `MODULOS_POR_SLUG` de `estructura.ts`** y construir el `Map` en cada consumidor. Rompería §9.1, que es código literal del blueprint, y trasladaría el costo a los Server Components que sí lo usan legítimamente. La regla de la frontera es más barata y no toca `content/`.
+- **Un `content/estructura-cliente.ts`** con solo los bloques. Duplica la fuente de verdad de los pesos del examen, que es justo lo que §9.1 existe para evitar.
+
+**Consecuencias:** cualquier componente cliente que necesite datos de contenido declara su propio tipo de prop con el subconjunto mínimo, como `SegmentoRiel`. Cuesta un `map` en el servidor y hace explícito qué cruza la frontera.
+
+**Cómo verificarlo, y la cifra correcta a vigilar.** El `First Load JS` que imprime `npm run build` **no incluye el chunk del layout raíz**, así que subestima la primera carga en ~30 kB: reportaba 103 kB cuando la cifra real era 149.9 kB. La métrica del armazón es el **`/layout` gz** calculado desde `.next/app-build-manifest.json`, contando **solo los `.js`** y gzipeando **archivo por archivo**. Hoy: **132.0 kB js** (144.3 kB con el CSS). `COMPONENTES.md` fija el comando exacto, y usarlo sin variantes no es pedantería: durante el Paso 5 se reportaron 134.4 y 144.3 kB para el mismo build, y las dos eran correctas — cambiaba el alcance. Para detectar una regresión basta buscar una cadena de contenido en el chunk:
+
+```bash
+grep -l "osteomuscular\|conceptosClave" .next/static/chunks/app/layout-*.js
+```
+
+Si devuelve algo, un componente cliente volvió a importar `content/`. Esta comprobación es **preferible a la cifra**: es binaria y no depende de con qué método se midió el peso.
+
+### Enmienda contable — 2026-07-30
+
+Este ADR decía «tres altas» a §10.3. Son **dos**: `riel-bloques.tsx` y `app/error.tsx`. Lo de `encabezado.tsx` fue **aclarar** que es Server Component, y §10.3 es la lista de archivos que **sí** llevan `"use client"`: aclarar que un archivo no está en ella no es un alta. No cambia ninguna decisión, solo la contabilidad. Verificado el 2026-07-30: los 6 clientes reales coinciden exactamente con §10.3 + las dos altas, **sin desvíos**.

@@ -1,6 +1,6 @@
 // src/lib/almacenamiento.ts
 // Único punto de acceso a localStorage. Ver §22, regla 4.
-// SIN "use client": módulo neutro con guardas de SSR.
+// sin directiva de cliente: módulo neutro con guardas de SSR.
 //
 // Desviaciones de §6, ambas para cumplir §22 regla 12 ("Nunca destruir el
 // progreso del usuario"):

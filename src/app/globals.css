@@ -1,26 +1,324 @@
+/* src/app/globals.css
+   Tailwind CSS v4 — configuración CSS-first. NO existe tailwind.config.*.
+
+   Base: §11.3 del blueprint, con las desviaciones D-1 a D-6 y D-8 aprobadas en
+   ADR-009. Los valores y sus contrastes medidos viven en `.claude/DISENO.md`
+   §1.1 a §1.4: donde este archivo y §11.3 difieran, manda DISENO.md.
+
+   Regla que no se puede olvidar: todo token se declara DOS veces — el valor
+   crudo en :root / .dark, y su alias en @theme inline. Sin el alias, la utilidad
+   de Tailwind no existe (`bg-bloque-c` y `text-exito` no se generan). */
+
 @import "tailwindcss";
+@import "tw-animate-css";
+
+/* Enlaza la clase .dark que pone next-themes con la variante dark: de los 18
+   componentes de src/components/ui/. Sin esta línea el modo oscuro queda a
+   medias. Obligación heredada del Paso 4 (PENDIENTES.md → Paso 5). */
+@custom-variant dark (&:is(.dark *));
+
+/* ══════════════════════════════════════════════════════════════════
+   Tokens crudos — tema claro.
+   Formato oklch(L C H). El hex de referencia va en el comentario cuando
+   el token es uno de los seis colores nombrados de DISENO.md §1.1.
+   ══════════════════════════════════════════════════════════════════ */
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --radius: 0.625rem;
+
+  /* Mecánica de layout, no token de diseño: lo que mide el encabezado pegajoso
+     (fila de 3.5rem + riel de bloques de 0.25rem, borde incluido). Medido en
+     navegador: 60px. barra-lateral lo necesita para empezar justo debajo y no
+     quedar tapada; si cambia el alto del encabezado se cambia aquí y las dos
+     piezas siguen alineadas. */
+  --alto-encabezado: 3.75rem;
+
+  --background: oklch(0.991 0.002 250); /* #fbfcfd — lienzo, azulado neutro */
+  --foreground: oklch(0.215 0.018 255); /* #141a22 — pizarra, no negro */
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.215 0.018 255);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.215 0.018 255);
+
+  --primary: oklch(0.48 0.12 250); /* #1a609e — azul acero, único color de marca */
+  --primary-foreground: oklch(0.985 0.004 250);
+  --secondary: oklch(0.962 0.006 250);
+  --secondary-foreground: oklch(0.29 0.03 255);
+  --muted: oklch(0.955 0.006 250);
+  --muted-foreground: oklch(0.515 0.02 255); /* #606873 */
+  --accent: oklch(0.94 0.022 250);
+  --accent-foreground: oklch(0.35 0.06 255);
+
+  --destructive: oklch(0.552 0.19 27); /* #c9312d — rojo tabla */
+  --destructive-foreground: oklch(0.99 0 0);
+  --exito: oklch(0.52 0.125 152); /* #1c7d43 — verde campo */
+  --exito-foreground: oklch(0.99 0 0);
+  /* D-1 · §11.3 traía oklch(0.66 0.145 72): 3.11:1 como texto sobre el fondo.
+     text-aviso se usa en <Ojo> y en el cronómetro a los 10 min. Ahora 4.65:1. */
+  --aviso: oklch(0.56 0.12 72); /* #9f6700 — ámbar de aviso */
+  /* D-2 · forzada por D-1: sobre el ámbar oscuro, el texto casi negro caía a
+     3.01:1. Así --aviso se comporta igual que --destructive y --exito. */
+  --aviso-foreground: oklch(0.99 0 0);
+
+  /* D-6 · §11.3 traía 0.902. No es AA, es legibilidad: --card (#ffffff) sobre
+     --background (#fbfcfd) están a 1.03:1, así que la tarjeta solo existe si su
+     borde se ve. --border queda a propósito bajo 3:1 (ver DISENO.md §1.3). */
+  --border: oklch(0.87 0.01 250); /* #cfd5db */
+  /* D-5 · el borde de un campo SÍ identifica el control: WCAG 1.4.11 pide 3:1.
+     Era igual a --border (1.30:1). Ahora 3.03:1. */
+  --input: oklch(0.66 0.014 250); /* #8c939b */
+  --ring: oklch(0.48 0.12 250);
+
+  /* ── Color por bloque. Requisito duro del brief: el usuario sabe en qué
+        bloque está por el color, sin leer. Separados 70–100° de matiz, y
+        ninguno es el azul acero de --primary. ── */
+  /* D-3 · §11.3 traía oklch(0.60 0.125 72), que fallaba en sus tres roles
+     (3.94 / 3.54 / 3.93). El ámbar es el matiz que en sRGB no puede ser claro
+     y oscuro a la vez. En oscuro sigue siendo #e0a546. */
+  --bloque-a: oklch(0.535 0.115 72); /* A · Ciencias Básicas — ámbar */
+  --bloque-b: oklch(0.52 0.155 295); /* B · Pedagogía — violeta */
+  --bloque-c: oklch(0.53 0.105 172); /* C · Ciencias Aplicadas — verde azulado */
+  --bloque-d: oklch(0.55 0.145 40); /* D · Entrenamiento — terracota */
+  /* D-4 · los cuatro -suave suben de L 0.955 a 0.972, con el croma bajado.
+     Con 0.955, C y D fallaban por margen (4.42 y 4.47) al poner su color
+     encima. Es el arreglo de menor huella: B, C y D conservan su color. */
+  --bloque-a-suave: oklch(0.972 0.03 78);
+  --bloque-b-suave: oklch(0.972 0.026 295);
+  --bloque-c-suave: oklch(0.972 0.026 172);
+  --bloque-d-suave: oklch(0.972 0.026 45);
+  --bloque-contraste: oklch(0.99 0 0);
+
+  /* Gráficas del informe (recharts, Paso 12). Un color por bloque. */
+  --chart-1: var(--bloque-a);
+  --chart-2: var(--bloque-b);
+  --chart-3: var(--bloque-c);
+  --chart-4: var(--bloque-d);
+  --chart-5: var(--muted-foreground);
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   Tokens crudos — tema oscuro. §11.3 sale AA sin correcciones; la única
+   desviación es --input (D-5).
+   ══════════════════════════════════════════════════════════════════ */
+
+.dark {
+  --background: oklch(0.175 0.014 255); /* #0c1117 — azul pizarra, no negro */
+  --foreground: oklch(0.925 0.008 250); /* #e2e7eb */
+  --card: oklch(0.218 0.016 255);
+  --card-foreground: oklch(0.925 0.008 250);
+  --popover: oklch(0.218 0.016 255);
+  --popover-foreground: oklch(0.925 0.008 250);
+
+  --primary: oklch(0.7 0.13 248);
+  --primary-foreground: oklch(0.17 0.02 255);
+  --secondary: oklch(0.262 0.018 255);
+  --secondary-foreground: oklch(0.9 0.01 250);
+  --muted: oklch(0.262 0.018 255);
+  --muted-foreground: oklch(0.665 0.018 255);
+  --accent: oklch(0.3 0.035 252);
+  --accent-foreground: oklch(0.9 0.02 250);
+
+  --destructive: oklch(0.66 0.18 26);
+  --destructive-foreground: oklch(0.16 0.01 255);
+  --exito: oklch(0.68 0.14 152);
+  --exito-foreground: oklch(0.16 0.01 255);
+  --aviso: oklch(0.78 0.14 76);
+  --aviso-foreground: oklch(0.18 0.02 255);
+
+  --border: oklch(0.305 0.018 255);
+  --input: oklch(0.51 0.022 255); /* D-5 · era igual a --border (1.42:1) */
+  --ring: oklch(0.7 0.13 248);
+
+  --bloque-a: oklch(0.76 0.13 76);
+  --bloque-a-suave: oklch(0.28 0.045 76);
+  --bloque-b: oklch(0.72 0.145 295);
+  --bloque-b-suave: oklch(0.28 0.05 295);
+  --bloque-c: oklch(0.72 0.105 172);
+  --bloque-c-suave: oklch(0.27 0.04 172);
+  --bloque-d: oklch(0.73 0.135 45);
+  --bloque-d-suave: oklch(0.28 0.05 45);
+  --bloque-contraste: oklch(0.16 0.01 255);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   @theme inline — aquí es donde Tailwind v4 genera las utilidades.
+   Añadir un token crudo arriba sin su alias aquí es escribirlo para nada.
+   ══════════════════════════════════════════════════════════════════ */
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-exito: var(--exito);
+  --color-exito-foreground: var(--exito-foreground);
+  --color-aviso: var(--aviso);
+  --color-aviso-foreground: var(--aviso-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-bloque-a: var(--bloque-a);
+  --color-bloque-a-suave: var(--bloque-a-suave);
+  --color-bloque-b: var(--bloque-b);
+  --color-bloque-b-suave: var(--bloque-b-suave);
+  --color-bloque-c: var(--bloque-c);
+  --color-bloque-c-suave: var(--bloque-c-suave);
+  --color-bloque-d: var(--bloque-d);
+  --color-bloque-d-suave: var(--bloque-d-suave);
+  --color-bloque-contraste: var(--bloque-contraste);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Las tres variables las inyecta next/font en <html> desde layout.tsx.
+     --fuente-titulo es Barlow Condensed (D-7), no Barlow. */
+  --font-sans: var(--fuente-cuerpo), ui-sans-serif, system-ui, sans-serif;
+  --font-titulo: var(--fuente-titulo), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--fuente-mono), ui-monospace, monospace;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ══════════════════════════════════════════════════════════════════
+   Base
+   ══════════════════════════════════════════════════════════════════ */
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    /* Cuerpo de interfaz de DISENO.md §2.3: Inter 15px / 1.5. La teoría MDX
+       sube a 17px en su propia clase (.prose-idoneo, Paso 7). */
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    /* Deliberado: la app está llena de rangos numéricos («65–75 %», «10–15 s»)
+       y en las tablas de teoría la alineación de columnas importa más que el
+       ligero ensanche en prosa corrida. */
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Escala tipográfica de DISENO.md §2.3. Barlow Condensed NUNCA baja de
+     1.125rem y nunca se usa en cuerpo de texto: es la mitigación pactada en
+     D-7, porque las condensadas pierden legibilidad en tamaños pequeños. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-titulo);
+  }
+
+  h1 {
+    font-size: 1.75rem;
+    line-height: 1.08;
+    letter-spacing: -0.005em;
+    font-weight: 700;
+  }
+
+  h2 {
+    font-size: 1.375rem;
+    line-height: 1.15;
+    font-weight: 600;
+  }
+
+  h3 {
+    font-size: 1.125rem;
+    line-height: 1.25;
+    font-weight: 600;
+  }
+
+  @media (width >= 64rem) {
+    h1 {
+      font-size: 2.25rem;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+    }
+  }
+
+  /* Piso táctil. D-8 añade la válvula :not([data-compacto]), que existe para
+     dos usos concretos y nada más: la cuadrícula de 100 botones del
+     panel-navegacion (Paso 11) y los TabsTrigger de /herramientas (Paso 18.3).
+     En esos casos el objetivo táctil se garantiza con gap entre celdas.
+     min-height no aplica a cajas inline, así que los enlaces dentro de un
+     párrafo de teoría no se deforman. */
+  button:not([data-compacto]),
+  [role='button']:not([data-compacto]),
+  a[href]:not([data-compacto]),
+  input,
+  select,
+  textarea {
+    min-height: 44px;
+  }
+
+  /* Hueco al pie de la columna de contenido para que la barra inferior fija no
+     tape el pie de atribución. Solo en móvil: desde lg manda la barra lateral. */
+  .pb-nav {
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom));
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ══════════════════════════════════════════════════════════════════
+   Foco de teclado, una sola vez para toda la app.
+
+   DISENO.md §1.3 describe el indicador como «contorno sólido a --ring completo»
+   (6.37:1 claro · 7.15:1 oscuro) con el halo de 3px a ring/50 como refuerzo,
+   «no el portador». La versión instalada de shadcn dejó de traer ese contorno:
+   sus 18 componentes componen `outline-none` + `focus-visible:ring-[3px]
+   ring-ring/50`, así que el único portador queda a media opacidad, por debajo
+   del 3:1 que pide WCAG 1.4.11. Medido en navegador: sin esta regla, el botón
+   del interruptor de tema sale con `outline-style: none`.
+
+   Va en @layer utilities y con selector de elemento + pseudoclase (0,1,1) a
+   propósito: las capas ganan por orden, no por especificidad, así que una regla
+   en @layer base perdería contra el `.outline-none` de shadcn (0,1,0). Aquí, a
+   igual capa, gana la especificidad. Los componentes que sí traen su propio
+   contorno (`focus-visible:outline-1`, 0,2,0) siguen mandando sobre esta regla.
+   ══════════════════════════════════════════════════════════════════ */
+
+@layer utilities {
+  a:focus-visible,
+  button:focus-visible,
+  [role='button']:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  summary:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+/* Transiciones ≤200 ms y ninguna animación de celebración: el brief exige
+   retroalimentación honesta, no premios. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

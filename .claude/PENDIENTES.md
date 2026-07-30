@@ -8,12 +8,21 @@ No es una lista de deseos: cada línea rompe algo si se ignora.
 
 ---
 
-## Paso 5 — Layout y navegación
+## Paso 5 — Layout y navegación · ✅ CERRADO el 2026-07-30
 
-- `src/app/globals.css` debe incluir **`@custom-variant dark (&:is(.dark *));`** además de los 4 tokens de bloque. Sin esa variante, los `dark:` de los 18 componentes de `src/components/ui/` no responden a la clase que pone `next-themes`, y el modo oscuro queda a medias.
-- `src/app/layout.tsx` sigue siendo el de create-next-app: **`lang="en"`** y `title: "Create Next App"`. La app es `es-CO` y hoy el HTML anuncia inglés. Lo reemplaza §11.2.
-- El pie con la atribución a COLEF/COCED (§11.7) va en **todas** las rutas. Es requisito de la licencia CC BY-NC-SA 4.0, no decoración. Ver ADR-001.
-- Los componentes de shadcn se ven **sin estilo** hasta este paso: el `init` del CLI falló al escribir los tokens base de color. Se resuelve solo al reemplazar `globals.css` completo por §11.3.
+Las cuatro obligaciones se cumplieron. Se dejan escritas porque explican por qué
+`globals.css` y `layout.tsx` son un reemplazo completo y no un parche.
+
+- ✅ `src/app/globals.css` debe incluir **`@custom-variant dark (&:is(.dark *));`** además de los 4 tokens de bloque. Sin esa variante, los `dark:` de los 18 componentes de `src/components/ui/` no responden a la clase que pone `next-themes`, y el modo oscuro queda a medias.
+- ✅ `src/app/layout.tsx` sigue siendo el de create-next-app: **`lang="en"`** y `title: "Create Next App"`. La app es `es-CO` y hoy el HTML anuncia inglés. Lo reemplaza §11.2.
+- ✅ El pie con la atribución a COLEF/COCED (§11.7) va en **todas** las rutas. Es requisito de la licencia CC BY-NC-SA 4.0, no decoración. Ver ADR-001.
+- ✅ Los componentes de shadcn se ven **sin estilo** hasta este paso: el `init` del CLI falló al escribir los tokens base de color. Se resuelve solo al reemplazar `globals.css` completo por §11.3.
+
+**Obligaciones nuevas que este paso genera** (detalle en la bitácora del 2026-07-30):
+
+- **Paso 7 y toda ruta con bloque:** la página debe rotular el bloque en texto (el *eyebrow* «BLOQUE C · CIENCIAS APLICADAS»). El riel del encabezado solo lo enuncia en su `aria-label`, y DISENO.md §1.2 prohíbe que el color sea el único portador. Si se decide que el *eyebrow* va en el encabezado, lo tiene que registrar el `ui-designer` en `DISENO.md`.
+- **Paso 11:** el pie se oculta con `hidden` desde `Shell` durante un simulacro activo — no se desmonta (ADR-001).
+- **Cualquier paso:** no añadir clases de foco a los componentes; `globals.css` ya pinta 2 px sólidos a `--ring` completo sobre todo elemento interactivo, en `@layer utilities` para ganarle al `outline-none` de shadcn. Y si un elemento usa `hover:bg-accent`, su texto sube a `text-foreground` en el mismo estado: `text-muted-foreground` sobre `bg-accent` mide 4.47:1 en tema oscuro.
 
 ## Paso 6 — Datos de bloques y módulos
 
@@ -50,7 +59,8 @@ No es una lista de deseos: cada línea rompe algo si se ignora.
 
 ## Paso 14.4 — Punto de corte usable
 
-- Borrar `src/app/page.tsx` de create-next-app **y los 5 SVG que referencia** en `public/` (`file`, `globe`, `next`, `vercel`, `window`). Si sobreviven, entran al manifiesto de precache de Serwist en el 18.1 y son peso muerto en la caché offline.
+- Reemplazar la portada **provisional** que dejó el Paso 5 en `src/app/page.tsx` por la real (continuar donde ibas, racha, resumen, cola de repaso, acceso al diagnóstico).
+- Borrar **los 5 SVG** de create-next-app en `public/` (`file`, `globe`, `next`, `vercel`, `window`). Desde el Paso 5 **ya no los referencia nadie**, así que se pueden borrar sin tocar código. Si sobreviven, entran al manifiesto de precache de Serwist en el 18.1 y son peso muerto en la caché offline.
 
 ## Paso 16 — Resto del bloque C
 
@@ -71,6 +81,10 @@ No es una lista de deseos: cada línea rompe algo si se ignora.
 - `leerIlegible()` **no es libre de efectos** (se autolimpia si el registro está corrupto): llamarla desde un efecto, no en render.
 - **Hueco conocido de `necesitaRespaldo`, con test que lo documenta:** §18.5 dice "cada 7 días de uso", pero la rama sin `ultimoRespaldo` mira `racha.dias`, que son días **consecutivos** y se reinicia a 1 al saltarse uno. Un entrenador que estudia 3 noches por semana durante dos meses **nunca** ve el recordatorio. Se copió §6 tal cual; aquí es donde hay UI y contexto para decidir si se arregla.
 - El modo privado y el disco lleno degradan a memoria y **no sobreviven un recargue**. Si /ajustes puede detectarlo, conviene decírselo al usuario: su progreso no se está guardando.
+
+## Paso 18.10 — Prueba en dispositivos reales
+
+- **`src/app/error.tsx` no se ha ejercitado nunca en runtime.** En `npm run dev` el overlay de Next intercepta el límite de error, así que el `accessibility-auditor` del Paso 5 no pudo verificarlo: quedó auditado por código, no por comportamiento. Hay que **forzar un error con build de producción** (`npm run build && npm run start`) y comprobar que el mensaje se lee, que `[Reintentar]` llama a `reset()` y que los dos botones se alcanzan con `Tab` y muestran el foco de 2 px. Usa los mismos `<Button>` + `<Link>` que el 404, que sí quedó verificado.
 
 ## Paso 18.9 — README
 

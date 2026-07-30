@@ -1,6 +1,6 @@
 // src/lib/esquemas.ts
 // Se importa desde el validador de build (Node) y desde almacenamiento.ts
-// (navegador, para el JSON importado). Sin "use client".
+// (navegador, para el JSON importado). Sin directiva de cliente.
 //
 // Escrito contra la API de Zod 3 (`superRefine`, `message`, `z.record` de un
 // argumento). NO migrar a Zod 4: este archivo es el único guardián de ~750
