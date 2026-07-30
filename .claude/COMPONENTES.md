@@ -466,8 +466,8 @@ nada que investigar. Los +0.5 kB del CSS son `.prose-idoneo`; el js del armazón
 | Componente | Archivo | S/C | Props | Quién lo usa |
 |---|---|---|---|---|
 | `PaginaTarjetas` | `src/app/modulos/[slug]/tarjetas/page.tsx` | Server | `params: Promise<{ slug }>` | ruta `/modulos/[slug]/tarjetas` · los 29 slugs se prerenderizan |
-| `EtapasModulo` | `src/components/modulo/etapas-modulo.tsx` | **Client** | `datos: DatosEtapas`, `etapaActual?: 1\|2\|3\|4` | `PaginaModulo` (etapa 1) y `PaginaTarjetas` (etapa 2) |
-| `DatosEtapas` | idem (tipo) | tipo | `{ slug, bloque, hayTeoria, totalTarjetas }` | las dos páginas lo construyen en el servidor |
+| `EtapasModulo` | `src/components/modulo/etapas-modulo.tsx` | **Client** | `datos: DatosEtapas`, `etapaActual?: 1\|2\|3\|4` | las **cuatro** páginas de etapa (el Paso 9 añadió práctica y quiz) |
+| `DatosEtapas` | idem (tipo) | tipo | `{ slug, bloque, hayTeoria, totalTarjetas, totalItems }` | las cuatro páginas lo construyen en el servidor · `totalItems` lo añadió el Paso 9 |
 | `MarcadorLectura` | `src/components/modulo/marcador-lectura.tsx` | **Client** | `slug: string` | `PaginaModulo`, justo después del MDX |
 | `MazoTarjetas` | `src/components/modulo/mazo-tarjetas.tsx` | **Client** | `slug`, `bloque`, `tarjetas: readonly TarjetaEnMazo[]` | `PaginaTarjetas` |
 | `TarjetaEnMazo` | idem (tipo) | tipo | `{ id, frente, reverso, tipo }` | la página proyecta ahí el `Tarjeta[]` de `cargarTarjetas` |
@@ -499,7 +499,11 @@ app pasa de **6 a 9 clientes**. Comprobación:
   cuatro etapas y sus enlaces son estáticos y se pintan desde el servidor; lo
   único que se sustituye por una barra es la celda de estado. Sin salto de
   layout y sin pantalla en blanco.
-- **Las etapas 3 y 4 no enlazan a ninguna parte.** Sus rutas nacen en el Paso 9;
+- ~~**Las etapas 3 y 4 no enlazan a ninguna parte.**~~ **Resuelto en el Paso 9**,
+  exactamente como este contrato anticipaba: se les dio `href` en `construirFilas`,
+  condicionado a `totalItems > 0`. Lo que sigue describe el estado del Paso 8 y se
+  conserva porque explica por qué la fila es un `<div>` cuando no hay a dónde ir.
+  **Las etapas 3 y 4 no enlazan a ninguna parte.** Sus rutas nacen en el Paso 9;
   enlazarlas hoy daría un 404. La fila es un `<div>`, no un botón deshabilitado,
   y dice su estado en palabras («Todavía no está lista»), con una nota debajo que
   explica qué sí se puede hacer hoy. Verificado en navegador: cero `href` hacia
@@ -689,6 +693,227 @@ el mismo momento.
 
 ---
 
+## Los 7 tipos de ítem y la sesión (Paso 9)
+
+| Componente | Archivo | S/C | Props | Quién lo usa |
+|---|---|---|---|---|
+| `PaginaPractica` | `src/app/modulos/[slug]/practica/page.tsx` | Server | `params: Promise<{ slug }>` | ruta `/modulos/[slug]/practica` · los 29 slugs se prerenderizan |
+| `PaginaQuiz` | `src/app/modulos/[slug]/quiz/page.tsx` | Server | `params: Promise<{ slug }>` | ruta `/modulos/[slug]/quiz` · ídem |
+| `ModoItem`, `PropsItem`, `enRevision`, `editable` | `src/components/items/contrato.ts` | tipos | — | los 7 componentes, el envoltorio y el controlador |
+| `BotonOpcion`, `LETRAS`, `useAtajoNumerico` | `src/components/items/opcion.tsx` | pieza compartida | ver abajo | `unica`, `caso`, `multiple`, `vf` |
+| `OpcionUnica`, `GrupoOpcionUnica` | `src/components/items/opcion-unica.tsx` | **Client** | `PropsItem<number, ItemUnica \| ItemCaso>` | `EnvoltorioItem`, `Caso` |
+| `Caso` | `src/components/items/caso.tsx` | **Client** | `PropsItem<number, ItemCaso>` | `EnvoltorioItem` |
+| `OpcionMultiple` | `src/components/items/opcion-multiple.tsx` | **Client** | `PropsItem<number[], ItemMultiple>` | `EnvoltorioItem` |
+| `VerdaderoFalso` | `src/components/items/verdadero-falso.tsx` | **Client** | `PropsItem<boolean, ItemVerdaderoFalso>` | `EnvoltorioItem` |
+| `Emparejar` | `src/components/items/emparejar.tsx` | **Client** | `PropsItem<[number,number][], ItemEmparejar>` | `EnvoltorioItem` |
+| `Calculo`, `aNumero` | `src/components/items/calculo.tsx` | **Client** | `PropsItem<number \| null, ItemCalculo>` | `EnvoltorioItem` |
+| `Ordenar` | `src/components/items/ordenar.tsx` | **Client** | `PropsItem<number[], ItemOrdenar>` | `EnvoltorioItem` |
+| `EnvoltorioItem` | `src/components/items/envoltorio-item.tsx` | **Client** | `PropsItem` | `ControladorSesion`, `ResumenSesion` |
+| `Retroalimentacion` | `src/components/items/retroalimentacion.tsx` | **Client** | `item`, `correcta`, `respondida` | `ControladorSesion`, `ResumenSesion` |
+| `useSesion`, `ResumenSesion` (tipo), `ResultadoItem` | `src/hooks/usar-sesion.ts` | **Client** | `(items: readonly Item[]) => Sesion` | `ControladorSesion` |
+| `ControladorSesion`, `RegistroSesion` | `src/components/sesion/controlador-sesion.tsx` | **Client** | ver contrato abajo | las dos páginas nuevas |
+| `ResumenSesion` (componente) | `src/components/sesion/resumen-sesion.tsx` | pieza compartida | `resumen`, `clase`, `volver`, `siguiente?`, `onRepetir`, `ref` | `ControladorSesion` |
+| `Boton` | `src/components/sesion/boton.tsx` | pieza compartida | `variante?`, `onClick`, `inactivo?`, `className?` | el controlador y el resumen |
+
+**Once altas a la lista cerrada de §10.3**, las once previstas por el blueprint: los
+7 componentes de ítem, `envoltorio-item.tsx`, `retroalimentacion.tsx`,
+`controlador-sesion.tsx` y `usar-sesion.ts`. En la cuenta de «clientes propios» de
+este documento son **10** —`usar-sesion.ts` vive en `hooks/` y queda fuera del
+filtro, igual que `usar-estado.ts`—, así que la app pasa de **9 a 19**:
+
+```bash
+grep -rlE "^\s*['\"]use client['\"];?\s*$" src/ | grep -v "src/components/ui/\|src/hooks/"   # 19
+grep -rlE "^\s*['\"]use client['\"];?\s*$" src/                                              # 33
+```
+
+`opcion.tsx`, `boton.tsx` y `resumen-sesion.tsx` **no llevan la directiva y no son
+altas**: §10.3 lista los archivos que la declaran, y un módulo importado desde un
+Client Component ya se compila para el cliente sin declararla. Existen para que la
+misma opción, el mismo botón y la pantalla de cierre no se escriban cuatro veces.
+
+### Contratos de este paso
+
+- **`PropsItem` es genérico en el tipo del ítem**, a diferencia de §13 del
+  blueprint, que declara `item: Item` y hace `item as ItemUnica` dentro de cada
+  componente. Con el genérico, los 7 componentes reciben ya su variante y **no
+  llevan ni un cast**; el único del sistema vive en el `switch` de
+  `envoltorio-item.tsx`, que es donde el compilador puede vigilarlo (su `default`
+  comprueba exhaustividad con `satisfies never`: un octavo tipo de ítem rompe ahí
+  y en ningún otro sitio).
+- **El enunciado y la viñeta los pinta `EnvoltorioItem`, no los componentes.** Es
+  lo que garantiza que los 7 tipos se presenten igual y lo que permite que `caso`
+  ponga su viñeta **antes** de la pregunta, como manda §4. Consecuencia:
+  `caso.tsx` es un adaptador sobre `GrupoOpcionUnica`, porque su control es
+  idéntico al de `unica`. Mantener dos copias las habría desincronizado.
+- **Los cuatro modos, y el que todavía no tiene productor.** `respondiendo`,
+  `revision-correcta` y `revision-incorrecta` se usan hoy. **`bloqueado` no lo
+  produce nadie**: nace con el simulacro cronometrado del Paso 11 (respondió, la
+  respuesta queda fija, aún sin veredicto). Está implementado en los 7 porque
+  añadirlo después obligaría a volver a los siete archivos.
+- **La calificación nunca la decide un componente.** La hace `calificar()` de
+  `src/lib/simulacro.ts` y llega a la interfaz convertida en `modo`. En
+  `calculo` eso incluye la **tolerancia**: el componente entrega un número y solo
+  *muestra* el margen en revisión; no compara nada.
+- **`calculo` acepta coma y punto** (`Number(texto.replace(',', '.'))`, expuesto
+  como `aNumero`) y viaja como `number | null`. `null` es «vacío o ilegible», que
+  es lo que `sinResponder()` entiende por no responder: **nunca se manda `NaN`**,
+  que contaría como respondido y errado. El campo es `type="text"` con
+  `inputMode="decimal"` — `type="number"` no trae coma en varios teclados Android
+  y borra en silencio lo que no parsea.
+- **Ni `emparejar` ni `ordenar` tienen arrastrar y soltar, ni siquiera como
+  añadido.** Emparejar es tocar izquierda → tocar derecha; ordenar son botones
+  ↑ ↓ de 44 × 44. No es una alternativa accesible pegada al lado del mecanismo
+  bueno: **es el mecanismo**, y por eso funciona igual con el pulgar, con teclado
+  y con lector de pantalla, sin modo aparte. Verificado en navegador:
+  `[draggable=true]` devuelve **0** elementos.
+- **El portador no cromático de cada tipo.** `emparejar` numera las parejas y el
+  número aparece en los dos lados; `ordenar` numera la posición; las opciones
+  llevan icono (Check/X) **y** texto solo para lector de pantalla («Esta era la
+  correcta», «Incorrecta, y es la que elegiste»). El color nunca va solo
+  (DISENO.md §1.2).
+- **En revisión, `emparejar` cambia de presentación.** Deja las dos columnas y
+  muestra «izquierda → lo que elegiste», con la correcta debajo cuando falló.
+  Colorear las dos columnas obligaría al usuario a reconstruir de memoria qué unió
+  con qué.
+- **`aria-disabled` en vez de `disabled`, en todos los controles inertes.** Un
+  botón deshabilitado sale del orden de tabulación, y en revisión quien navega con
+  teclado tiene que poder recorrer las opciones para leer cuál era la correcta. El
+  clic se ignora en el handler.
+- **La región `aria-live="polite"` está SIEMPRE montada**, en el controlador, y la
+  retroalimentación entra dentro. Una región viva que aparece en el DOM junto con
+  su contenido no se anuncia de forma fiable: el lector necesita haber visto la
+  región vacía antes.
+- **La explicación no existe hasta que se responde.** Verificado en navegador en
+  las 8 posiciones de una tanda y en los 7 tipos: `section[aria-label="Explicación
+  de la respuesta"]` tiene **count 0** antes de «Comprobar».
+- **El teclado es ayuda secundaria, igual que en el mazo de tarjetas.** Los
+  botones de 52 px son la vía primaria; los atajos se anuncian en una línea
+  discreta y solo bajo `[@media(any-pointer:fine)]`. `useAtajoNumerico` escucha en
+  `window` —no en un contenedor sin `tabIndex`, que fue el fallo del Paso 8— y
+  guarda contra `INPUT/TEXTAREA/SELECT/contentEditable` y contra los
+  modificadores: el ítem de cálculo **tiene** un campo de texto, así que un atajo
+  que se comiera el «1» sería un fallo real, no hipotético.
+- **`Enter` avanza; `Enter` NO cierra la tanda.** Terminar es irreversible dentro
+  del intento y merece un clic deliberado. Y hay una asimetría a propósito:
+  **«Comprobar» funciona sin haber respondido** —es «no sé esta, muéstrame la
+  respuesta», acción legítima en la etapa donde se aprende, y la
+  retroalimentación lo dice con esas palabras: «La dejaste sin responder»— pero
+  **`Enter` exige haber respondido**, para que nadie queme un ítem por apoyarse en
+  la tecla. Bloquear el botón, que era la primera versión, dejaba al usuario
+  atrapado en un ítem que no sabe.
+- **`ControladorSesion` sirve a las cuatro sesiones.** Lo que cambia viaja en el
+  `blueprint` (cuántos ítems, de dónde, con cronómetro o sin él,
+  `feedbackInmediato`) y en `registro`, que dice qué se escribe al terminar:
+  `{clase:'practica'|'quiz', slug}` o `{clase:'suelta'}` para las que guardan un
+  `IntentoSimulacro` por otra vía. **El Paso 11 no debería tener que tocar su
+  contrato**, solo añadir cronómetro y persistencia de `SesionCronometro`.
+- **La semilla nace en el handler de «Empezar»** (`Date.now()`, §10.4) y de ella
+  salen las dos cosas aleatorias: `armarSimulacro` y `presentarTanda`. Por eso hay
+  pantalla previa: sin ella habría que sortear en el render. Repetir la tanda
+  genera semilla nueva y **remonta la sesión con `key={semilla}`**, que es lo que
+  garantiza que no sobreviva ni una respuesta ni un foco del intento anterior.
+- **El quiz escribe `registrarQuiz(slug, puntaje, ahora)` y nada más.** NO guarda
+  un `IntentoSimulacro`: eso exige el desglose por bloque, módulo y nivel de
+  `src/lib/informe.ts`, que nace en el Paso 12 junto con `/resultados/[intentoId]`.
+  Guardar hoy un intento a medias dejaría registros que ese paso tendría que
+  migrar. La práctica escribe `marcarPracticaCompletada`.
+- **El puntaje se calcula en `usar-sesion.ts` con `Math.round(correctas/total*100)`,
+  y es deuda declarada.** Es la fórmula de `calcularPuntaje` (§7.5), que todavía no
+  existe: **el Paso 12 es su dueño** y cuando cree `src/lib/informe.ts` esa línea se
+  sustituye por la llamada. Está marcada con comentario en el archivo.
+- **Nada de esto encola en el SRS todavía.** `lib/srs.ts` es del Paso 10. Los
+  ítems fallados en práctica y quiz **tienen que entrar a la cola** cuando exista,
+  y el punto de enganche es el handler `cerrar` de `controlador-sesion.tsx`, que ya
+  tiene el `ResumenSesion` con `detalle[].correcta` en la mano.
+- **Las etapas 3 y 4 ya enlazan.** `DatosEtapas` gana **`totalItems`** y
+  `construirFilas` da `href` a las dos etapas cuando el módulo tiene banco. Las
+  cuatro páginas que montan `EtapasModulo` pasan el campo, así que **añadir un
+  campo nuevo a `DatosEtapas` obliga a tocar las cuatro** — es el precio de que el
+  cliente no importe `content/` (ADR-010). El texto de las etapas sin contenido
+  pasó de «Todavía no está lista» a «Sin publicar», que es lo que de verdad ocurre.
+- **El enunciado se pinta como texto plano.** §4 dice que admite markdown en línea;
+  ningún ítem de C5 lo usa y montar un renderizador en el cliente costaría peso por
+  nada. Si un módulo de los pasos 15–17 lo necesita, se resuelve en
+  `envoltorio-item.tsx`, en un solo sitio.
+- **ADR-014, y lo que NO se construyó.** El panel de retroalimentación muestra
+  veredicto → `explicacion` → `pasos` si es cálculo → `referencia`, y **nada más**.
+  §13 del blueprint describe además un cuadro de contradicción entre cartillas: no
+  se montó, `<AlertaContradiccion>` no existe y el campo `contradiccion` de
+  `ItemBase` tampoco.
+
+### Peso — las dos métricas, medidas al cerrar el paso
+
+| | gz |
+|---|---|
+| **`/layout` js — MÉTRICA OFICIAL** | **131.9 kB** (131.9 en el Paso 8b: **sin cambio**) |
+| `/layout` css | 13.5 kB → **13.6 kB** |
+| `/layout` total | 145.5 kB → **145.5 kB** |
+
+| Ruta | js gz | chunks | Antes |
+|---|---|---|---|
+| `/modulos/[slug]/page` | **133.9 kB** | 9 | 134.0 kB (Paso 8b) |
+| `/modulos/[slug]/tarjetas/page` | **136.0 kB** | 9 | 136.0 kB |
+| `/modulos/[slug]/practica/page` | **143.4 kB** | 10 | — (nueva) |
+| `/modulos/[slug]/quiz/page` | **143.4 kB** | 10 | — (nueva) |
+
+**+7.4 kB gz sobre `/tarjetas`, que es la ruta comparable. Investigado antes de
+cerrar, como manda la regla, y explicado — no es un import accidental.** Diferencia
+de chunks contra `/modulos/[slug]/tarjetas/page`:
+
+| Chunk | gz | Qué es |
+|---|---|---|
+| `429-*` | **9.9 kB** (33.0 kB crudos) | todo el código cliente del Paso 9 |
+| `page-*` | 0.1 kB | la propia ruta |
+
+Verificado por sondeo de cadenas dentro del chunk: contiene `crearRng`
+(`0x6d2b79f5`), el muestreo de `armarSimulacro`, los textos de los 7 componentes
+(«Ya formaste las», «Margen aceptado», «Terminaste el quiz») y los trazados de los
+iconos nuevos de lucide. Es decir: **`src/lib/simulacro.ts` completo + los 7
+componentes de ítem + envoltorio + retroalimentación + controlador + resumen +
+hook + botón**, por 9.9 kB gz.
+
+`lib/simulacro.ts` viaja al cliente **por diseño, no por descuido**: la semilla
+nace de `Date.now()` en un handler (§22 reglas 5 y 6), así que el muestreo y el
+barajado ocurren en el navegador. Y es un escalón de una sola vez: **las dos rutas
+comparten el mismo chunk `429`** —la segunda cuesta 0.1 kB— y los simulacros del
+Paso 11 lo reutilizan entero.
+
+**Lo que no se ve en esta métrica y hay que decir: la carga útil RSC.** Como la
+página carga el banco en el servidor y lo pasa por prop (ADR-010), los 28 ítems de
+C5 viajan en el documento: `/practica` pesa **17.1 kB gz de HTML** contra los
+9.1 kB de `/tarjetas`. Son ~8 kB gz por documento, en la carga útil, **no en los
+chunks JS**. Es el precio de que ningún Client Component importe `content/`, y el
+canario lo confirma: `grep -rl "osteomuscular"` y `grep -rl "Malondialdehído"`
+sobre `.next/static/chunks/` siguen **limpios**, igual que una sonda del propio
+banco (`"creatina quinasa\|MLSS"`). Cuando el Paso 11 arme simulacros de 100 ítems
+sobre 29 módulos, esta vía no escala y ahí sí toca el `import()` dinámico bajo
+interacción que §2.2 previó — **decisión del Paso 11, con el caso difícil
+delante.**
+
+### Verificado en navegador, a 375 px, sobre el build de producción
+
+- **Los 7 tipos, recorridos de verdad** (14 tandas hasta que salieron todos):
+  opción a 52–86 px de alto según el texto · campo de cálculo 52 px con
+  `inputMode=decimal` y coma aceptada · botones ↑ ↓ a 44 px exactos, el elemento
+  sube y **el foco se repone** en el botón contrario cuando el que se pulsó
+  desaparece al llegar al extremo · emparejar cierra las 4 parejas a toque·toque y
+  el estado pasa de «Ahora toca su pareja» a «Ya formaste las 4 parejas» · el
+  contador de múltiple va de «Llevas 0 de 2» a «Llevas 2 de 2».
+- **Cero desbordamiento horizontal** en los cuatro tipos de más riesgo (`ordenar`,
+  `emparejar`, `calculo`, `multiple`) con el ítem en estado interactivo.
+- **La explicación llega después y nunca antes**, con su referencia a la cartilla
+  en los 7 tipos y con los 4 `pasos` en el de cálculo.
+- **Teclado, sin tocar la pantalla:** con el foco forzado al `<body>`, `1` elige,
+  `Enter` comprueba y el siguiente `Enter` pasa de «Ítem 1 de 8» a «Ítem 2 de 8».
+- **Foco al cerrar:** `document.activeElement` queda en «Terminaste la práctica».
+- **Quiz:** no hay botón «Comprobar» ni explicación durante la tanda (count 0 las
+  dos), «Marcar» conmuta a «Marcada», la revisión final trae las 10 explicaciones
+  y señala el ítem marcado, y el progreso guardado queda
+  `{practicaCompletada: true, mejorQuiz: 0, intentosQuiz: 1, dominado: false}`
+  tras una pasada en blanco deliberada.
+
+---
+
 ## Ayudantes de UI en `src/lib/utils.ts`
 
 | Función | Qué hace | Test |
@@ -726,7 +951,6 @@ note.
 
 | Qué | Paso |
 |---|---|
-| Los 7 componentes de ítem, `EnvoltorioItem`, `Retroalimentacion`, `ControladorSesion` | 9 |
 | `ControladorRepaso` | 10 |
 | `CronometroVisual`, `PanelNavegacion`, `DialogoReanudar` | 11 |
 | `VistaInforme`, `BarrasDominio`, `TemasPrioritarios`, `RevisionItems` y la **escala de umbral** de DISENO.md §4.4 | 12 |

@@ -17,6 +17,7 @@ obliga a RECHAZADO.
 | 3 | 2026-07-29 | ✅ | ✅ 75 | ✅ 29 avisos | ✅ | APROBADO CON CAMBIOS | Una clave huérfana en `BANCO`/`TARJETAS` deja un archivo entero sin validar en silencio, con un aviso que apunta al lado contrario (58 claves a mano en los pasos 15–17; la primera en el Paso 8) · `multiple` no hereda el refinamiento de opciones duplicadas de `unica`/`caso` · `emparejar` solo vigila el índice izquierdo repetido en `pares`, no el derecho · la teoría no se verifica nunca, aunque define `'completo'` (regla 8) · el mínimo de 28 ítems del bloque C que pide §14.4 y el Paso 16 no está enforced (`minimoItems` es global) · `tolerancia` de `calculo` sin cota de cordura · tarjetas sin el cruce prefijo↔módulo que sí tienen los ítems · `DATOS_DUROS` sin cruce con tarjetas ni banco · Pasos 1–3 siguen sin comitear |
 | 4 | 2026-07-29 | ✅ | ✅ 159 | ✅ 29 avisos | ✅ | APROBADO CON CAMBIOS | 10 tests ausentes, verificados por mutación (64 mutantes, 16 supervivientes, **todos huecos de test y no defectos**): `guardarEstado` no prueba `notificar()` —el único cable escritura→UI en la misma pestaña, del que dependen los pasos 8–13— · `obtenerIntento` solo prueba el caso negativo, y devolver `intentos[0]` pasa la suite (Paso 12) · `borrarSesion`, `guardarColaRepaso` y `guardarDatosPersonales` sin ningún test (pasos 10, 11, 13) · `marcarTeoriaLeida` nunca verifica su bandera · `importarJSON` sin test de pureza en el éxito (regla 12 vía §18.5) · `necesitaRespaldo` "sin intentos" pasa por la razón equivocada y su frontera `<=` no se ejerce · `desuscribir` afirma sobre el registro de listeners de `window`, nunca sobre el Set interno · `CLAUDE.md` sigue diciendo `usarEstado` (líneas 1437, 6298, 6640) y rompería el Paso 8 · ADR-008 pendiente de ratificación del `software-architect` (tercera clave donde §6 dice "dos") · heredado al Paso 11: `leerSesion` castea sin validar y no hay `esqSesionCronometro` |
 | 8 | 2026-07-30 | ✅ | ✅ 187 | ✅ 84 avisos, 0 errores | ✅ | APROBADO CON CAMBIOS | 🔴 **C5-028 mezcla escalas y sitúa en R1 un valor que la teoría del propio módulo pone en R2**: pide «el límite superior de R1 al 75 % de la FC de reserva» y su respuesta, 152,5 lpm, es el 82,4 % de la FCmáx (R1 = 120–139 lpm; R2 = 148–167 lpm). Es la ambigüedad que C5-008 existe para enseñar a evitar, en la plantilla que se replica 28 veces. Arreglo de una línea: quitar el marco de zona del enunciado; respuesta, `pasos` y explicación quedan válidos · 🟡 el JSDoc de `useEstado` (`src/hooks/usar-estado.ts:11-14`) sigue enseñando el contrato viejo («renderizar un esqueleto mientras sea null»), que es justo el bug del esqueleto permanente; COMPONENTES.md lo corrigió, el hook no, y los Pasos 9–14 leen el hook · 🟡 C5-026 atribuye a R2 un «5–10 % de grasas» que la cartilla no da (dice «casi exclusivamente hidratos»): cifra inventada en la plantilla de oro → derivado a `technical-writer` · heredado y escalado a `software-architect`: `esquemas.ts` manda al navegador los 7 esquemas de ítem + tarjetas/erratas/glosario (evidencia dura: `diceLaCartilla` está en `static/chunks/571-*.js`) donde solo se usa `esqEstadoProgreso` — **no es violación de §5**, que sanciona el import, sino coste no previsto; decidir junto con la deuda del barrel de `radix-ui` (ADR-011) en el Paso 9 |
+| 9 | 2026-07-30 | ✅ | ✅ 382 | ✅ 84 avisos, 0 errores | ✅ (+ lint ✅) | APROBADO CON CAMBIOS | 🔴 **CORREGIDO EN LA REVISIÓN** — `envoltorio-item.tsx:52` montaba `<Control {...props} />` sin `key`: dos ítems consecutivos del mismo `tipo` reusaban la instancia hoja y arrastraban su estado local. En `calculo` (4 de 28 en C5) el campo mostraba el número tecleado en el ítem anterior con `valor` en `null` → **número en pantalla, ítem calificado en blanco**, sin aviso. `calculo.tsx:44-45` y `ordenar.tsx:45-47` daban el remontaje por hecho en comentario. Arreglado con `key={item.id}`; **sin test de regresión: no existe stack de test de componentes** (`environment: 'node'`, `include` solo `*.test.ts`) y añadir jsdom/@testing-library es dependencia nueva → escalado al `software-architect` · 🟡 `useSesion.terminar()` (`usar-sesion.ts:153`) no es idempotente y `cerrar()` (`controlador-sesion.tsx:150`) tampoco: hoy irreproducible porque el botón se desmonta, pero el auto-envío del Paso 11 lo pone en carrera con el clic del usuario → `intentosQuiz` doble · 🟡 `ordenar.tsx:44` escribe respuesta en un efecto sin consultar `editable(modo)`: inofensivo hoy, rellena una respuesta ya fija en cuanto exista `bloqueado` (Paso 11) · 🟡 textos que tratan `bloqueado` como editable en `emparejar.tsx:81` y `ordenar.tsx:91` · 🟡 `emparejar.tsx:101,124,227` usa `key={texto}` sin que el esquema garantice unicidad de `izquierda`/`derecha` · 💭 el banco completo (con `explicacion` y `correcta`) viaja en la carga útil RSC del HTML antes de responder — **verificado**, 73 kB en `quiz.html`; inevitable con calificación en cliente y documentado en `practica/page.tsx:11-17`, pero la página de **teoría** también lo arrastra solo para mostrar un conteo · 💭 sin `itemsRecientes`, repetir el quiz puede servir los mismos 10 ítems |
 
 ## Notas por paso
 
@@ -184,3 +185,85 @@ nunca en el cuerpo del render.
 No apliqué ningún cambio. El árbol quedó verificado idéntico al de partida: 3 sumas `sha256sum -c`
 coincidentes, `diff` contra copias pristinas vacío, `git status --porcelain` con los mismos 5
 renglones del inicio, y las cinco compuertas repetidas en verde tras restaurar.
+
+---
+
+## Paso 9 — Componentes de ítem, máquina de sesión y etapas 3 y 4 · 2026-07-30
+
+**Alcance:** `src/components/items/` (contrato + `opcion.tsx` + los 7 tipos + envoltorio +
+retroalimentación), `src/hooks/usar-sesion.ts`, `src/components/sesion/`, las dos rutas nuevas de
+`/modulos/[slug]/`, `eslint.config.mjs` y los 13 archivos de `src/components/ui/` (cierre de
+ADR-011). `src/lib/simulacro.ts` (ADR-015) no se re-revisó: ya lo revisó otro agente y no aparece
+nada grave en el uso que hacen de él los archivos de este paso.
+
+**Compuertas (las cinco, en verde):** typecheck ✅ · lint ✅ · vitest ✅ 382/382 · validar ✅
+(84 avisos, 0 errores; todos son módulos en preparación y blueprints sin banco, que es el estado
+esperado hasta el Paso 17) · build ✅.
+
+**Aviso metodológico sobre los canarios de ADR-010.** Hay un `next dev -p 3210` corriendo sobre este
+mismo proyecto y `next dev` sobrescribe `.next`: el primer canario que corrí quedó contaminado y el
+`BUILD_ID` de la build de producción desapareció a media revisión. Rehíce los tres canarios sobre una
+**build limpia en copia aislada** (`tar` sin `node_modules`/`.next`/`.git`, `node_modules`
+enlazado). Los tres dan vacío: `osteomuscular`, `Malondialdehído` y una explicación literal de C5 no
+aparecen en `.next/static/chunks/`. **ADR-010 se sostiene**, y se sostiene por construcción: ningún
+Client Component importa `content/` (`encabezado.tsx` y `rotulo-bloque.tsx` sí lo importan, y los dos
+son Server Components).
+
+**Dónde acaba el banco entonces.** En la carga útil RSC, no en los chunks JS. Verificado con la build
+limpia: `.next/server/app/modulos/c5-umbrales-zonas/quiz.html` pesa 73 kB y contiene la explicación
+literal de un ítem. Es decir: **la respuesta correcta y su explicación están en el navegador antes de
+que el usuario responda la primera pregunta.** No lo cuento como fallo y quiero dejar dicho por qué:
+sin backend, `calificar()` corre en el cliente y las respuestas tienen que llegar sí o sí; ocultarlas
+sería teatro. La cabecera de `practica/page.tsx:11-17` ya asume el coste por escrito, que es la forma
+correcta de tomar esta decisión. Lo que sí merece una línea: `/modulos/[slug]` (la página de teoría)
+llama a `cargarBancoModulo` y arrastra los 28 ítems enteros **solo para pintar `totalItems`**. Un
+`.length` en el servidor no necesita que los ítems crucen la frontera.
+
+**El bloqueante, y por qué no lo vio la suite.** `envoltorio-item.tsx` despachaba con
+`<Control {...props} />` sin `key`. React solo desmonta la hoja cuando cambia el *tipo* de elemento,
+así que entre dos ítems consecutivos del mismo `tipo` la instancia se reutiliza con su estado local
+intacto. C5 tiene 4 `calculo`, 3 `multiple`, 3 `caso` y 2 `emparejar` en 28 ítems, y una tanda saca 8
+(práctica) o 10 (quiz): la adyacencia no es un caso de laboratorio. El daño peor es silencioso —
+`calculo` siembra su `useState` desde `valor`, así que el segundo campo aparece con el número del
+ítem anterior mientras `valor` sigue en `null`; el usuario ve su respuesta escrita, no toca nada,
+`onCambio` no se dispara y el ítem se califica **en blanco**. Dos archivos afirmaban en comentario el
+remontaje que nadie implementaba (`calculo.tsx:44-45`, `ordenar.tsx:45-47`), que es la señal de que
+el invariante se dio por supuesto en vez de por escrito. Arreglado con `key={item.id}` y comentario
+que explica qué se rompe si alguien lo quita. `resumen-sesion.tsx` no necesita nada: su
+`<li key={resultado.item.id}>` ya separa las instancias.
+
+**Lo que no pude hacer y no es mío decidir.** El arreglo es de una línea; su test de regresión no.
+`vitest.config.ts` corre con `environment: 'node'` e `include` solo de `*.test.ts`: no hay forma de
+montar un componente. Añadir jsdom y `@testing-library/react` es una dependencia nueva y una decisión
+de arquitectura — **escalado al `software-architect`**. Mientras no exista, este bloqueante puede
+volver sin que ninguna compuerta se ponga roja, y es el tipo de fallo que no se nota mirando la
+pantalla.
+
+**Idempotencia, que es la deuda que detona en el Paso 11.** `terminar()` no comprueba `terminada` y
+`cerrar()` no comprueba nada: dos llamadas suman `intentosQuiz` dos veces y registran el puntaje dos
+veces. Hoy no es alcanzable —el botón se desmonta con el primer clic, `Enter` está deliberadamente
+excluido de cerrar la tanda (`controlador-sesion.tsx:173-179`) y StrictMode duplica efectos, no
+handlers—, así que no lo bloqueo. Pero el Paso 11 mete un auto-envío por temporizador que compite con
+el clic del usuario, y ahí sí. Una guarda `if (terminada) return resumen ?? …` al entrar en
+`terminar()` cierra la clase entera.
+
+**Lo que está bien resuelto y conviene que no se pierda.** La calificación está centralizada de
+verdad: el único `calificar()` de la interfaz está en `controlador-sesion.tsx:220`, y las
+comparaciones que hacen `emparejar` y `ordenar` son estrictamente de pintado por fila. Ningún
+componente de ítem menciona `explicacion`, `referencia`, `pasos` ni `item.respuesta` — verificado por
+grep sobre los ocho archivos —, así que la fuga de la respuesta antes de responder no existe. Cero
+arrastrar y soltar: `emparejar` va por selección en dos columnas y `ordenar` por flechas de 44 px, y
+el comentario de cabecera explica que es el mecanismo completo y no una concesión. `calculo` acepta
+coma y punto, no manda `NaN` (manda `null`, que es lo que `sinResponder()` entiende) y **no compara
+nada contra `item.respuesta`**: la tolerancia solo se muestra, la aplica el motor. El `switch` del
+envoltorio se cierra con `props.item satisfies never`. Los estados vacíos de práctica y quiz para un
+módulo en preparación tienen mensaje, explican que no se perdió progreso y ofrecen dos salidas: §22
+regla 11 cumplida.
+
+**Derivado al `accessibility-auditor`** (no lo audité, es su paso): el patrón de `aria-disabled` +
+guarda en el handler en vez de `disabled` (`boton.tsx:44-50`), la región `aria-live` siempre montada
+del controlador y el `tabIndex={-1}` del titular del resumen son decisiones deliberadas y
+documentadas; conviene que las valide quien sí audita.
+
+**No comiteé nada.** El único cambio de código que apliqué es la línea de `key` en
+`envoltorio-item.tsx` más su comentario; las cinco compuertas se repitieron en verde después.

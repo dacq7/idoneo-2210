@@ -35,6 +35,8 @@ export interface DatosEtapas {
   hayTeoria: boolean;
   /** Cuántas tarjetas tiene publicadas el módulo. 0 = todavía ninguna. */
   totalTarjetas: number;
+  /** Cuántos ítems tiene publicados el módulo. 0 = no hay práctica ni quiz. */
+  totalItems: number;
 }
 
 type NumeroEtapa = 1 | 2 | 3 | 4;
@@ -57,7 +59,7 @@ function construirFilas(
   progreso: EstadoModulo,
   etapaActual: NumeroEtapa | null,
 ): FilaEtapa[] {
-  const { slug, hayTeoria, totalTarjetas } = datos;
+  const { slug, hayTeoria, totalTarjetas, totalItems } = datos;
   const vistas = Math.min(progreso.tarjetasVistas, totalTarjetas);
 
   const filas: FilaEtapa[] = [
@@ -87,23 +89,28 @@ function construirFilas(
     {
       numero: 3,
       nombre: 'Práctica',
-      // La ruta nace en el paso siguiente del build, junto con los componentes
-      // de ítem. Enlazar hoy daría un 404, así que la fila no es un enlace.
-      href: null,
-      texto: progreso.practicaCompletada ? 'Completada' : 'Todavía no está lista',
-      hecha: progreso.practicaCompletada,
-      pendienteDePublicar: !progreso.practicaCompletada,
+      href: totalItems > 0 ? `/modulos/${slug}/practica` : null,
+      texto:
+        totalItems === 0
+          ? 'Sin publicar'
+          : progreso.practicaCompletada
+            ? 'Completada'
+            : 'Sin hacer',
+      hecha: totalItems > 0 && progreso.practicaCompletada,
+      pendienteDePublicar: totalItems === 0,
     },
     {
       numero: 4,
       nombre: 'Quiz',
-      href: null,
+      href: totalItems > 0 ? `/modulos/${slug}/quiz` : null,
       texto:
-        progreso.mejorQuiz === null
-          ? 'Todavía no está listo'
-          : `Mejor puntaje: ${progreso.mejorQuiz} de 100`,
+        totalItems === 0
+          ? 'Sin publicar'
+          : progreso.mejorQuiz === null
+            ? 'Sin presentar'
+            : `Mejor puntaje: ${progreso.mejorQuiz} de 100`,
       hecha: progreso.mejorQuiz !== null && progreso.mejorQuiz >= UMBRAL_DOMINIO,
-      pendienteDePublicar: progreso.mejorQuiz === null,
+      pendienteDePublicar: totalItems === 0,
     },
   ];
 
@@ -165,9 +172,9 @@ export function EtapasModulo({ datos, etapaActual }: Props) {
 
       {hayPendientes ? (
         <p className="text-[0.8125rem] text-muted-foreground">
-          Las etapas marcadas como «todavía no está lista» aún no existen en la app: llegan
-          con las preguntas del módulo. Lo que ya puedes hacer es leer la teoría y darle a
-          las tarjetas hasta que no falles ninguna.
+          Las etapas marcadas como «Sin publicar» todavía no tienen contenido escrito. No
+          es un fallo de la app ni algo que hayas hecho mal: ese material aún no se ha
+          subido, y preferimos decirlo a enseñarte una etapa vacía.
         </p>
       ) : null}
     </section>

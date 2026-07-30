@@ -448,7 +448,7 @@ Este ADR decía «tres altas» a §10.3. Son **dos**: `riel-bloques.tsx` y `app/
 
 ---
 
-## ADR-011 · El barrel de `radix-ui` cuesta 77.5 kB gz por ruta — diagnóstico hecho, arreglo aplazado
+## ADR-011 · El barrel de `radix-ui` cuesta 77.5 kB gz por ruta — ✅ CERRADA en el Paso 9
 
 **Estado:** Aceptada — **diagnóstico y regla de vigilancia**. El arreglo del código queda asignado al **Paso 9 u 11**.
 **Fecha:** 2026-07-30 · **Autor:** Paso 6
@@ -747,3 +747,100 @@ Se editó con prioridad porque **la reintroducción compila**: a diferencia de A
 **Van al final de cada lista, no intercaladas**, por dos razones mecánicas: `7bis.` no es un marcador de lista válido en markdown y rompería la numeración al renderizar; y renumerar 8→9 tampoco servía, porque hay comentarios de código que citan «§22 regla 6» y «§22 regla 11» **por número**.
 
 **Quedan tres menciones a «errata» en las 6.484 líneas, y las tres son deliberadas**: los dos párrafos nuevos de §1 y la nota de §14. Las tres dicen que las cartillas se equivocan y que la app **no lo cataloga**. Ninguna manda construir nada.
+
+---
+
+## ADR-015 · `src/lib/simulacro.ts` se adelanta del Paso 11 al Paso 9
+
+**Estado:** Aceptada
+**Fecha:** 2026-07-30 · **Autor:** hilo principal
+
+**Contexto.** §17 coloca el motor de simulacro (§7.3) en el **Paso 11**. Pero el Paso 9 tiene que cerrar las etapas 3 y 4 de C5 —práctica y quiz— y para eso necesita las tres funciones del motor: `armarSimulacro` (elegir los 8 o los 10 ítems según el blueprint), `presentarTanda` (barajar opciones de forma reproducible) y `calificar`. Sin ellas, el Paso 9 no puede renderizar una tanda ni decidir si una respuesta es correcta.
+
+El propio blueprint lo delata: **el punto 6 del Paso 9 pide tests de `calificar` en `src/lib/__tests__/simulacro.test.ts`**, un archivo que prueba un módulo que, según el orden, todavía no existiría.
+
+**Decisión:** `src/lib/simulacro.ts` se instala en el Paso 9, con el **§7.3 literal**. El Paso 11 conserva lo suyo —`cronometro.ts`, `usar-cronometro.ts`, la persistencia de `SesionCronometro`, el diálogo de reanudar y el auto-envío—, que es de donde sale su valor real y que no depende de este adelanto.
+
+Es el mismo movimiento que **ADR-004** hizo con `content/estructura.ts` (del Paso 6 al 3) y por la misma razón: el orden del plan es de dependencias, y aquí faltaba una.
+
+**Consecuencia buena, y no era el objetivo:** el motor entra **acompañado de su batería de tests** en vez de esperar dos pasos sin ejercitar. Eso destapó **dos defectos del §7.3 literal** que llevaban ahí desde que se escribió el blueprint (ver más abajo). Si el motor hubiera llegado en el Paso 11 junto con el cronómetro, los dos habrían tenido dos pasos más de vida y un consumidor más.
+
+**Los dos defectos, ambos violaciones del docblock del propio §7.3:**
+
+1. **`calificar` daba por correcta una respuesta múltiple con basura dentro.** El docblock dice «cualquier otra forma se califica como incorrecta», pero la rama `multiple` **filtraba** los no-números en silencio: `calificar(item, [0, 1, 'basura'])` devolvía `true`. Sus ramas hermanas (`ordenar`, `emparejar`) sí rechazan. La vía de entrada es real y ya está documentada: `leerSesion()` hace `JSON.parse(crudo) as SesionCronometro` **sin Zod**, así que una sesión corrupta llega cruda a `calificar` — e **infla** el puntaje, no lo baja.
+2. **`presentarItem` devolvía el ítem del banco por referencia** en `vf` y `calculo`, cuando el docblock promete una copia. Los módulos de `content/banco/` son **singletons de ES module** cacheados por `import()`: una mutación accidental desde un componente corrompería `correcta` o `respuesta` en el banco para el resto de la sesión.
+
+Los dos se arreglaron con el diff mínimo y un test que falla antes y pasa después, verificado por mutación. Ninguno cambia la API pública ni la calificación de una respuesta bien formada.
+
+**Tercera desviación del código literal del blueprint en `src/lib/`**, tras ADR-003 (§5) y ADR-012 (§4, ya supersedida). `CLAUDE.md` §7.3 queda desalineado en esos dos puntos y **no se editó**: a diferencia de ADR-014, el defecto **no se replica** —§7.3 se copia una sola vez y ya está copiado— y los tests lo fijan. Anotado en `PENDIENTES.md` por si algún día se rehace el blueprint.
+
+**La suite quedó en 382 tests** (183 → 382), con 199 nuevos solo para este motor. Es desproporcionado a propósito: es donde §19 dice que un bug silencioso arruina un simulacro de 120 minutos, y la única forma de saber que un motor determinista lo es de verdad es ejercitarlo con semillas.
+
+### Cierre de ADR-011 — 2026-07-30, Paso 9
+
+**La causa era más concreta que el diagnóstico.** No es que el bundler se atragante con un barrel: es que el paquete paraguas **no es sacudible por construcción**. Su `dist/index.mjs` hace `import * as Dialog from "@radix-ui/react-dialog"` para las **55** primitivas — **namespace imports**, no reexportaciones planas—, y un objeto de espacio de nombres no se puede podar por miembro. El `sideEffects: false` que declara el paquete es cierto y no ayuda: el problema no son los efectos, es la forma del reexport. Y está hecho a propósito, para que puedas escribir `Dialog.Root`.
+
+**El arreglo no es el que proponía el diagnóstico.** `radix-ui` expone un subpath por primitiva (`exports: { ".": …, "./*": … }`), y cada uno es un `export * from "@radix-ui/react-*"` de **una línea**, que sí se sacude. Así que el import correcto es `import * as Slot from "radix-ui/slot"`, **no** `@radix-ui/react-slot`: mismo paquete, misma versión, **cero dependencias nuevas**. El ADR proponía declarar la transitiva como dependencia directa; era innecesario.
+
+**13 archivos de `src/components/ui/` reescritos**, y el criterio queda fijado de una vez para los 8 que usaban el barrel para primitivas que sí consumen, no solo para `badge` y `button`.
+
+**Medido, sobre el mismo comando oficial de `COMPONENTES.md`:**
+
+| Ruta | Antes | Después | |
+|---|---|---|---|
+| `/not-found` | **183.8 kB js gz** | **106.9 kB js gz** | **−76.9 kB** |
+| `/layout` | 131.9 | 131.9 | sin cambio |
+| `/modulos` | 106.2 | 106.2 | sin cambio |
+
+El ahorro cae donde el diagnóstico dijo: la ruta que pagaba maquinaria de diálogos que no abre ningún diálogo. Un 404 pasa de costar más que cualquier ruta real a costar lo que le corresponde.
+
+### La condición de cierre, que era la parte difícil
+
+La pregunta que dejó abierta el ADR era la buena: **cómo se evita que `npx shadcn@2 add` reescriba `from "radix-ui"` y deshaga el arreglo solo.**
+
+**Respuesta: no se evita.** El CLI resuelve la plantilla desde el registro remoto y no hay opción en `components.json` —ni `aliases`, ni `registries`— que reescriba el import de la primitiva. Cualquier intento de configurarlo es adivinar contra un formato que no controlamos.
+
+**Lo que sí se puede es que no sobreviva.** `eslint.config.mjs` gana una regla `no-restricted-imports` sobre el nombre exacto `radix-ui` —los subpaths no la disparan— con el mensaje que dice qué escribir en su lugar y por qué. `npm run lint` es compuerta de cierre de paso, así que el barrel reintroducido **muere en el mismo paso en que entra**, no dos pasos después en una medición de peso.
+
+**Verificado por mutación, no de palabra:** se reintrodujo `import { Slot } from "radix-ui"` en `badge.tsx` y `npm run lint` falló con el mensaje. Restaurado, vuelve a verde.
+
+Esto es lo que convierte el arreglo en permanente y no en un parche con fecha de caducidad: **la protección no depende de que nadie se equivoque, sino de que la equivocación sea ruidosa.**
+
+---
+
+## ADR-016 · Vitest gana un segundo entorno: tests de componente en jsdom
+
+**Estado:** Aceptada
+**Fecha:** 2026-07-30 · **Autor:** hilo principal
+
+**Contexto.** El `code-reviewer` encontró en el Paso 9 un **bloqueante silencioso**: `<Control {...props} />` en `envoltorio-item.tsx` se montaba sin `key`. React solo desmonta la hoja cuando cambia el *tipo de elemento*, así que entre dos ítems consecutivos del **mismo `tipo`** la instancia se reutilizaba con su estado local intacto. C5 tiene 4 `calculo`, 3 `multiple`, 3 `caso` y 2 `emparejar` en 28 ítems y una tanda saca 8 o 10: la adyacencia no es un caso de laboratorio.
+
+El daño es el peor de los posibles: **el segundo `calculo` aparece con el número tecleado en el primero mientras `valor` sigue en `null`.** El usuario ve su respuesta escrita, no toca nada, `onCambio` no se dispara y el ítem **se califica en blanco**. Nada en pantalla lo delata.
+
+Se arregló con una línea. **El problema es que su test de regresión no cabía en el proyecto**: `vitest.config.ts` corría con `environment: 'node'` e `include` de `*.test.ts` solamente. Sin DOM no hay forma de montar, desmontar y volver a montar, que es exactamente lo que este defecto necesita para manifestarse.
+
+**Decisión:** `vitest.config.ts` pasa a **dos proyectos** separados por extensión.
+
+| Proyecto | Entorno | Incluye | Para qué |
+|---|---|---|---|
+| `motores` | `node` | `src/**/*.test.ts` · `scripts/**/*.test.ts` | los motores puros de §19, como hasta hoy |
+| `componentes` | `jsdom` | `src/**/*.test.tsx` | **solo** los defectos que se manifiestan al montar, desmontar y volver a montar |
+
+Tres dependencias de desarrollo: `jsdom`, `@testing-library/react`, `@testing-library/user-event`. **Ninguna llega a producción.** No se añadió `@testing-library/jest-dom`: sus matchers son azúcar y tres asserts sobre `.value` no justifican una cuarta dependencia.
+
+**Por qué esto no contradice §19.** §19 dice «Vitest **solo** para `src/lib/`», y la razón que da es buena: los motores son puros y deterministas, la UI se verifica con la checklist manual del 18.10. Ese razonamiento sigue en pie **y este defecto es su punto ciego**: no vive en la lógica, vive en la reconciliación. Ninguna función pura lo expresa y ningún recorrido manual lo ve — el usuario que lo sufre tampoco lo ve, que es lo que lo hace grave.
+
+Así que la regla no se relaja, **se acota**: el proyecto `componentes` existe para la clase «solo se ve al remontar», no para probar que un botón pinta el texto que le pasas. Escrito así en el comentario de `vitest.config.ts`, que es donde alguien va a mirar antes de añadir el suyo.
+
+**Alternativas descartadas:**
+
+- **Dejarlo sin test.** Es lo que pedía el aplazamiento, y choca de frente con la regla del proyecto —«sin test no cuenta»— justo en el defecto más caro encontrado hasta hoy. Además el arreglo es **una línea que cualquiera puede borrar** creyendo que sobra: sin guarda, vuelve sin ruido.
+- **Un test estático que haga `grep` de `key={item.id}` en el fuente.** Cero dependencias, y ata el test a la forma del código en vez de a su comportamiento: sobrevive a un renombrado y muere ante cualquier refactor honesto.
+- **Volver los siete componentes totalmente controlados** para que el remontaje deje de importar. Es la solución de fondo y la descarto por precio: `calculo` necesita estado local para admitir «126,» a medio teclear, y quitarlo obligaría a subir texto en curso al controlador de sesión. Se arregla el síntoma con el idioma correcto de React y se protege con un test.
+- **Playwright en vez de jsdom.** Ya se usa para las auditorías de accesibilidad, donde hace falta un navegador de verdad para medir píxeles. Para esto no: arrancar un navegador por un remontaje es 30 veces el coste, y el test dejaría de correr en la compuerta de cada paso.
+
+**Verificado por mutación, que es lo único que prueba que un test tiene dientes:** se quitó la `key`, `npx vitest run --project componentes` falló en el caso del `calculo`; restaurada, verde. El caso de `unica` **no** falla sin `key` —ese componente es totalmente controlado y no tiene estado que arrastrar— y se conserva a propósito: documenta la diferencia y detecta el día en que alguien le añada estado local.
+
+**Suite: 382 → 385.** Los tres nuevos son de componente.
+
+**Consecuencia para los pasos siguientes.** El Paso 11 mete auto-envío por temporizador y reanudación de sesión —dos cosas que solo existen en el ciclo de vida— y el Paso 12 mete gráficas. Los dos tienen ahora dónde poner su test de ciclo de vida sin volver a abrir esta discusión. Lo que **no** cambia es §19: la UI no se prueba exhaustivamente en v1, y la checklist manual del 18.10 sigue siendo la verificación de la interfaz.

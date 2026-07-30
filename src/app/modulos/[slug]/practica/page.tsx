@@ -1,25 +1,34 @@
-// src/app/modulos/[slug]/tarjetas/page.tsx — Server Component.
+// src/app/modulos/[slug]/practica/page.tsx — Server Component.
 //
-// Etapa 2 de un módulo · Tarjetas. La página resuelve el módulo desde `params`,
-// carga las tarjetas EN EL SERVIDOR con `cargarTarjetas(slug)` y se las pasa al
-// mazo ya proyectadas (ADR-010: ningún Client Component importa `content/`).
+// Etapa 3 de un módulo · Práctica. 8 ítems con explicación inmediata: aquí se
+// aprende, no se mide.
 //
-// DISENO.md §2.4 — REGLA DEL SISTEMA: hay exactamente un bloque en contexto, así
-// que la página monta <RotuloBloque> encima de su <h1>.
+// Frontera (ADR-010): el banco lo carga ESTA PÁGINA, en el servidor, con
+// `cargarBancoModulo(slug)`, y se lo pasa al controlador por prop. Ningún Client
+// Component importa `content/`. Lo mismo con el blueprint: `blueprintPractica`
+// se evalúa aquí y viaja como objeto plano.
 //
-// Jerarquía: un solo <h1> («Tarjetas») y un <h2> («Las cuatro etapas»). El
-// frente de la tarjeta NO es un encabezado: es una pregunta, y meterlo en la
-// jerarquía metería un h3 antes del primer h2.
+// Los ítems viajan enteros —no proyectados a un subconjunto, como sí se hace con
+// las tarjetas— y es deliberado: `armarSimulacro`, `presentarItem` y `calificar`
+// consumen `Item` completo, y recortarle campos obligaría a mantener un segundo
+// tipo en paralelo al del blueprint. El único campo que no usa nadie en la
+// interfaz es `etiquetas`. Coste: el banco del módulo viaja en la carga útil RSC
+// (no en los chunks JS), que es donde tiene que estar para que el muestreo lo
+// haga el cliente con una semilla nacida en un handler (§22 reglas 5 y 6).
+//
+// DISENO.md §2.4 — REGLA DEL SISTEMA: un solo bloque en contexto, así que la
+// página monta <RotuloBloque> encima de su <h1>.
 
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { cargarBancoModulo } from '@/content/banco/indice';
+import { blueprintPractica } from '@/content/blueprint-examen';
 import { MODULOS, MODULOS_POR_SLUG } from '@/content/estructura';
 import { cargarTarjetas } from '@/content/tarjetas/indice';
 import { RotuloBloque } from '@/components/layout/rotulo-bloque';
 import { EtapasModulo } from '@/components/modulo/etapas-modulo';
-import { MazoTarjetas, type TarjetaEnMazo } from '@/components/modulo/mazo-tarjetas';
+import { ControladorSesion } from '@/components/sesion/controlador-sesion';
 import { existeTeoria } from '@/lib/contenido';
 
 interface Props {
@@ -36,64 +45,61 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const modulo = MODULOS_POR_SLUG.get(slug);
 
   return {
-    title: modulo ? `Tarjetas · ${modulo.titulo}` : 'Módulo no encontrado',
+    title: modulo ? `Práctica · ${modulo.titulo}` : 'Módulo no encontrado',
     // La app es privada de facto: solo la portada se indexa (§10.1).
     robots: { index: false },
   };
 }
 
-export default async function PaginaTarjetas({ params }: Props) {
+export default async function PaginaPractica({ params }: Props) {
   const { slug } = await params;
   const modulo = MODULOS_POR_SLUG.get(slug);
   if (!modulo) notFound();
 
-  // `items` solo se cuenta: alimenta el estado de las etapas 3 y 4.
-  const [tarjetas, hayTeoria, items] = await Promise.all([
+  const [items, tarjetas, hayTeoria] = await Promise.all([
+    cargarBancoModulo(slug),
     cargarTarjetas(slug),
     existeTeoria(slug),
-    cargarBancoModulo(slug),
   ]);
 
-  // Proyección al subconjunto serializable que el mazo necesita: `modulo` es
-  // redundante —ya lo sabe la ruta— y no tiene por qué viajar al navegador.
-  const paraElMazo: TarjetaEnMazo[] = tarjetas.map((tarjeta) => ({
-    id: tarjeta.id,
-    frente: tarjeta.frente,
-    reverso: tarjeta.reverso,
-    tipo: tarjeta.tipo,
-  }));
-
-  // Estado vacío honesto: un módulo con tarjetas publicadas, si lo hay.
   const disponible = MODULOS.find((m) => m.estadoContenido === 'completo' && m.slug !== slug);
 
   return (
     <div className="space-y-8 py-2">
       <header className="space-y-3">
         <RotuloBloque bloque={modulo.bloque} />
-        <h1>Tarjetas</h1>
+        <h1>Práctica</h1>
         <p className="text-muted-foreground">
-          Etapa 2 de{' '}
+          Etapa 3 de{' '}
           <Link
             href={`/modulos/${slug}`}
             className="font-medium text-primary underline underline-offset-2"
           >
             {modulo.titulo}
           </Link>
-          . Son los datos exactos del módulo: los que el examen pregunta con número.
+          . Cada respuesta viene con su explicación al instante. Aquí se aprende; medir es
+          el quiz.
         </p>
       </header>
 
-      {paraElMazo.length > 0 ? (
-        <MazoTarjetas slug={slug} bloque={modulo.bloque} tarjetas={paraElMazo} />
+      {items.length > 0 ? (
+        <ControladorSesion
+          blueprint={blueprintPractica(slug)}
+          banco={items}
+          registro={{ clase: 'practica', slug }}
+          bloque={modulo.bloque}
+          volver={{ href: `/modulos/${slug}`, texto: 'Volver al módulo' }}
+          siguiente={{ href: `/modulos/${slug}/quiz`, texto: 'Pasar al quiz' }}
+        />
       ) : (
         <section
-          aria-labelledby="sin-tarjetas"
+          aria-labelledby="sin-items"
           className="space-y-3 rounded-lg border border-border bg-card p-4 sm:p-6"
         >
-          <h2 id="sin-tarjetas">Este módulo todavía no tiene tarjetas</h2>
+          <h2 id="sin-items">Este módulo todavía no tiene preguntas</h2>
           <p className="text-muted-foreground">
-            Las tarjetas de este módulo aún no se han escrito, así que no hay nada que
-            repasar aquí. Tu progreso no se ha perdido ni se ha tocado: sencillamente
+            Las preguntas de este módulo aún no se han escrito, así que no hay nada que
+            practicar aquí. Tu progreso no se ha perdido ni se ha tocado: sencillamente
             todavía no hay contenido que registrar.
           </p>
           <p className="text-muted-foreground">
@@ -101,16 +107,16 @@ export default async function PaginaTarjetas({ params }: Props) {
               <>
                 Mientras tanto,{' '}
                 <Link
-                  href={`/modulos/${disponible.slug}/tarjetas`}
+                  href={`/modulos/${disponible.slug}/practica`}
                   className="font-medium text-primary underline underline-offset-2"
                 >
-                  las tarjetas de {disponible.titulo}
+                  la práctica de {disponible.titulo}
                 </Link>{' '}
-                sí están publicadas.
+                sí está publicada.
               </>
             ) : (
               <>
-                Ningún módulo tiene tarjetas publicadas todavía: el contenido se irá
+                Ningún módulo tiene preguntas publicadas todavía: el contenido se irá
                 subiendo módulo por módulo.
               </>
             )}
@@ -137,10 +143,10 @@ export default async function PaginaTarjetas({ params }: Props) {
           slug,
           bloque: modulo.bloque,
           hayTeoria,
-          totalTarjetas: paraElMazo.length,
+          totalTarjetas: tarjetas.length,
           totalItems: items.length,
         }}
-        etapaActual={2}
+        etapaActual={3}
       />
     </div>
   );
