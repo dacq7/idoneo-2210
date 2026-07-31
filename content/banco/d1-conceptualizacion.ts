@@ -281,9 +281,9 @@ export const ITEMS: Item[] = [
     enunciado: '¿Qué diferencia hay entre la fase de control y la fase de evaluación?',
     opciones: [
       'El control recoge el dato mientras el proceso corre; la evaluación lo compara con el objetivo y decide',
-      'El control se aplica al deportista y la evaluación se aplica al método de entrenamiento',
-      'El control es responsabilidad del entrenador y la evaluación corresponde al cuerpo médico',
-      'El control usa pruebas físicas y la evaluación usa exclusivamente resultados de competencia',
+      'El control se aplica al deportista y la evaluación se aplica al método de entrenamiento empleado',
+      'El control es responsabilidad del entrenador y la evaluación corresponde al cuerpo médico y directivo del club',
+      'El control usa pruebas físicas de campo y la evaluación usa exclusivamente resultados de competencia',
     ],
     explicacion:
       'Controlar es medir: pulso, tiempos, tonelaje, sensación del deportista, registrados mientras el ciclo transcurre. Evaluar es emitir un juicio de valor comparando esos datos contra el objetivo planteado y decidir si se ajusta el plan. El distractor más tentador es el que reparte las dos fases entre personas distintas, porque en muchos clubes eso pasa: pero es una división de tareas, no la diferencia conceptual. Dato para recordar: controlar es medir y evaluar es juzgar.',
@@ -366,9 +366,9 @@ export const ITEMS: Item[] = [
     enunciado: '¿Qué nivel corresponde al proceso que dirige?',
     opciones: [
       'Formación, porque el nivel describe al deportista que acompaña y no su antigüedad como entrenador',
-      'Altos logros, porque veintidós años de experiencia lo ubican en la categoría más alta',
-      'Perfeccionamiento, porque sus deportistas ya compiten en un torneo oficial cada año',
-      'Cualquiera de los tres, porque el nivel lo elige libremente el entrenador al inscribirse',
+      'Altos logros, porque veintidós años de experiencia acreditada lo ubican en la categoría más alta',
+      'Perfeccionamiento, porque sus deportistas ya compiten en un torneo oficial federado cada año',
+      'Cualquiera de los tres, porque el nivel lo elige libremente el entrenador en el momento de inscribirse',
     ],
     explicacion:
       'El nivel se define por el tipo de deportista que se dirige, no por la trayectoria de quien lo dirige: niños en iniciación, con base multilateral y técnica elemental, corresponden al nivel de formación. El distractor más tentador es altos logros, porque veintidós años parecen justificar la categoría más alta: pero esa lectura convierte el nivel en un escalafón laboral, que es exactamente lo que no es. Dato para recordar: el nivel retrata al deportista, no la hoja de vida.',

@@ -1309,3 +1309,49 @@ Un sexto destino deja las celdas en ~31 px y reabre A-01, esta vez con dos desti
 - **Un menú «más»** como sexto destino. Añade un nivel de navegación para dos enlaces, y el sexto destino sigue midiendo 31 px a 200 %.
 
 **Consecuencia:** la portada deja de ser una pantalla de bienvenida y pasa a ser el **hub** de la app. Eso es coherente con lo que ya hacía —decidir qué toca ahora— y es lo que la vuelve compartible: un amigo que abre el enlace aterriza en un sitio que le dice qué hacer, no en un menú.
+
+---
+
+## ADR-028 · El sesgo de longitud de la opción correcta es una compuerta, no un consejo
+
+**Estado:** Aceptada
+**Fecha:** 2026-07-31 · **Autor:** Paso 15, tras el hallazgo del `code-reviewer`
+
+**Contexto.** §14.4 pedía «longitud pareja — la correcta nunca puede ser la más larga y detallada» desde el primer módulo. Medido al cerrar el bloque D:
+
+| | La correcta es la más larga |
+|---|---|
+| **c5-umbrales-zonas**, la «plantilla de oro» | **80 %** |
+| Bloque D | 53–72 % |
+| **Global** | **66 %** (108 de 164) |
+| **Azar esperado** | **28,2 %** |
+
+**Una regla escrita que nadie mide no se cumple.** Y el módulo que más la incumplía era justamente el que §22 regla 10 designa plantilla a replicar, así que el defecto no solo persistía: se propagaba por diseño.
+
+**Por qué no era deuda aceptable.** A 750 ítems, un usuario espabilado aprende a marcar la más larga sin leer el enunciado. Eso rompe lo único que la app vende —medir de verdad— y no lo cura el barajado: `presentarItem` cambia el orden de las opciones, no su longitud. Quedaban 522 ítems por escribir, así que el momento de pararlo era antes de multiplicarlo.
+
+**Decisión: `medirSesgoLongitud` en `esquemas.ts` y el validador falla el build por encima del 50 % en un módulo `'completo'`.**
+
+**Los umbrales salen de la medición, no del gusto:**
+
+| | |
+|---|---|
+| Azar esperado (Σ correctas/opciones ÷ n) | 28,2 % |
+| Desviación con n = 18, un módulo típico | 1σ = 10,6 puntos |
+| Lo más alto que alcanza el azar a 2σ | **49 %** |
+| **Error de build** | **50 %** |
+| Aviso | 40 % (~1σ) |
+
+Por encima del 50 % un módulo bien escrito cae menos del 3 % de las veces: cuando salta es sesgo sistemático y no mala suerte.
+
+**Tres decisiones de diseño del medidor que importan:**
+
+- **Un empate NO cuenta como sesgo.** Dos opciones igual de largas no distinguen nada, así que igualar basta. Sin esta regla, la métrica empujaría a **acortar la correcta** para que quedara por debajo, que es exactamente lo que no se quiere.
+- **Solo mide `unica`, `caso` y `multiple`.** `vf` tiene dos valores fijos y en `calculo`, `ordenar` y `emparejar` no hay una «opción correcta» cuya longitud signifique algo.
+- **El mensaje de error dice qué hacer y lista los ids**: «engorda los distractores —no acortes la correcta—: D4-001, D4-002, …». Un error que solo señala el problema obliga a redescubrir el remedio cada vez.
+
+**El arreglo correcto, y es la mitad importante del ADR.** No es acortar la correcta: recortarla le quita la precisión que la hace correcta y degrada el contenido para satisfacer una métrica. Es **engordar los distractores hasta que sean igual de específicos** — si un distractor es más corto, casi siempre es porque está peor escrito. El resultado son distractores **más tentadores**, no relleno.
+
+**Resultado del repaso de los 228 ítems existentes: 66 % → 35 %**, sin que **ninguna** de las 228 explicaciones perdiera un solo carácter. Los largos medios quedaron igualados y en varios módulos el distractor es ahora más largo que la correcta, que es la firma de haberlo hecho por el lado bueno.
+
+**Consecuencia para los pasos 16 y 17:** los 522 ítems que faltan nacen con la compuerta puesta. La regla está escrita en `CLAUDE.md` §14.4 y en `.claude/CONTENIDO.md` —que es lo que el `technical-writer` lee antes de escribir un módulo— con el ejemplo del antes/después.

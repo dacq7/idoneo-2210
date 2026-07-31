@@ -149,7 +149,7 @@ export const ITEMS: Item[] = [
     enunciado: '¿Qué define a la resistencia a la velocidad?',
     opciones: [
       'Sostener la velocidad máxima o casi máxima el mayor tiempo posible frente a la fatiga',
-      'Alcanzar la velocidad máxima en la menor distancia posible desde parado',
+      'Alcanzar la velocidad máxima en la menor distancia y el menor tiempo posibles desde una salida parada',
       'Repetir un gesto técnico con la máxima frecuencia durante una serie larga',
       'Mantener un ritmo de carrera constante durante un esfuerzo de fondo prolongado',
     ],
@@ -171,9 +171,9 @@ export const ITEMS: Item[] = [
     opciones: [
       'Repeticiones de menos de seis segundos',
       'Recuperación completa entre repeticiones, con relación trabajo:descanso de 1:12 a 1:20',
-      'Volumen total elevado para acumular estímulo suficiente',
-      'Descanso incompleto para provocar acumulación de lactato',
-      'Ubicación al final de la sesión, tras el trabajo de fuerza',
+      'Volumen total elevado, de quince a veinte repeticiones, para acumular un estímulo suficiente',
+      'Descanso incompleto, de treinta a cuarenta y cinco segundos, para provocar acumulación de lactato',
+      'Ubicación al final de la sesión, después del trabajo de fuerza y antes de la vuelta a la calma',
     ],
     correctas: [0, 1],
     explicacion:
@@ -211,8 +211,8 @@ export const ITEMS: Item[] = [
     enunciado: '¿Qué diferencia a la reacción simple de la reacción compleja o discriminativa?',
     opciones: [
       'En la simple hay un solo estímulo previsto y una sola respuesta; en la compleja hay que elegir entre varias',
-      'En la simple el estímulo es sonoro y en la compleja es siempre visual',
-      'En la simple el movimiento es de un segmento y en la compleja participa todo el cuerpo',
+      'En la simple el estímulo es sonoro, como el disparo de salida, y en la compleja siempre visual, como el movimiento del rival',
+      'En la simple responde un solo segmento corporal y en la compleja participa todo el cuerpo en un desplazamiento',
       'En la simple el deportista parte de reposo y en la compleja parte en movimiento',
     ],
     correcta: 0,
@@ -263,7 +263,7 @@ export const ITEMS: Item[] = [
       '¿Por qué el entrenamiento de velocidad máxima exige recuperaciones tan largas entre repeticiones?',
     opciones: [
       'Porque la fosfocreatina se agota en segundos y necesita minutos para reponerse hasta un nivel que permita repetir a tope',
-      'Porque el lactato producido en cada repetición tarda varios minutos en retirarse por completo de la sangre',
+      'Porque el lactato producido en cada repetición tarda varios minutos en retirarse de la sangre y su acumulación frenaría la repetición siguiente',
       'Porque el sistema aeróbico necesita ese tiempo para volver a cubrir la demanda energética del músculo',
       'Porque el descanso largo permite bajar la frecuencia cardíaca hasta valores de reposo antes de repetir',
     ],
@@ -346,7 +346,7 @@ export const ITEMS: Item[] = [
       'Los métodos de velocidad asistida, como la carrera en cuesta abajo suave o el remolque, ¿sobre qué factor actúan y por qué?',
     opciones: [
       'Sobre la frecuencia, porque obligan a girar las piernas más rápido de lo que el deportista consigue por sí solo',
-      'Sobre la amplitud, porque la ayuda externa permite dar zancadas más largas de las habituales',
+      'Sobre la amplitud, porque la ayuda externa reduce el frenado en cada apoyo y permite dar zancadas más largas de las habituales',
       'Sobre la fuerza aplicada en cada apoyo, porque el deportista debe frenar la ayuda en cada contacto',
       'Sobre la resistencia a la velocidad, porque permiten sostener el ritmo máximo durante más metros',
     ],
@@ -523,7 +523,7 @@ export const ITEMS: Item[] = [
     enunciado: '¿Qué dos correcciones ordenan la sesión?',
     opciones: [
       'Pasar las repeticiones de velocidad delante del circuito de fuerza y ampliar la pausa a dos o tres minutos',
-      'Mantener el orden y reducir las repeticiones de diez a seis para limitar la fatiga acumulada',
+      'Mantener el orden de la sesión y reducir las repeticiones de diez a seis para limitar la fatiga acumulada al final',
       'Mantener el orden y bajar la distancia de 60 a 30 metros para que la fatiga afecte menos',
       'Cambiar las repeticiones a máxima velocidad por series submáximas al 85 % con la misma pausa',
     ],

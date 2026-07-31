@@ -82,9 +82,9 @@ export const ITEMS: Item[] = [
     enunciado: '¿Cuáles son las tres partes de una sesión de entrenamiento, en orden?',
     opciones: [
       'Parte inicial o calentamiento, parte principal y parte final o vuelta a la calma',
-      'Parte general, parte específica y parte de competencia',
-      'Activación, trabajo de fuerza y trabajo de resistencia',
-      'Preparatoria, competitiva y transitoria',
+      'Parte general o de activación, parte específica y parte de competencia o aplicación',
+      'Activación neuromuscular, trabajo de fuerza y trabajo de resistencia aeróbica',
+      'Parte preparatoria, parte competitiva y parte transitoria o de descarga',
     ],
     correcta: 0,
     explicacion:
@@ -102,9 +102,9 @@ export const ITEMS: Item[] = [
     enunciado: '¿Qué se define en el nivel del macrociclo y no en ningún otro?',
     opciones: [
       'Cuál es la competencia principal, en qué fecha cae y cómo se reparte el tiempo en períodos',
-      'Qué día de la semana es duro y qué día es suave para el deportista',
-      'La orientación de la carga de las próximas cuatro semanas de trabajo',
-      'El orden concreto de los ejercicios dentro de la parte principal',
+      'Qué día de la semana es duro y qué día es suave, y cómo alternan carga y recuperación',
+      'Cuál es la orientación de la carga de las próximas cuatro semanas y cómo se reparte entre microciclos',
+      'El orden concreto de los ejercicios dentro de la parte principal de cada sesión',
     ],
     correcta: 0,
     explicacion:
@@ -122,9 +122,9 @@ export const ITEMS: Item[] = [
     enunciado: '¿Cuál es la función de la vuelta a la calma al cerrar una sesión?',
     opciones: [
       'Devolver progresivamente el organismo a valores de reposo y favorecer la retirada de metabolitos',
-      'Prevenir la aparición del dolor muscular tardío de los días siguientes',
-      'Aprovechar la fatiga acumulada para añadir un último estímulo de fuerza',
-      'Elevar la temperatura muscular antes de que el deportista se retire a la ducha',
+      'Prevenir la aparición del dolor muscular tardío en las veinticuatro a setenta y dos horas siguientes',
+      'Aprovechar la fatiga acumulada para añadir un último estímulo de fuerza al final de la sesión',
+      'Elevar la temperatura muscular una última vez antes de que el deportista se retire a la ducha',
     ],
     correcta: 0,
     explicacion:

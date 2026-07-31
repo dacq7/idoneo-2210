@@ -259,7 +259,7 @@ export const ITEMS: Item[] = [
     opciones: [
       'Porque el descanso corto mantiene el ambiente metabólico de la serie, y ese ambiente es parte del estímulo',
       'Porque con descansos largos el músculo se enfría y aumenta el riesgo de lesión articular',
-      'Porque permite completar más series en el mismo tiempo y así elevar el volumen de la sesión',
+      'Porque permite completar más series en el mismo tiempo y así elevar el volumen total de la sesión, que es el motor del crecimiento',
       'Porque la fosfocreatina se repone por completo en menos de un minuto tras una serie submáxima',
     ],
     correcta: 0,
@@ -278,9 +278,9 @@ export const ITEMS: Item[] = [
     enunciado: '¿Qué distingue a la fuerza explosiva de la fuerza máxima?',
     opciones: [
       'La explosiva busca la mayor tensión en el menor tiempo posible; la máxima busca la mayor tensión sin importar el tiempo',
-      'La explosiva se entrena solo con el peso corporal y la máxima siempre con carga externa',
-      'La explosiva es propia de deportes de equipo y la máxima solo de la halterofilia',
-      'La explosiva trabaja el músculo en régimen excéntrico y la máxima en régimen concéntrico',
+      'La explosiva se entrena solo con el peso corporal y gestos de salto; la máxima siempre con carga externa por encima del 85 % del 1RM',
+      'La explosiva es propia de los deportes de equipo y de las pruebas de velocidad; la máxima solo tiene sentido en halterofilia y powerlifting',
+      'La explosiva trabaja el músculo en régimen excéntrico, frenando la carga, y la máxima en régimen concéntrico, venciéndola',
     ],
     correcta: 0,
     explicacion:
@@ -321,7 +321,7 @@ export const ITEMS: Item[] = [
     opciones: [
       'Sube la exigencia metabólica de la sesión y la carga se acerca al terreno de la resistencia muscular',
       'Aumenta la ganancia de fuerza máxima porque el músculo trabaja con más fatiga acumulada',
-      'No cambia nada relevante, porque el estímulo depende de la carga y las repeticiones',
+      'No cambia nada relevante, porque el estímulo lo definen la carga y las repeticiones, y las dos siguen escritas igual en la planilla',
       'Reduce la exigencia total de la sesión porque disminuye el tiempo bajo tensión',
     ],
     correcta: 0,
@@ -405,7 +405,7 @@ export const ITEMS: Item[] = [
       '¿Por qué el método de intensidades máximas da mucha ganancia de fuerza con poco aumento del tamaño muscular?',
     opciones: [
       'Porque mejora sobre todo el control nervioso del músculo y acumula muy poco volumen total de trabajo',
-      'Porque las cargas altas activan solo las fibras lentas, que apenas aumentan de tamaño',
+      'Porque las cargas altas activan sobre todo las fibras lentas, que tienen poco potencial de crecimiento y apenas aumentan su sección',
       'Porque el descanso largo entre series impide que llegue sangre suficiente al músculo trabajado',
       'Porque la fuerza máxima depende del tendón y no de la sección transversal del músculo',
     ],
@@ -518,7 +518,7 @@ export const ITEMS: Item[] = [
     enunciado: '¿Qué prescripción corresponde al problema detectado?',
     opciones: [
       'Cargas medias movidas a la máxima velocidad intencional y trabajo pliométrico, con descanso completo entre series',
-      'Series al 95 % del 1RM para seguir elevando el techo de fuerza máxima disponible',
+      'Series de 3 repeticiones al 95 % del 1RM con 4 minutos de descanso, para seguir elevando el techo de fuerza máxima disponible',
       'Series de 15 a 20 repeticiones al 60 % para mejorar la resistencia de las piernas en la salida',
       'Trabajo isométrico sostenido en el ángulo de máxima flexión de la rodilla, tres veces por semana',
     ],

@@ -2631,3 +2631,52 @@ Tres puntos donde el material de partida suele fallar y aquí está bien resuelt
 **Y verificó los tests reescritos con una mutación de verdad:** marcó `a1-celula` como completo **y** le registró banco y tarjetas en ambos índices —una publicación consistente, como será el Paso 16— y los 33 tests siguieron pasando. No era un literal cambiado por otro.
 
 **Un relevante que NO bloquea este paso y sí condiciona los siguientes:** el sesgo de longitud de la opción correcta. Anotado en `PENDIENTES.md` con la medición completa, incluida la parte incómoda — **C5, la plantilla de oro, es peor que el bloque D**.
+
+## [2026-07-31 10:15] · technical-writer · Sesgo de longitud — d3, d4, d5
+
+**Qué escribí:** reescritura de distractores en tres módulos del bloque D, para cerrar la parte que me tocaba del pendiente de la línea 137 de `PENDIENTES.md`.
+- `content/banco/d3-fuerza.ts` — 5 ítems tocados (D3-012, D3-013, D3-015, D3-019, D3-024)
+- `content/banco/d4-resistencia.ts` — 6 ítems tocados (D4-010, D4-012, D4-013, D4-014, D4-019, D4-025)
+- `content/banco/d5-velocidad.ts` — 6 ítems tocados (D5-007, D5-008, D5-010, D5-012, D5-016, D5-024)
+
+**Conteo entregado:** teoría sin cambios · tarjetas sin cambios · 0 ítems nuevos, 17 ítems con distractores reescritos · glosario sin cambios.
+
+**Reparto de los ítems:** intacto. No se tocó `nivel`, `dificultad`, `tipo`, `correcta`/`correctas`, `enunciado`, `explicacion` ni `referencia` en ningún ítem. `verificarCuotas` en verde en los tres: d3 11/8/6 · dif 6/13/6 · 7 tipos; d4 11/8/6 · dif 6/13/6 · 7 tipos; d5 11/8/6 · dif 6/12/7 · 7 tipos.
+
+**Sesgo de longitud (`medirSesgoLongitud`), antes → después:**
+
+| Módulo | Antes | Después | Largo medio correcta/distractor |
+|---|---|---|---|
+| d3-fuerza | 11/18 = 61,1 % | **6/18 = 33,3 %** | 74,9 / 74,4 |
+| d4-resistencia | 12/18 = 66,7 % | **6/18 = 33,3 %** | 82,6 / 81,1 |
+| d5-velocidad | 12/18 = 66,7 % | **6/18 = 33,3 %** | 85,9 / 83,1 |
+
+Método: **no se acortó ninguna correcta**. Se engordaron distractores dándoles la cifra, el matiz o la condición que les faltaba, de modo que quedaran al mismo nivel de detalle que la correcta. Varios quedan más tentadores que antes — p. ej. el distractor de D4-013 ahora cita los 120–140 lpm de la pausa útil, cierto en sí mismo pero atribuido al método equivocado.
+
+**Erratas o datos duros nuevos:** ninguno.
+
+**Dudas de fuente:** ninguna. Los cinco distractores numéricos tocados se recomputaron y siguen siendo falsos para su enunciado (detalle en el informe de cierre).
+
+**Pendiente:** nada de lo mío. Queda vivo el resto de la línea 137 de `PENDIENTES.md`: **C5 sigue siendo el peor del banco (76 %)** y es la plantilla de oro que los pasos 16–17 van a replicar. Conviene repasarlo antes del Paso 16, no después.
+
+## [2026-07-31 · technical-writer] · Sesgo de longitud — D6, D7, D8
+
+**Qué escribí:** solo `opciones` de distractor en `content/banco/d6-flexibilidad.ts`,
+`content/banco/d7-modelos-planificacion.ts` y `content/banco/d8-estructuras.ts`.
+14 ítems tocados (D6: 016, 017, 018, 023, 024, 025 · D7: 005, 012, 013, 015, 017 ·
+D8: 004, 005, 006). 42 inserciones / 42 borrados: sustitución 1:1 de cadenas.
+
+**Conteo entregado:** sin cambios — mismos ítems, tarjetas y glosario. No se tocó
+`enunciado`, `explicacion`, `referencia`, `nivel`, `dificultad`, `tipo`,
+`correcta`/`correctas` ni `pasos`.
+
+**medirSesgoLongitud (antes → después):**
+d6 12/18 = 66,7 % → 6/18 = 33,3 % · d7 11/18 = 61,1 % → 6/18 = 33,3 % ·
+d8 8/18 = 44,4 % → 5/18 = 27,8 %. Azar esperado 28,2 %.
+
+**Método:** engordar el distractor hasta igualar el nivel de detalle de la correcta,
+nunca acortar la correcta. Las medias por módulo quedan parejas (d6 100,3 vs 100,3).
+
+**Erratas o datos duros nuevos:** ninguno.
+**Dudas de fuente:** ninguna.
+**Pendiente:** nada. `npm run validar` y `npm run typecheck` en verde.

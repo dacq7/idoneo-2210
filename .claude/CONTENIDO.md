@@ -99,3 +99,36 @@ cierra al escribir el módulo.
 
 Orden de producción (por densidad de retorno, no alfabético):
 C5 (paso 8) → bloque D (paso 15) → resto del bloque C (paso 16) → bloque B y bloque A (paso 17).
+
+
+---
+
+## Antes de escribir un módulo — la regla que el build mide
+
+Además de las cuotas (§5.4) y de la checklist de §14.4, el validador comprueba el
+**sesgo de longitud de la opción correcta**, y **falla el build si un módulo pasa del 50 %**.
+
+| | |
+|---|---|
+| Azar esperado | **28,2 %** |
+| Aviso | 40 % |
+| **Error de build** | **50 %** |
+
+Cómo medirlo mientras escribes:
+
+```ts
+import { medirSesgoLongitud } from '@/lib/esquemas';
+const s = medirSesgoLongitud(ITEMS);
+// { proporcion, correctaMasLarga, conOpciones, ids, largoMedioCorrecta, largoMedioDistractor }
+```
+
+`ids` devuelve exactamente los ítems donde la correcta es la más larga: son los que hay que tocar.
+
+**El arreglo es engordar los distractores, nunca acortar la correcta.** Recortar la correcta le quita
+la precisión que la hace correcta. Un distractor plausible tiene el mismo nivel de detalle que la
+respuesta: si es más corto, casi siempre es porque está peor escrito. Y un **empate** de longitud no
+cuenta como sesgo — dos opciones igual de largas no distinguen nada, así que igualar basta.
+
+**Por qué es una compuerta y no un consejo:** §14.4 pedía «longitud pareja» desde el primer módulo, y
+el banco llegó igualmente al 66 % con C5 —la plantilla de oro— en el 80 %. Una regla escrita que
+nadie mide no se cumple. A 750 ítems, la pista es explotable: se aprende a marcar la larga sin leer.

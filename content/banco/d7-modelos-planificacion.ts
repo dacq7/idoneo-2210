@@ -93,9 +93,9 @@ export const ITEMS: Item[] = [
     enunciado: '¿En qué consiste el trabajo con cargas concentradas?',
     opciones: [
       'Concentrar en un mismo bloque la carga de una sola orientación, en vez de repartirla entre varias capacidades',
-      'Concentrar todo el volumen de la temporada en el período preparatorio y competir sin entrenar',
-      'Concentrar las sesiones duras en los tres días previos a cada competencia del calendario',
-      'Concentrar el trabajo de todas las capacidades en una única sesión diaria muy larga',
+      'Concentrar todo el volumen de la temporada en el período preparatorio y sostener después la forma compitiendo sin entrenar',
+      'Concentrar las sesiones más duras del microciclo en los tres o cuatro días previos a cada competencia del calendario',
+      'Concentrar el trabajo de todas las capacidades en una única sesión diaria muy larga, en vez de repartirlo en la semana',
     ],
     correcta: 0,
     explicacion:
@@ -248,9 +248,9 @@ export const ITEMS: Item[] = [
       '¿Por qué el modelo tradicional se queda corto ante un calendario con muchas competencias importantes repartidas por el año?',
     opciones: [
       'Porque está construido para producir un solo pico de forma, y el resto del año el deportista está por debajo de su mejor nivel',
-      'Porque no contempla el período competitivo dentro de la estructura del macrociclo',
-      'Porque su carga es demasiado alta para sostenerla más de tres o cuatro meses seguidos',
-      'Porque prescinde del trabajo general y llega sin base a las competencias de mitad de año',
+      'Porque no contempla un período competitivo dentro de la estructura del macrociclo y deja las competencias fuera del plan',
+      'Porque su carga es demasiado alta para sostenerla más de tres o cuatro meses seguidos, y obliga a parar antes de que acabe el año',
+      'Porque prescinde del trabajo general desde el arranque y llega sin base construida a las competencias de mitad de año',
     ],
     correcta: 0,
     explicacion:
@@ -269,9 +269,9 @@ export const ITEMS: Item[] = [
       'Durante un bloque de cargas concentradas el rendimiento del deportista baja respecto al que tenía antes de empezar. ¿Cómo se interpreta esa caída?',
     opciones: [
       'Es esperada: forma parte del efecto retardado, y la mejora aparece después, cuando la carga baja y el organismo asimila',
-      'Es señal de que la carga se calculó por encima de lo tolerable y hay que interrumpir el bloque',
-      'Es consecuencia de haber trabajado varias capacidades a la vez y haber diluido el estímulo',
-      'Es normal solo en deportistas principiantes, que aún no toleran cargas de una sola orientación',
+      'Es señal de que la carga se calculó por encima de lo tolerable, y hay que interrumpir el bloque y volver a la carga anterior',
+      'Es consecuencia de haber trabajado varias capacidades a la vez y haber diluido el estímulo entre todas ellas',
+      'Es normal solo en deportistas principiantes, que aún no toleran una carga de una sola orientación durante varias semanas',
     ],
     correcta: 0,
     explicacion:
@@ -311,9 +311,9 @@ export const ITEMS: Item[] = [
       '¿Qué diferencia el desarrollo simultáneo de las capacidades del desarrollo consecutivo?',
     opciones: [
       'El simultáneo trabaja varias capacidades en la misma semana con una porción del tiempo cada una; el consecutivo dedica casi todo el tiempo a una sola durante varias semanas',
-      'El simultáneo alterna capacidades dentro de la misma sesión; el consecutivo las trabaja en sesiones distintas del mismo día',
-      'El simultáneo se aplica solo en el período preparatorio; el consecutivo, solo en el período competitivo',
-      'El simultáneo utiliza cargas altas y el consecutivo cargas bajas repetidas muchas veces',
+      'El simultáneo alterna varias capacidades dentro de una misma sesión con una parte del tiempo para cada una; el consecutivo las distribuye en sesiones distintas del mismo día',
+      'El simultáneo se aplica solo durante el período preparatorio del macrociclo; el consecutivo, solo durante el período competitivo',
+      'El simultáneo utiliza cargas altas concentradas en pocas semanas y el consecutivo cargas bajas repetidas muchas veces',
     ],
     correcta: 0,
     explicacion:
@@ -354,9 +354,9 @@ export const ITEMS: Item[] = [
       '¿Por qué el trabajo por bloques concentrados necesita apoyarse en el efecto residual del entrenamiento?',
     opciones: [
       'Porque mientras se concentra una orientación las demás capacidades no se entrenan, y solo el residuo de lo ya trabajado evita que se pierdan',
-      'Porque el residuo de fatiga acumulada es lo que provoca la mejora en la fase siguiente del bloque',
-      'Porque los restos metabólicos del bloque anterior estimulan la adaptación del bloque siguiente',
-      'Porque el efecto residual permite alargar cada bloque hasta que la capacidad deje de mejorar',
+      'Porque el residuo de fatiga acumulada durante la concentración del bloque es lo que provoca la mejora en la fase siguiente, cuando la carga baja',
+      'Porque los restos metabólicos del bloque anterior estimulan la adaptación durante el bloque siguiente',
+      'Porque el efecto residual permite alargar cada bloque concentrado hasta que la capacidad trabajada deje de mejorar',
     ],
     correcta: 0,
     explicacion:

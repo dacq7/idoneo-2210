@@ -3,6 +3,9 @@ import {
   CUOTAS,
   CUOTAS_BLOQUE_C,
   cuotasDelBloque,
+  medirSesgoLongitud,
+  UMBRAL_SESGO_AVISO,
+  UMBRAL_SESGO_ERROR,
   esqItem,
   esqItemCalculo,
   esqItemCaso,
@@ -513,5 +516,82 @@ describe('cuotasDelBloque', () => {
 
   it('solo cambia el mínimo de ítems, no el resto de las reglas', () => {
     expect({ ...CUOTAS_BLOQUE_C, minimoItems: CUOTAS.minimoItems }).toEqual(CUOTAS);
+  });
+});
+
+/* ══════════════════════════════════════════════════════════════════
+   Sesgo de longitud de la opción correcta
+
+   §14.4 pedía «longitud pareja» desde el principio y el banco llegó al
+   66 %, con C5 —la plantilla de oro— en el 80 %. Una regla escrita que
+   nadie mide no se cumple: de ahí que esto sea una compuerta.
+   ══════════════════════════════════════════════════════════════════ */
+
+describe('medirSesgoLongitud', () => {
+  function unicaCon(opciones: string[], correcta: number): Item {
+    return { ...BASE, id: 'D1-001', tipo: 'unica', opciones, correcta } as Item;
+  }
+
+  it('detecta que la correcta es la única más larga', () => {
+    const s = medirSesgoLongitud([
+      unicaCon(['corta', 'otra', 'la respuesta correcta y detallada', 'breve'], 2),
+    ]);
+    expect(s.conOpciones).toBe(1);
+    expect(s.correctaMasLarga).toBe(1);
+    expect(s.proporcion).toBe(1);
+    expect(s.ids).toEqual(['D1-001']);
+  });
+
+  it('NO cuenta cuando la más larga es un distractor', () => {
+    const s = medirSesgoLongitud([
+      unicaCon(['la correcta', 'un distractor mucho más largo que el resto', 'x', 'y'], 0),
+    ]);
+    expect(s.correctaMasLarga).toBe(0);
+  });
+
+  it('NO cuenta cuando la correcta EMPATA con un distractor', () => {
+    // Dos opciones igual de largas no distinguen nada, así que igualar
+    // longitudes es suficiente para quitar la pista: no hace falta que la
+    // correcta sea la más corta.
+    const s = medirSesgoLongitud([unicaCon(['aaaa bbbb', 'aaaa bbbb', 'xx', 'yy'], 0)]);
+    expect(s.correctaMasLarga).toBe(0);
+  });
+
+  it('en `multiple` cuenta si la más larga es CUALQUIERA de las correctas', () => {
+    const item = {
+      ...BASE,
+      id: 'D1-002',
+      tipo: 'multiple',
+      opciones: ['a', 'bb', 'la más larga de todas con diferencia', 'd', 'e'],
+      correctas: [0, 2],
+    } as Item;
+    expect(medirSesgoLongitud([item]).correctaMasLarga).toBe(1);
+  });
+
+  it('IGNORA los tipos sin opciones comparables', () => {
+    // `vf` tiene dos valores fijos; en `calculo`, `ordenar` y `emparejar` no
+    // hay «opción correcta» cuya longitud signifique algo.
+    const vf = { ...BASE, id: 'D1-003', tipo: 'vf', correcta: true } as Item;
+    const s = medirSesgoLongitud([vf]);
+    expect(s.conOpciones).toBe(0);
+    expect(s.proporcion).toBe(0);
+  });
+
+  it('con una colección vacía no divide por cero', () => {
+    expect(medirSesgoLongitud([]).proporcion).toBe(0);
+  });
+
+  it('mide el largo medio de correctas y distractores por separado', () => {
+    const s = medirSesgoLongitud([unicaCon(['1234567890', 'ab', 'cd', 'ef'], 0)]);
+    expect(s.largoMedioCorrecta).toBe(10);
+    expect(s.largoMedioDistractor).toBe(2);
+  });
+
+  it('los umbrales están donde los pusieron los datos', () => {
+    // Azar esperado 28,2 % · con n=18 (módulo típico) 2σ llega al 49 %.
+    // El error en 50 % deja fuera la mala suerte y dentro el sesgo real.
+    expect(UMBRAL_SESGO_ERROR).toBe(0.5);
+    expect(UMBRAL_SESGO_AVISO).toBe(0.4);
+    expect(UMBRAL_SESGO_AVISO).toBeLessThan(UMBRAL_SESGO_ERROR);
   });
 });

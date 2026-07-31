@@ -200,7 +200,7 @@ export const ITEMS: Item[] = [
     enunciado: '¿Qué es la pausa útil en un entrenamiento interválico?',
     opciones: [
       'Una recuperación incompleta que se corta cuando el pulso baja a la franja de 120 a 140 lpm',
-      'Una recuperación total que devuelve la frecuencia cardíaca a los valores de reposo',
+      'Una recuperación total que devuelve la frecuencia cardíaca a los valores de reposo antes de arrancar la serie siguiente',
       'Una pausa de duración fija de tres minutos entre todas las series de la sesión',
       'El tiempo que el deportista dedica a estirar entre una serie y la siguiente',
     ],
@@ -247,7 +247,7 @@ export const ITEMS: Item[] = [
       '¿Por qué el método continuo extensivo se prescribe a intensidad baja, por debajo del umbral aeróbico?',
     opciones: [
       'Porque a esa intensidad el esfuerzo se puede sostener mucho tiempo y se acumula el volumen que construye la base aeróbica',
-      'Porque por encima del umbral aeróbico el organismo deja de utilizar oxígeno como fuente de energía',
+      'Porque por encima del umbral aeróbico el organismo deja de utilizar el oxígeno como fuente principal de energía y pasa a depender de la vía láctica',
       'Porque a intensidades mayores el corazón no alcanza a aumentar su volumen sistólico',
       'Porque es la única intensidad en la que se puede mantener constante la frecuencia de zancada',
     ],
@@ -267,9 +267,9 @@ export const ITEMS: Item[] = [
     enunciado: '¿Qué diferencia al interválico extensivo del interválico intensivo?',
     opciones: [
       'El extensivo usa series más largas a intensidad media; el intensivo, series más cortas a intensidad alta',
-      'El extensivo emplea pausa completa y el intensivo pausa incompleta',
-      'El extensivo se realiza siempre en terreno llano y el intensivo en cuestas',
-      'El extensivo trabaja resistencia local y el intensivo resistencia general',
+      'El extensivo emplea pausa completa, esperando el pulso de reposo, y el intensivo pausa incompleta hasta bajar a 120–140 lpm',
+      'El extensivo se realiza siempre en terreno llano y a ritmo constante; el intensivo, en cuestas y con cambios de ritmo marcados',
+      'El extensivo trabaja la resistencia local de un solo miembro y el intensivo la resistencia general de todo el cuerpo',
     ],
     correcta: 0,
     explicacion:
@@ -288,8 +288,8 @@ export const ITEMS: Item[] = [
       '¿Por qué se dice que en el método interválico buena parte del estímulo cardíaco se produce durante la pausa y no durante la serie?',
     opciones: [
       'Porque al cortar el esfuerzo la frecuencia cardíaca cae antes que el retorno venoso, el ventrículo se llena mejor y el volumen sistólico alcanza su pico',
-      'Porque durante la pausa el músculo libera el lactato acumulado y eso obliga al corazón a acelerarse',
-      'Porque en la pausa se recupera la fosfocreatina y esa reposición exige un gasto cardíaco mayor que la serie',
+      'Porque durante la pausa el músculo libera a la sangre el lactato acumulado en la serie y su retirada obliga al corazón a sostener un gasto elevado durante toda la recuperación',
+      'Porque en la pausa se resintetiza la fosfocreatina agotada en la serie, y ese proceso aeróbico exige un gasto cardíaco mayor que el propio esfuerzo',
       'Porque la frecuencia cardíaca solo se puede medir con fiabilidad cuando el deportista está detenido',
     ],
     correcta: 0,
@@ -395,7 +395,7 @@ export const ITEMS: Item[] = [
       'El fartlek alterna tramos rápidos y tramos lentos. ¿Por qué se clasifica igualmente como método continuo?',
     opciones: [
       'Porque no hay pausa: la recuperación de los tramos rápidos se hace corriendo suave, sin detenerse',
-      'Porque la intensidad media de la sesión coincide con la del método continuo extensivo',
+      'Porque la intensidad media de la sesión coincide con la del método continuo extensivo, por debajo del umbral aeróbico',
       'Porque los cambios de ritmo los decide el terreno y no el entrenador',
       'Porque su duración total siempre supera los 35 minutos de la larga duración II',
     ],
@@ -530,7 +530,7 @@ export const ITEMS: Item[] = [
     opciones: [
       'El test de Cooper, que se aplica a todo el grupo a la vez y solo necesita medir la distancia en 12 minutos',
       'Un test de 1RM en prensa de piernas para estimar la capacidad de trabajo del tren inferior',
-      'Una prueba de esfuerzo en tapiz rodante con analizador de gases para medir el VO₂máx directo',
+      'Una prueba de esfuerzo en tapiz rodante con analizador de gases, que mide el VO₂máx directo en lugar de estimarlo a partir de la distancia',
       'Un test de salto vertical con contramovimiento repetido tres veces por alumno',
     ],
     correcta: 0,

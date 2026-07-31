@@ -17,6 +17,9 @@ import {
   esqItem,
   esqModulo,
   esqTarjeta,
+  medirSesgoLongitud,
+  UMBRAL_SESGO_AVISO,
+  UMBRAL_SESGO_ERROR,
   verificarCuotas,
 } from '../src/lib/esquemas';
 import type {
@@ -219,6 +222,35 @@ export async function validarCatalogo(catalogo: Catalogo): Promise<ResultadoVali
       // el resto. §14.4 y el entregable del paso 16 lo piden; CUOTAS es global.
       for (const fallo of verificarCuotas(validos, cuotasDelBloque(modulo.bloque))) {
         err(`banco/${modulo.slug}`, `cuota incumplida: ${fallo}`);
+      }
+
+      // ── Sesgo de longitud de la opción correcta ──
+      //
+      // §14.4 pedía «longitud pareja» desde el primer módulo y el banco llegó
+      // igualmente al 66 %, con C5 —la plantilla de oro— en el 80 %, frente al
+      // 28,2 % que da el azar. Una regla escrita que nadie mide no se cumple, y
+      // esta se cobra en el producto: a 750 ítems se aprende a marcar la más
+      // larga sin leer el enunciado.
+      //
+      // El umbral sale de los datos, no del gusto: con ~18 ítems con opciones
+      // por módulo, el azar llega al 49 % a dos desviaciones estándar, así que
+      // por encima del 50 % es sesgo sistemático.
+      const sesgo = medirSesgoLongitud(validos);
+      if (sesgo.conOpciones > 0) {
+        const pct = Math.round(sesgo.proporcion * 100);
+        const detalle =
+          `la correcta es la más larga en ${sesgo.correctaMasLarga}/${sesgo.conOpciones} ítems (${pct} %), ` +
+          `azar ≈ 28 % · largo medio ${sesgo.largoMedioCorrecta} vs ${sesgo.largoMedioDistractor}`;
+        if (sesgo.proporcion > UMBRAL_SESGO_ERROR) {
+          err(
+            `banco/${modulo.slug}`,
+            `sesgo de longitud: ${detalle}. Engorda los distractores —no acortes la correcta—: ` +
+              sesgo.ids.slice(0, 6).join(', ') +
+              (sesgo.ids.length > 6 ? `, +${sesgo.ids.length - 6} más` : ''),
+          );
+        } else if (sesgo.proporcion > UMBRAL_SESGO_AVISO) {
+          avi(`banco/${modulo.slug}`, `sesgo de longitud al límite: ${detalle}`);
+        }
       }
     }
   }

@@ -64,9 +64,9 @@ export const ITEMS: Item[] = [
     enunciado: '¿Cómo se calcula la densidad de una serie de entrenamiento?',
     opciones: [
       'Tiempo de trabajo dividido entre el tiempo total, es decir trabajo más descanso',
-      'Tiempo de trabajo dividido entre el tiempo de descanso',
-      'Tiempo de descanso dividido entre el tiempo de trabajo',
-      'Tiempo total de la sesión dividido entre el número de series realizadas',
+      'Tiempo de trabajo dividido entre el tiempo de descanso de la serie',
+      'Tiempo de descanso dividido entre el tiempo de trabajo de la serie',
+      'Tiempo total de la sesión dividido entre el número de series y repeticiones realizadas',
     ],
     explicacion:
       'La densidad es la fracción del tiempo que se pasó trabajando: tiempo de trabajo sobre tiempo total, y el total incluye el trabajo además del descanso. El distractor más tentador divide el trabajo entre el descanso, que es la relación trabajo-descanso y no la densidad: con 30 s y 60 s daría 0,5 en vez de 0,33. Dato para recordar: el denominador siempre suma el trabajo; si te da más de 1, dividiste mal.',
@@ -119,9 +119,9 @@ export const ITEMS: Item[] = [
     enunciado: '¿Cuál de estos indicadores expresa carga interna?',
     opciones: [
       'El esfuerzo percibido que reporta el deportista al terminar',
-      'El número de series y repeticiones programadas',
-      'La velocidad media de desplazamiento en la sesión',
-      'El tonelaje total levantado durante el entrenamiento',
+      'El número de series y repeticiones programadas para la sesión',
+      'La velocidad media de desplazamiento durante la sesión',
+      'El tonelaje total levantado a lo largo del entrenamiento',
     ],
     explicacion:
       'El esfuerzo percibido es una respuesta del organismo al trabajo, así que expresa carga interna, igual que la frecuencia cardíaca o el lactato. Los otros tres son cantidades del trabajo prescrito y ejecutado, es decir, carga externa. El distractor más tentador es la velocidad media, porque parece reflejar el rendimiento del deportista: pero se mide fuera del organismo y no dice nada de lo que le costó. Dato para recordar: si se puede medir sin preguntar ni conectar nada al deportista, es carga externa.',
@@ -203,9 +203,9 @@ export const ITEMS: Item[] = [
     enunciado: '¿Qué establece la relación inversa entre volumen e intensidad?',
     opciones: [
       'Que a mayor intensidad el volumen tolerable baja, y a mayor volumen la intensidad sostenible baja',
-      'Que volumen e intensidad deben mantenerse siempre en la misma proporción dentro del ciclo',
+      'Que volumen e intensidad deben mantenerse siempre en la misma proporción dentro del ciclo de trabajo',
       'Que el volumen se incrementa en la misma medida en que se incrementa la intensidad',
-      'Que la intensidad solo puede subir cuando el volumen ya alcanzó su valor máximo',
+      'Que la intensidad solo puede subir cuando el volumen ya alcanzó su valor máximo planificado',
     ],
     explicacion:
       'La relación inversa dice que los dos grandes componentes se compensan: subir uno obliga a bajar el otro, porque la capacidad total de trabajo tiene un techo fisiológico. El distractor más tentador es el que exige subir el volumen al máximo antes de tocar la intensidad, porque suena a progresión ordenada: pero convierte una relación de compensación en una secuencia obligatoria que no existe. Dato para recordar: nadie levanta el 95 % de su 1RM veinte series ni corre un maratón a ritmo de 400 metros.',

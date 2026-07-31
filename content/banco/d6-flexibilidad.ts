@@ -340,9 +340,9 @@ export const ITEMS: Item[] = [
     enunciado: '¿Qué distingue al reflejo miotático del reflejo miotático inverso?',
     opciones: [
       'El miotático parte del huso muscular ante el estiramiento rápido y contrae; el inverso parte del órgano tendinoso de Golgi ante la tensión mantenida y relaja',
-      'El miotático parte del órgano tendinoso de Golgi y relaja; el inverso parte del huso muscular y contrae el antagonista',
-      'El miotático actúa sobre el músculo estirado y el inverso actúa sobre su antagonista para permitir el movimiento',
-      'El miotático aparece solo en el estiramiento pasivo y el inverso solo cuando la contracción es voluntaria',
+      'El miotático parte del órgano tendinoso de Golgi ante la tensión mantenida y relaja; el inverso parte del huso muscular ante el estiramiento rápido y contrae',
+      'El miotático actúa sobre el propio músculo estirado y el inverso actúa sobre su antagonista, al que relaja para dejar avanzar el movimiento',
+      'El miotático aparece solo durante el estiramiento pasivo y el inverso solo cuando la contracción es voluntaria y sostenida',
     ],
     correcta: 0,
     explicacion:
@@ -361,9 +361,9 @@ export const ITEMS: Item[] = [
       'El mismo deportista registra −5 cm en el sit and reach de un club y 18 cm en el de otro, el mismo día y sin haber entrenado entre las dos tomas. ¿Cómo se explica?',
     opciones: [
       'Los dos cajones tienen el cero en sitios distintos: en uno coincide con la planta del pie y en el otro la planta está marcada en 23 cm',
-      'El primer club midió antes del calentamiento y el segundo después, y el calor modificó el resultado',
-      'El primer club usó la versión con rodillas flexionadas y el segundo la versión con piernas extendidas',
-      'Uno de los dos registros está mal tomado, porque el sit and reach nunca puede dar valores negativos',
+      'El primer club midió en frío, nada más llegar, y el segundo tras un calentamiento completo: el calor aumenta la extensibilidad y explica toda la diferencia',
+      'El primer club usó la versión con las rodillas flexionadas y el segundo la versión clásica con las piernas completamente extendidas',
+      'Uno de los dos registros está mal tomado, porque un valor negativo es imposible en el sit and reach y obliga a repetir la medición',
     ],
     correcta: 0,
     explicacion:
@@ -383,9 +383,9 @@ export const ITEMS: Item[] = [
     enunciado: '¿Qué diferencia hay entre los dos casos?',
     opciones: [
       'El primero tiene una limitación muscular y el segundo una limitación articular, así que estirar solo le sirve al primero',
-      'Los dos tienen una limitación de elasticidad muscular, pero el segundo la tiene en un grado más avanzado',
-      'El primero tiene una limitación articular y el segundo una limitación de elasticidad muscular por sobrecarga',
-      'Los dos tienen el mismo problema de flexibilidad y ambos responderán igual a un programa de estiramientos',
+      'Los dos tienen una limitación de elasticidad muscular, pero el segundo la tiene en un grado más avanzado y por eso su tope se siente más duro',
+      'El primero tiene una limitación articular de la cadera y el segundo una limitación de elasticidad muscular por sobrecarga de entrenamiento',
+      'Los dos tienen el mismo problema de flexibilidad y ambos responderán igual a un programa de estiramientos sostenido en el tiempo',
     ],
     correcta: 0,
     explicacion:
@@ -495,9 +495,9 @@ export const ITEMS: Item[] = [
     enunciado: '¿Qué ajuste corresponde hacer al calentamiento?',
     opciones: [
       'Sustituir los estiramientos estáticos por movilidad y estiramientos dinámicos, y llevar el trabajo estático a la vuelta a la calma',
-      'Mantener los estiramientos estáticos pero reducir cada repetición de 45 a 30 segundos',
-      'Sustituir los estiramientos estáticos por estiramientos balísticos con rebotes suaves y progresivos',
-      'Eliminar por completo el trabajo de flexibilidad de la semana, porque compite con el entrenamiento de salto',
+      'Mantener los estiramientos estáticos en el calentamiento pero reducir cada repetición de 45 a 30 segundos, dejando dos por grupo muscular',
+      'Sustituir los estiramientos estáticos por estiramientos balísticos con rebotes cortos y progresivos hasta el final del recorrido',
+      'Eliminar por completo el trabajo de flexibilidad de la semana, porque compite con el entrenamiento de salto y le resta altura',
     ],
     correcta: 0,
     explicacion:
@@ -517,9 +517,9 @@ export const ITEMS: Item[] = [
     enunciado: '¿Cómo debe corregirse la aplicación?',
     opciones: [
       'Estirar pasivamente unos 10 s, pedir una contracción isométrica submáxima de unos 6 s y aprovechar la relajación para un nuevo estiramiento de 10 a 30 s',
-      'Mantener la contracción máxima de 20 s pero precederla de un estiramiento pasivo de 10 s para preparar el tejido',
-      'Sustituir la contracción isométrica por rebotes cortos y suaves antes del estiramiento final',
-      'Repetir la misma secuencia tres veces por sesión para que el efecto acumulado compense la falta de ganancia',
+      'Mantener la contracción máxima de 20 s pero precederla de un estiramiento pasivo de unos 10 s, y soltar la pierna al terminar, sin un estiramiento final',
+      'Sustituir la contracción isométrica por rebotes cortos y suaves en el final del recorrido, manteniendo igual el resto de la secuencia',
+      'Repetir la misma secuencia tres veces por sesión, sin cambiar ningún tiempo, para que el efecto acumulado compense la falta de ganancia',
     ],
     correcta: 0,
     explicacion:
@@ -538,9 +538,9 @@ export const ITEMS: Item[] = [
       'Va a programar trabajo de flexibilidad estática para mejorar el rango de los isquiosurales de un grupo de adultos. ¿Qué prescripción corresponde?',
     opciones: [
       'De 10 a 30 s por repetición, con 2 a 4 repeticiones hasta acumular unos 60 s por grupo muscular, al menos 2 o 3 días por semana',
-      'De 3 a 5 s por repetición, con 10 repeticiones seguidas por grupo muscular, todos los días de la semana',
-      'Una sola repetición de 3 minutos continuos por grupo muscular, dos días por semana',
-      'De 45 a 60 s por repetición, con 6 repeticiones por grupo muscular, en cada sesión de entrenamiento',
+      'De 3 a 5 s por repetición, con 10 repeticiones seguidas hasta acumular unos 40 s por grupo muscular, todos los días de la semana',
+      'Una sola repetición de 3 minutos continuos por grupo muscular, sin fraccionar en varias series, dos días por semana',
+      'De 45 a 60 s por repetición, con 6 repeticiones hasta acumular unos 5 min por grupo muscular, en cada sesión de entrenamiento',
     ],
     correcta: 0,
     explicacion:
