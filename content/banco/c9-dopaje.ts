@@ -1,0 +1,600 @@
+// content/banco/c9-dopaje.ts
+// C9 · Prevención y control del dopaje. 28 ítems (bloque C, ADR-006).
+//
+// Reparto verificado contra verificarCuotas(cuotasDelBloque('C')):
+//   Nivel      → 12 recuerdo (43 %) · 9 comprensión (32 %) · 7 aplicación (25 %)
+//   Dificultad → 4 de nivel 1 · 18 de nivel 2 · 6 de nivel 3
+//   Tipos      → 17 única · 3 múltiple · 3 caso · 2 emparejar · 2 V/F
+//                · 1 ordenar
+//
+// SIN ítems de tipo cálculo, por el mismo motivo que c8: el módulo es
+// normativo y no tiene magnitudes que calcular. La cuota exige 4 tipos
+// distintos y hay 6.
+//
+// Cubre DD-102 (las 3 estrategias), DD-103 (las 11 infracciones) y DD-104
+// (los 12 meses de la localización fallida).
+//
+// Los ítems son datos literales: nunca se generan con map(), plantillas ni
+// funciones auxiliares. 28 objetos a mano son legibles, revisables y diffeables.
+import type { Item } from '@/lib/tipos';
+
+export const ITEMS: Item[] = [
+  {
+    id: 'C9-001',
+    modulo: 'c9-dopaje',
+    bloque: 'C',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: '¿Cuáles son las tres estrategias del programa antidopaje?',
+    opciones: [
+      'Educación, disuasión y detección',
+      'Prevención, sanción y rehabilitación de los deportistas implicados',
+      'Detección, sanción económica y suspensión temporal de la licencia',
+      'Información, control médico periódico y seguimiento de la carrera deportiva',
+    ],
+    correcta: 0,
+    explicacion:
+      'El programa se apoya en educar, disuadir y detectar, en ese orden de prioridad: la detección es el último recurso, no el primero. El distractor más tentador es el que incluye la sanción, porque es lo que se ve en los medios: la sanción es una consecuencia del sistema, no una de sus estrategias. Dato para recordar: el objetivo declarado es que no haga falta detectar nada, y por eso la educación va primera.',
+    referencia: 'Cartilla 3, Tema 6, Subtema 6.1 — El programa antidopaje',
+    etiquetas: ['programa antidopaje', 'estrategias', 'AMA'],
+  },
+  {
+    id: 'C9-002',
+    modulo: 'c9-dopaje',
+    bloque: 'C',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado:
+      '¿Cuántas infracciones de las normas antidopaje recoge el Artículo 2 del Código Mundial Antidopaje?',
+    opciones: ['11', '8, todas ellas referidas a la conducta del propio deportista', '5, que son las que pueden detectarse mediante análisis de laboratorio', '20, repartidas entre deportistas, entrenadores y personal médico'],
+    correcta: 0,
+    explicacion:
+      'El Artículo 2 recoge once infracciones, y solo dos de ellas —presencia y uso— tienen que ver con dar positivo en un análisis. Las otras nueve son conductas: negarse a un control, falsificar, poseer, traficar, administrar, ser cómplice, asociarse con personal sancionado, incumplir la localización o tomar represalias contra quien denuncia. Dato para recordar: la mayoría de las infracciones no necesitan un laboratorio para demostrarse.',
+    referencia: 'Cartilla 3, Tema 6, Subtema 6.2 — Las infracciones del Artículo 2',
+    etiquetas: ['Artículo 2', 'infracciones', 'Código Mundial Antidopaje'],
+  },
+  {
+    id: 'C9-003',
+    modulo: 'c9-dopaje',
+    bloque: 'C',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: '¿Qué establece la infracción 2.1 del Código Mundial Antidopaje?',
+    opciones: [
+      'La presencia de una sustancia prohibida en la muestra del deportista',
+      'El uso o el intento de uso de una sustancia o un método prohibidos',
+      'La posesión de sustancias prohibidas por parte del deportista o su entorno',
+      'La negativa a someterse a la toma de muestras tras una notificación válida',
+    ],
+    correcta: 0,
+    explicacion:
+      'La 2.1 es la presencia: basta con que la sustancia aparezca en la muestra. El distractor más tentador es el uso, que es la 2.2 y parece lo mismo: la diferencia es probatoria, porque la presencia se demuestra con el análisis y el uso puede probarse por otras vías aunque no haya positivo. Dato para recordar: la 2.1 es la que lleva asociado el principio de responsabilidad estricta.',
+    referencia: 'Cartilla 3, Tema 6, Subtema 6.2 — Las infracciones del Artículo 2',
+    etiquetas: ['Artículo 2.1', 'presencia', 'infracciones'],
+  },
+  {
+    id: 'C9-004',
+    modulo: 'c9-dopaje',
+    bloque: 'C',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: '¿Cuándo constituye infracción el incumplimiento de la obligación de localización?',
+    opciones: [
+      'Con cualquier combinación de tres incumplimientos dentro de un período de doce meses',
+      'Con un único incumplimiento, sea cual sea el momento en que se produzca',
+      'Con cinco incumplimientos acumulados a lo largo de toda la temporada deportiva en curso, competiciones incluidas',
+      'Con tres incumplimientos, pero solo si ocurren dentro del mismo mes natural',
+    ],
+    correcta: 0,
+    explicacion:
+      'La infracción 2.4 se produce con cualquier combinación de tres incumplimientos —controles fallidos o declaraciones de paradero no presentadas— dentro de un período de doce meses. El distractor más tentador es el incumplimiento único, porque parece coherente con la severidad del sistema: un fallo aislado genera un apercibimiento, no una sanción. Dato para recordar: tres y doce meses, y la ventana es móvil, no coincide con el año natural.',
+    referencia: 'Cartilla 3, Tema 6, Subtema 6.2 — Las infracciones del Artículo 2',
+    etiquetas: ['localización fallida', 'Artículo 2.4', 'paradero'],
+  },
+  {
+    id: 'C9-005',
+    modulo: 'c9-dopaje',
+    bloque: 'C',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: '¿En qué consiste la infracción de asociación prohibida?',
+    opciones: [
+      'Colaborar en el ámbito deportivo con personal de apoyo sancionado por dopaje',
+      'Competir en una federación distinta a aquella en la que se tiene la licencia',
+      'Formar parte de un club cuyo presidente haya sido sancionado por dopaje',
+      'Entrenar junto a otro deportista que se encuentre cumpliendo una sanción',
+    ],
+    correcta: 0,
+    explicacion:
+      'La asociación prohibida sanciona al deportista que colabora profesionalmente con personal de apoyo —entrenadores, médicos, preparadores— que cumple sanción por dopaje. El distractor más tentador es entrenar junto a otro deportista sancionado, que no constituye infracción: lo que la norma persigue es el vínculo de asesoramiento, no la coincidencia en una instalación. Dato para recordar: la infracción apunta a quién te asesora, no a quién comparte pista contigo.',
+    referencia: 'Cartilla 3, Tema 6, Subtema 6.2 — Las infracciones del Artículo 2',
+    etiquetas: ['asociación prohibida', 'Artículo 2.10', 'personal de apoyo'],
+  },
+  {
+    id: 'C9-006',
+    modulo: 'c9-dopaje',
+    bloque: 'C',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: '¿Qué establece el principio de responsabilidad estricta?',
+    opciones: [
+      'Que el deportista responde por lo que aparece en su muestra sin necesidad de demostrar intención',
+      'Que la organización antidopaje debe demostrar la intención del deportista antes de poder imponerle una sanción',
+      'Que la responsabilidad recae en el médico que prescribió el tratamiento al deportista',
+      'Que la sanción se aplica únicamente cuando existe una negligencia grave probada',
+    ],
+    correcta: 0,
+    explicacion:
+      'La responsabilidad estricta significa que la infracción existe por el mero hecho de que la sustancia esté en la muestra, sin que haga falta probar intención, culpa ni negligencia. El distractor más tentador traslada la carga a la organización, que es justo lo contrario de lo que hace el principio. Dato para recordar: el deportista es responsable de todo lo que entra en su cuerpo, y eso incluye lo que le dieron sin decírselo.',
+    referencia: 'Cartilla 3, Tema 6, Subtema 6.3 — Responsabilidad estricta',
+    etiquetas: ['responsabilidad estricta', 'Artículo 2.1', 'principios'],
+  },
+  {
+    id: 'C9-007',
+    modulo: 'c9-dopaje',
+    bloque: 'C',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: '¿Qué es la AMA o WADA?',
+    opciones: [
+      'La Agencia Mundial Antidopaje, que elabora el Código y la Lista de sustancias prohibidas',
+      'El tribunal internacional que resuelve en última instancia los recursos presentados por dopaje',
+      'El laboratorio internacional donde se analizan todas las muestras del mundo',
+      'La federación que organiza los controles antidopaje en cada país miembro',
+    ],
+    correcta: 0,
+    explicacion:
+      'La AMA —WADA por sus siglas en inglés— es la agencia que armoniza la lucha antidopaje: elabora el Código Mundial Antidopaje, publica la Lista de sustancias y métodos prohibidos y acredita los laboratorios. El distractor más tentador es el tribunal, que es el TAD: la AMA norma y el TAD juzga en apelación. Dato para recordar: la AMA escribe las reglas, las organizaciones nacionales las aplican y el TAD resuelve los recursos.',
+    referencia: 'Cartilla 3, Tema 6, Subtema 6.1 — El programa antidopaje',
+    etiquetas: ['AMA', 'WADA', 'organización'],
+  },
+  {
+    id: 'C9-008',
+    modulo: 'c9-dopaje',
+    bloque: 'C',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: '¿Qué función cumple la muestra B?',
+    opciones: [
+      'Permite al deportista solicitar la confirmación del resultado adverso de la muestra A',
+      'Se analiza siempre de forma automática junto con la muestra A del deportista',
+      'Se reserva para repetir el control en el caso de que el deportista decida apelar la sanción impuesta',
+      'Sirve para analizar sustancias distintas de las buscadas en la primera muestra',
+    ],
+    correcta: 0,
+    explicacion:
+      'La muestra se divide en dos frascos en el momento de la toma, y la B queda sellada: si la A da resultado adverso, el deportista tiene derecho a pedir que se analice la B para confirmarlo. El distractor más tentador es el análisis automático, porque suena a garantía: la B solo se abre si el deportista lo solicita, y su análisis no es gratuito ni obligatorio. Dato para recordar: si la B no confirma a la A, no hay infracción por presencia.',
+    referencia: 'Cartilla 3, Tema 6, Subtema 6.4 — El Artículo 3: prueba y procedimiento',
+    etiquetas: ['muestra B', 'procedimiento', 'garantías'],
+  },
+  {
+    id: 'C9-009',
+    modulo: 'c9-dopaje',
+    bloque: 'C',
+    tipo: 'emparejar',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: 'Relacione cada infracción del Artículo 2 con su contenido.',
+    izquierda: ['2.1', '2.3', '2.7', '2.9', '2.10'],
+    derecha: [
+      'Presencia de una sustancia prohibida en la muestra',
+      'Evasión, negativa o incomparecencia a la toma de muestras',
+      'Tráfico o intento de tráfico de sustancias o métodos prohibidos',
+      'Complicidad en una infracción cometida por otra persona',
+      'Asociación prohibida con personal de apoyo sancionado',
+    ],
+    pares: [
+      [0, 0],
+      [1, 1],
+      [2, 2],
+      [3, 3],
+      [4, 4],
+    ],
+    explicacion:
+      'El par que más se falla es el 2.7 con el 2.8: traficar es distribuir y administrar es aplicar la sustancia a alguien, y las dos suenan igual de graves. También se cruzan la complicidad y la asociación prohibida: la complicidad exige participar en una infracción concreta, y la asociación basta con mantener el vínculo profesional. Dato para recordar: siete de las once infracciones pueden cometerse sin haber dado nunca positivo.',
+    referencia: 'Cartilla 3, Tema 6, Subtema 6.2 — Las infracciones del Artículo 2',
+    etiquetas: ['Artículo 2', 'infracciones', 'clasificación'],
+  },
+  {
+    id: 'C9-010',
+    modulo: 'c9-dopaje',
+    bloque: 'C',
+    tipo: 'emparejar',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: 'Relacione cada elemento del sistema antidopaje con su función.',
+    izquierda: ['AMA / WADA', 'TAD / TAS', 'Autorización de uso terapéutico', 'Lista de prohibiciones'],
+    derecha: [
+      'Elabora el Código y armoniza la lucha antidopaje a escala mundial',
+      'Resuelve en última instancia los recursos en materia deportiva',
+      'Permite usar una sustancia prohibida por necesidad médica acreditada',
+      'Relación de sustancias y métodos prohibidos, revisada cada año',
+    ],
+    pares: [
+      [0, 0],
+      [1, 1],
+      [2, 2],
+      [3, 3],
+    ],
+    explicacion:
+      'El par que más se falla es el de la AMA con el TAD: la AMA norma y el TAD juzga en apelación, y los dos aparecen en las noticias como si fueran lo mismo. La autorización de uso terapéutico es la vía legal para tratar una enfermedad con una sustancia de la Lista, y esta última se revisa y publica cada año. Dato para recordar: normar, juzgar, autorizar y listar son cuatro funciones distintas.',
+    referencia: 'Cartilla 3, Tema 6, Subtema 6.1 — El programa antidopaje',
+    etiquetas: ['AMA', 'TAD', 'AUT', 'organización'],
+  },
+  {
+    id: 'C9-011',
+    modulo: 'c9-dopaje',
+    bloque: 'C',
+    tipo: 'multiple',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado:
+      'Seleccione las TRES infracciones del Artículo 2 que pueden cometerse sin que exista ningún resultado analítico adverso.',
+    opciones: [
+      'Negativa o incomparecencia a la toma de muestras',
+      'Tráfico o intento de tráfico de sustancias prohibidas',
+      'Asociación prohibida con personal de apoyo sancionado',
+      'Presencia de una sustancia prohibida en la muestra del deportista',
+      'Uso de un método prohibido detectado mediante análisis de laboratorio',
+    ],
+    correctas: [0, 1, 2],
+    explicacion:
+      'Negarse a un control, traficar y asociarse con personal sancionado son infracciones de conducta: no necesitan análisis. El distractor más tentador es la presencia, que es justamente la única que se define por el resultado analítico. Dato para recordar: solo dos de las once infracciones —presencia y uso— dependen de un laboratorio, y por eso un deportista que nunca dio positivo puede acabar sancionado.',
+    referencia: 'Cartilla 3, Tema 6, Subtema 6.2 — Las infracciones del Artículo 2',
+    etiquetas: ['Artículo 2', 'infracciones', 'conducta'],
+  },
+  {
+    id: 'C9-012',
+    modulo: 'c9-dopaje',
+    bloque: 'C',
+    tipo: 'vf',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado:
+      'Solo el deportista puede cometer una infracción de las normas antidopaje; su entorno queda siempre fuera del alcance del Código.',
+    correcta: false,
+    explicacion:
+      'Falso. El Código alcanza expresamente al personal de apoyo: entrenadores, médicos, fisioterapeutas y directivos pueden ser sancionados por tráfico, administración, complicidad o represalias contra quien denuncia. Un entrenador que consigue la sustancia comete infracción aunque nunca la haya tocado ni haya competido. La confusión viene de que las noticias solo nombran al deportista. Dato para recordar: el Código no protege al entorno, lo incluye.',
+    referencia: 'Cartilla 3, Tema 6, Subtema 6.2 — Las infracciones del Artículo 2',
+    etiquetas: ['personal de apoyo', 'complicidad', 'alcance'],
+  },
+  {
+    id: 'C9-013',
+    modulo: 'c9-dopaje',
+    bloque: 'C',
+    tipo: 'unica',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado: '¿Por qué existe el principio de responsabilidad estricta?',
+    opciones: [
+      'Porque probar la intención en cada caso haría inviable el sistema y abriría una vía de defensa automática',
+      'Porque los deportistas actúan siempre con pleno conocimiento de todo lo que ingieren en su día a día y en competición',
+      'Porque el análisis de laboratorio permite determinar con precisión la intención del deportista',
+      'Porque el Código considera que la intención agrava siempre la sanción impuesta',
+    ],
+    correcta: 0,
+    explicacion:
+      'Si hubiera que demostrar intención en cada caso, cualquier deportista alegaría desconocimiento y el sistema sería inaplicable: la responsabilidad estricta traslada al deportista el deber de controlar lo que entra en su cuerpo. El distractor más tentador afirma que los deportistas siempre saben lo que ingieren, y es falso —los suplementos contaminados existen—: precisamente por eso el principio es duro. Dato para recordar: es una regla de viabilidad, no de justicia individual.',
+    referencia: 'Cartilla 3, Tema 6, Subtema 6.3 — Responsabilidad estricta',
+    etiquetas: ['responsabilidad estricta', 'fundamento', 'principios'],
+  },
+  {
+    id: 'C9-014',
+    modulo: 'c9-dopaje',
+    bloque: 'C',
+    tipo: 'unica',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado:
+      'Bajo el principio de responsabilidad estricta, ¿qué papel juega la intención del deportista?',
+    opciones: [
+      'Puede influir en la duración de la sanción, pero no en que exista la infracción',
+      'Determina si existe o no la infracción, además de la duración de la sanción',
+      'No se tiene en cuenta en ningún momento del procedimiento antidopaje',
+      'Solo se valora cuando el deportista consigue demostrar su total inocencia',
+    ],
+    correcta: 0,
+    explicacion:
+      'La infracción existe por la presencia de la sustancia, con intención o sin ella; la intención entra después, al graduar la sanción, y puede reducirla si el deportista demuestra ausencia de culpa o negligencia significativa. El distractor más tentador dice que la intención no se tiene en cuenta nunca, que es una lectura excesiva del principio. Dato para recordar: primero se establece que hay infracción, después se discute cuánto se sanciona.',
+    referencia: 'Cartilla 3, Tema 6, Subtema 6.3 — Responsabilidad estricta',
+    etiquetas: ['responsabilidad estricta', 'sanción', 'intención'],
+  },
+  {
+    id: 'C9-015',
+    modulo: 'c9-dopaje',
+    bloque: 'C',
+    tipo: 'unica',
+    nivel: 'comprension',
+    dificultad: 3,
+    enunciado: 'Según el Artículo 3, ¿sobre quién recae la carga de la prueba?',
+    opciones: [
+      'Sobre la organización antidopaje, que debe acreditar que se cometió la infracción',
+      'Sobre el deportista, que debe demostrar en todo momento que no cometió la infracción',
+      'Sobre el laboratorio, que responde de la validez de todo el procedimiento seguido',
+      'Sobre la federación del deportista, que actúa como parte acusadora en el proceso',
+    ],
+    correcta: 0,
+    explicacion:
+      'La carga inicial es de la organización antidopaje: le corresponde acreditar la infracción. Solo cuando el Código traslada expresamente esa carga al deportista —por ejemplo, para probar el origen de una sustancia y reducir la sanción— recae sobre él. El distractor más tentador invierte la regla desde el principio, confundiendo la responsabilidad estricta con la presunción de culpabilidad. Dato para recordar: la responsabilidad estricta simplifica qué hay que probar, no quién debe probarlo.',
+    referencia: 'Cartilla 3, Tema 6, Subtema 6.4 — El Artículo 3: prueba y procedimiento',
+    etiquetas: ['Artículo 3', 'carga de la prueba', 'procedimiento'],
+  },
+  {
+    id: 'C9-016',
+    modulo: 'c9-dopaje',
+    bloque: 'C',
+    tipo: 'unica',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado:
+      '¿Cuál es el estándar de prueba que debe alcanzar la organización antidopaje según el Artículo 3?',
+    opciones: [
+      'La satisfacción confortable del tribunal, mayor que el balance de probabilidades y menor que la certeza absoluta',
+      'La certeza más allá de toda duda razonable, exactamente igual que la exigida en el proceso penal ordinario de cualquier jurisdicción',
+      'El simple balance de probabilidades, es decir, que resulte algo más probable que improbable',
+      'La convicción personal del instructor del expediente, sin un estándar predefinido',
+    ],
+    correcta: 0,
+    explicacion:
+      'El Código sitúa el estándar en la satisfacción confortable del tribunal, un nivel intermedio: más exigente que el balance de probabilidades y menos que el penal. El distractor más tentador es el estándar penal, por analogía con un juicio: el procedimiento antidopaje es disciplinario, no penal. Dato para recordar: cuando la carga se traslada al deportista, el estándar que se le pide baja al balance de probabilidades.',
+    referencia: 'Cartilla 3, Tema 6, Subtema 6.4 — El Artículo 3: prueba y procedimiento',
+    etiquetas: ['Artículo 3', 'estándar de prueba', 'procedimiento'],
+  },
+  {
+    id: 'C9-017',
+    modulo: 'c9-dopaje',
+    bloque: 'C',
+    tipo: 'unica',
+    nivel: 'comprension',
+    dificultad: 3,
+    enunciado:
+      '¿Qué criterios debe cumplir una sustancia para incluirse en la Lista de prohibiciones?',
+    opciones: [
+      'Cumplir dos de tres: mejorar el rendimiento, dañar la salud o vulnerar el espíritu deportivo',
+      'Mejorar el rendimiento deportivo de forma demostrada, que es el único criterio aplicable',
+      'Haber sido detectada previamente en al menos un control antidopaje internacional',
+      'Estar prohibida como medicamento en la legislación sanitaria de los países miembros',
+    ],
+    correcta: 0,
+    explicacion:
+      'Una sustancia entra en la Lista si cumple al menos dos de tres criterios: potencial de mejora del rendimiento, riesgo para la salud del deportista y contravención del espíritu deportivo. El distractor más tentador reduce todo al rendimiento, que es la razón intuitiva: por sí sola no basta, y ese es el motivo de que haya sustancias prohibidas que no mejoran nada pero enmascaran a otras. Dato para recordar: dos de tres, y la Lista se revisa y publica cada año.',
+    referencia: 'Cartilla 3, Tema 6, Subtema 6.1 — El programa antidopaje',
+    etiquetas: ['Lista de prohibiciones', 'criterios', 'AMA'],
+  },
+  {
+    id: 'C9-018',
+    modulo: 'c9-dopaje',
+    bloque: 'C',
+    tipo: 'multiple',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado: 'Seleccione las TRES afirmaciones correctas sobre el sistema de localización.',
+    opciones: [
+      'Obliga al deportista de determinados grupos a declarar dónde puede ser localizado',
+      'Permite realizar controles fuera de competición sin previo aviso',
+      'Tres incumplimientos en doce meses constituyen una infracción del Artículo 2',
+      'Se aplica por igual a todos los deportistas federados de cualquier nivel',
+      'Un solo incumplimiento conlleva de forma automática la suspensión inmediata de la licencia federativa',
+    ],
+    correctas: [0, 1, 2],
+    explicacion:
+      'El sistema obliga a declarar el paradero, habilita el control por sorpresa fuera de competición y sanciona con tres incumplimientos en doce meses. El distractor más tentador es la aplicación universal, porque parece lo más equitativo: solo alcanza a los deportistas incluidos en los grupos de seguimiento, que son una minoría. Dato para recordar: el control sin previo aviso es precisamente lo que hace útil el sistema, porque no se puede planificar alrededor de él.',
+    referencia: 'Cartilla 3, Tema 6, Subtema 6.2 — Las infracciones del Artículo 2',
+    etiquetas: ['localización', 'paradero', 'controles'],
+  },
+  {
+    id: 'C9-019',
+    modulo: 'c9-dopaje',
+    bloque: 'C',
+    tipo: 'ordenar',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado: 'Ordene las fases de un control antidopaje y su procedimiento posterior.',
+    elementos: [
+      'Notificación al deportista, que queda bajo supervisión del oficial de control',
+      'Toma de la muestra y reparto en dos frascos sellados, A y B',
+      'Análisis de la muestra A en un laboratorio acreditado',
+      'Notificación del resultado adverso y opción de solicitar el análisis de la muestra B',
+      'Resolución del expediente disciplinario y, en su caso, apelación ante el TAD',
+    ],
+    ordenCorrecto: [0, 1, 2, 3, 4],
+    explicacion:
+      'La cadena va de la notificación a la resolución, y su lógica es la trazabilidad: desde que se notifica al deportista, este queda supervisado para que no pueda manipular nada. El error más frecuente es situar el análisis de la B en paralelo con el de la A: la B permanece sellada y solo se abre si el deportista lo solicita tras un resultado adverso. Dato para recordar: la apelación ante el TAD es el último escalón, no el primero.',
+    referencia: 'Cartilla 3, Tema 6, Subtema 6.4 — El Artículo 3: prueba y procedimiento',
+    etiquetas: ['control antidopaje', 'procedimiento', 'secuencia'],
+  },
+  {
+    id: 'C9-020',
+    modulo: 'c9-dopaje',
+    bloque: 'C',
+    tipo: 'unica',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado: '¿Qué es una autorización de uso terapéutico?',
+    opciones: [
+      'El permiso que habilita a un deportista a usar una sustancia prohibida por una necesidad médica acreditada',
+      'La autorización que permite a un médico colegiado prescribir cualquier medicamento a un deportista con licencia federativa',
+      'El documento que exime al deportista de someterse a los controles durante un tratamiento médico',
+      'El permiso para competir mientras se cumple una sanción por dopaje de corta duración',
+    ],
+    correcta: 0,
+    explicacion:
+      'La autorización de uso terapéutico es la vía legal para que un deportista con una enfermedad real pueda tratarse con una sustancia de la Lista, previa acreditación médica y aprobación. El distractor más tentador es la exención de controles, que confunde poder usar la sustancia con poder esquivar el control: el deportista con autorización se somete a los controles igual que cualquier otro. Dato para recordar: autoriza el tratamiento, no exime del control.',
+    referencia: 'Cartilla 3, Tema 6, Subtema 6.1 — El programa antidopaje',
+    etiquetas: ['AUT', 'uso terapéutico', 'procedimiento'],
+  },
+  {
+    id: 'C9-021',
+    modulo: 'c9-dopaje',
+    bloque: 'C',
+    tipo: 'vf',
+    nivel: 'comprension',
+    dificultad: 3,
+    enunciado:
+      'El Tribunal de Arbitraje Deportivo (TAD/TAS) resuelve en última instancia las apelaciones en materia de dopaje.',
+    correcta: true,
+    explicacion:
+      'Verdadero. El Tribunal de Arbitraje Deportivo es la instancia final del sistema deportivo para los recursos en materia de dopaje, por encima de las resoluciones de federaciones y organizaciones nacionales. Conviene no confundirlo con la AMA: la agencia elabora el Código y la Lista, y el tribunal resuelve los conflictos. Dato para recordar: la AMA norma, las organizaciones nacionales aplican y el TAD juzga en apelación.',
+    referencia: 'Cartilla 3, Tema 6, Subtema 6.4 — El Artículo 3: prueba y procedimiento',
+    etiquetas: ['TAD', 'apelación', 'organización'],
+  },
+  {
+    id: 'C9-022',
+    modulo: 'c9-dopaje',
+    bloque: 'C',
+    tipo: 'unica',
+    nivel: 'aplicacion',
+    dificultad: 2,
+    enunciado:
+      'Un deportista da positivo por una sustancia presente en un suplemento que compró en una tienda y cuya etiqueta no la declaraba. ¿Qué consecuencia tiene?',
+    opciones: [
+      'Hay infracción por responsabilidad estricta, aunque la circunstancia pueda reducir la sanción',
+      'No hay infracción, porque el deportista desconocía por completo la composición real',
+      'No hay infracción, porque la responsabilidad recae íntegramente en el fabricante del suplemento y en su etiquetado',
+      'Hay infracción y la sanción es siempre la máxima, sin posibilidad de graduarla',
+    ],
+    correcta: 0,
+    explicacion:
+      'La infracción existe: la sustancia estaba en la muestra y eso basta. Ahora bien, si el deportista acredita el origen y demuestra ausencia de culpa o negligencia significativa, esa circunstancia puede reducir la sanción. El distractor más tentador es el desconocimiento, que es la defensa que todo el mundo esperaría y que el principio de responsabilidad estricta desactiva. Dato para recordar: los suplementos contaminados son la causa más frecuente de positivos no intencionados.',
+    referencia: 'Cartilla 3, Tema 6, Subtema 6.3 — Responsabilidad estricta',
+    etiquetas: ['responsabilidad estricta', 'suplementos', 'aplicación'],
+  },
+  {
+    id: 'C9-023',
+    modulo: 'c9-dopaje',
+    bloque: 'C',
+    tipo: 'unica',
+    nivel: 'aplicacion',
+    dificultad: 2,
+    enunciado:
+      'Un deportista del grupo de seguimiento no se encuentra en el lugar que declaró cuando llega el oficial de control. Es su primer incumplimiento del año. ¿Qué corresponde?',
+    opciones: [
+      'Se registra el incumplimiento; harán falta tres en doce meses para que constituya infracción',
+      'Se le sanciona de inmediato con una suspensión, por incumplir su obligación de localización',
+      'No se anota nada, porque el sistema de localización tiene carácter meramente orientativo',
+      'Se le retira definitivamente del grupo de seguimiento y se cierra el expediente',
+    ],
+    correcta: 0,
+    explicacion:
+      'Un incumplimiento aislado se registra pero no es infracción: la 2.4 exige cualquier combinación de tres dentro de un período de doce meses. El distractor más tentador es la sanción inmediata, coherente con la fama de dureza del sistema y contraria a la norma. Dato para recordar: la ventana de doce meses es móvil, así que el primer fallo sigue contando hasta que pasa un año exacto desde que se produjo.',
+    referencia: 'Cartilla 3, Tema 6, Subtema 6.2 — Las infracciones del Artículo 2',
+    etiquetas: ['localización fallida', 'Artículo 2.4', 'aplicación'],
+  },
+  {
+    id: 'C9-024',
+    modulo: 'c9-dopaje',
+    bloque: 'C',
+    tipo: 'multiple',
+    nivel: 'aplicacion',
+    dificultad: 3,
+    enunciado:
+      'Un deportista consulta a su entrenador si puede tomar un medicamento que le recetó el médico de familia para el asma. Seleccione las DOS actuaciones correctas del entrenador.',
+    opciones: [
+      'Comprobar el principio activo en la Lista de prohibiciones vigente',
+      'Orientarle sobre la solicitud de autorización de uso terapéutico si procede',
+      'Decirle que puede tomarlo sin más, porque lo recetó un médico colegiado',
+      'Recomendarle que lo tome y que no declare el tratamiento en el control',
+      'Asegurarle que los medicamentos para el asma nunca están en la Lista',
+    ],
+    correctas: [0, 1],
+    explicacion:
+      'Lo correcto es verificar el principio activo en la Lista vigente y, si está incluido, orientar sobre la autorización de uso terapéutico, que es la vía legal para tratarse. El distractor más tentador es fiarse de la receta médica: un médico de familia no tiene por qué conocer la Lista, y la responsabilidad sigue siendo del deportista. Y recomendar no declararlo sería complicidad. Dato para recordar: la receta no protege; la autorización sí.',
+    referencia: 'Cartilla 3, Tema 6, Subtema 6.1 — El programa antidopaje',
+    etiquetas: ['AUT', 'Lista de prohibiciones', 'entrenador'],
+  },
+  {
+    id: 'C9-025',
+    modulo: 'c9-dopaje',
+    bloque: 'C',
+    tipo: 'unica',
+    nivel: 'aplicacion',
+    dificultad: 2,
+    enunciado:
+      'Un preparador físico cumple una sanción de cuatro años por dopaje. Un deportista quiere contratarlo para que le diseñe sus planes. ¿Qué corresponde advertirle?',
+    opciones: [
+      'Que esa colaboración constituiría asociación prohibida y podría sancionarse',
+      'Que puede contratarlo sin problema mientras la relación no sea remunerada',
+      'Que puede contratarlo siempre que no acuda con él a las competiciones oficiales',
+      'Que la restricción solo afecta al personal médico, nunca al preparador físico',
+    ],
+    correcta: 0,
+    explicacion:
+      'Colaborar en el ámbito deportivo con personal de apoyo sancionado es la infracción de asociación prohibida, y alcanza a preparadores, médicos y entrenadores por igual. El distractor más tentador es el de la remuneración, porque introduce un matiz que suena jurídico: lo que la norma persigue es el vínculo de asesoramiento, cobre o no cobre. Dato para recordar: aquí el deportista responde por con quién trabaja, no solo por lo que toma.',
+    referencia: 'Cartilla 3, Tema 6, Subtema 6.2 — Las infracciones del Artículo 2',
+    etiquetas: ['asociación prohibida', 'personal de apoyo', 'aplicación'],
+  },
+  {
+    id: 'C9-026',
+    modulo: 'c9-dopaje',
+    bloque: 'C',
+    tipo: 'caso',
+    nivel: 'aplicacion',
+    dificultad: 2,
+    viñeta:
+      'Una atleta diagnosticada de asma necesita un tratamiento cuyo principio activo figura en la Lista de prohibiciones. Está en plena temporada de competición y quiere seguir compitiendo sin arriesgarse a una sanción.',
+    enunciado: '¿Cuál es el procedimiento correcto?',
+    opciones: [
+      'Solicitar una autorización de uso terapéutico acreditando la necesidad médica del tratamiento',
+      'Interrumpir el tratamiento durante toda la temporada y retomarlo cuando acabe el calendario',
+      'Tomar el medicamento y declararlo en el formulario del control cuando le toque uno',
+      'Cambiar de médico hasta encontrar uno que le recete algo que no figure en la Lista',
+    ],
+    correcta: 0,
+    explicacion:
+      'La autorización de uso terapéutico existe precisamente para este caso: permite tratar una enfermedad real con una sustancia de la Lista, previa acreditación médica y aprobación. El distractor más tentador es declararlo en el formulario del control, que es lo que muchos creen suficiente: declarar no autoriza, y la sustancia seguiría constituyendo infracción. Dato para recordar: la autorización se pide antes, no se justifica después.',
+    referencia: 'Cartilla 3, Tema 6, Subtema 6.1 — El programa antidopaje',
+    etiquetas: ['AUT', 'uso terapéutico', 'aplicación'],
+  },
+  {
+    id: 'C9-027',
+    modulo: 'c9-dopaje',
+    bloque: 'C',
+    tipo: 'caso',
+    nivel: 'aplicacion',
+    dificultad: 3,
+    viñeta:
+      'Un ciclista recibe la notificación de un resultado adverso en su muestra A. Solicita el análisis de la muestra B y el laboratorio no encuentra la sustancia en ella.',
+    enunciado: '¿Qué consecuencia tiene ese resultado?',
+    opciones: [
+      'No se considera cometida la infracción por presencia, porque la muestra B no confirmó a la A',
+      'Se mantiene la infracción, porque la muestra A ya había arrojado un resultado adverso',
+      'Se repite todo el control desde el principio con una nueva toma de muestras',
+      'Se mantiene la infracción pero la sanción se reduce a la mitad de su duración',
+    ],
+    correcta: 0,
+    explicacion:
+      'La muestra B cumple exactamente esta función de garantía: si no confirma el hallazgo de la A, no se considera cometida la infracción del artículo 2.1. El distractor más tentador mantiene la infracción apoyándose en la muestra A, y vacía de sentido el derecho a la contraprueba. Dato para recordar: por eso la muestra se reparte en dos frascos sellados en el momento mismo de la toma, y no después en el laboratorio.',
+    referencia: 'Cartilla 3, Tema 6, Subtema 6.4 — El Artículo 3: prueba y procedimiento',
+    etiquetas: ['muestra B', 'garantías', 'procedimiento'],
+  },
+  {
+    id: 'C9-028',
+    modulo: 'c9-dopaje',
+    bloque: 'C',
+    tipo: 'caso',
+    nivel: 'aplicacion',
+    dificultad: 3,
+    viñeta:
+      'Un entrenador consigue para su deportista una sustancia prohibida y le explica cómo administrarla para evitar su detección. El deportista nunca llega a dar positivo en ningún control.',
+    enunciado: '¿Puede sancionarse al entrenador?',
+    opciones: [
+      'Sí, por administración y complicidad, que son infracciones independientes del resultado analítico',
+      'No, porque el Código solo alcanza al deportista que compite bajo licencia federativa',
+      'No, porque sin un resultado analítico adverso no puede acreditarse ninguna infracción',
+      'Sí, pero únicamente si el deportista es sancionado antes en un procedimiento propio',
+    ],
+    correcta: 0,
+    explicacion:
+      'El Código alcanza expresamente al personal de apoyo, y la administración y la complicidad son infracciones autónomas que no dependen de que alguien haya dado positivo: se acreditan con testimonios, comunicaciones o documentación. El distractor más tentador exige un resultado analítico, y olvida que solo dos de las once infracciones lo necesitan. Dato para recordar: un entrenador puede acabar sancionado sin que su deportista lo esté.',
+    referencia: 'Cartilla 3, Tema 6, Subtema 6.2 — Las infracciones del Artículo 2',
+    etiquetas: ['complicidad', 'administración', 'personal de apoyo'],
+  },
+];

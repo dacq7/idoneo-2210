@@ -2680,3 +2680,59 @@ nunca acortar la correcta. Las medias por módulo quedan parejas (d6 100,3 vs 10
 **Erratas o datos duros nuevos:** ninguno.
 **Dudas de fuente:** ninguna.
 **Pendiente:** nada. `npm run validar` y `npm run typecheck` en verde.
+
+## Paso 16 — Contenido del resto del bloque C — 2026-07-31
+**Estado:** ✅ Completado
+
+**Archivos:** 8 × `content/teoria/c{1,2,3,4,6,7,8,9}-*.mdx` · 8 × `content/banco/c*.ts` (224 ítems) ·
+8 × `content/tarjetas/c*.ts` (120 tarjetas) · `content/glosario.ts` (+27 términos) ·
+`content/estructura.ts` (8 módulos a `'completo'`) · `content/banco/indice.ts` y
+`content/tarjetas/indice.ts` (8 registros cada uno) · `content/datos-duros.ts` (DD-007, DD-020,
+DD-104 — ADR-029) · `src/lib/__tests__/censo.test.ts` y
+`src/components/inicio/__tests__/panel-inicio.test.tsx` (dos aserciones que fijaban un slug).
+
+**Verificación** — las cinco compuertas por código de salida, no por la última línea impresa:
+
+| Compuerta | Exit | Resultado |
+|---|---|---|
+| `npm run validar` | **0** | 29 módulos (17 completos) · 452 ítems · 255 tarjetas · 76 glosario · 36 avisos, todos de A/B en preparación |
+| `npm run typecheck` | **0** | — |
+| `npm run lint` | **0** | — |
+| `npm test` | **0** | 686/686 en 22 archivos |
+| `npm run build` | **0** | 137 páginas estáticas |
+| `npm run canario` | **0** | 33 chunks, frontera intacta (ADR-010) |
+
+**Reparto de los 8 módulos** — idéntico en los ocho, contra `cuotasDelBloque('C')`:
+12 recuerdo / 9 comprensión / 7 aplicación (43 / 32 / 25 %), que es el mismo de C5 y el único que
+cabe con 28 ítems sin incumplir ningún mínimo. Los 7 tipos en seis módulos; **c8 y c9 llevan 6, sin
+cálculo**, porque no tienen ninguna magnitud que calcular y forzarlo habría producido aritmética
+disfrazada de psicología y de derecho. La cuota exige 4 tipos distintos.
+
+**Sesgo de longitud, módulo a módulo:** c3 25 % · c4 24 % · c2, c6, c7, c8, c9 30 % · c1 33 %.
+Azar 28 %. **Tres módulos salieron mal en la primera pasada** y hubo que corregirlos: c2 al 45 %,
+c6 al 50 % y **c9 al 70 %**, este último con 16 de 23 ítems sesgados. Se arreglaron **engordando
+distractores** —16 opciones tocadas en total— sin quitar un carácter a ninguna explicación. Que
+c9 fuera el peor no es casualidad: en un módulo normativo la respuesta correcta es la que enuncia
+la norma completa, y los distractores tienden a salir cortos porque son la norma a medias.
+
+**Notas — tres cosas que solo aparecieron al ejecutar:**
+
+1. **El validador atrapó lo que la medición de escritorio no ve.** Dos `emparejar` de C6 tenían 3
+   elementos y `esqItemEmparejar` exige 4–6: Zod los rechazaba, quedaban fuera del recuento y el
+   módulo aparecía con 26 ítems y 38 % de recuerdo. La herramienta con la que se mide el sesgo
+   mientras se escribe **no corre los esquemas**, así que no sustituye a `npm run validar`.
+2. **MDX rompe el build con `<` pegado a un dígito.** `<15 s` y `<1` se leen como apertura de
+   etiqueta JSX y el prerender falla. Se escribe con espacio, `< 15 s`, que es lo que C5 ya hacía.
+   No lo ve el validador, ni `typecheck`, ni los tests: **solo el build**.
+3. **Dos tests fijaban `'c5-umbrales-zonas'` como el módulo con más banco.** Con 17 publicados y
+   varios empatados en 28, la aserción probaba el desempate alfabético en vez de la función. Se
+   reescribieron para fijar la propiedad —el elegido está entre los de banco máximo; la acción
+   principal apunta a un módulo publicado—, que es lo que los dos querían decir.
+
+**Simulacro final:** con el bloque C cerrado, **58 de las 100 cuotas por módulo se sirven desde su
+propio módulo** —las 33 de C y las 25 de D, todas exactas— y las 42 restantes son de A y B, que
+siguen a cero y se cubren con el relleno de `armarSimulacro`. El aviso de `repartoIncumplido`
+sigue encendido y **debe seguirlo**: hasta el paso 17 el reparto por tema no es el del examen real.
+
+**Pendiente:** ADR-029 deja abierta la revisión de los datos duros de A y B, y en particular la
+serie de biomarcadores DD-060 a DD-074. Ver `PENDIENTES.md` § Paso 16.

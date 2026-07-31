@@ -5,7 +5,16 @@
 import type { Item } from '@/lib/tipos';
 
 export const BANCO: Record<string, () => Promise<Item[]>> = {
+  'c1-vias-energeticas': () => import('./c1-vias-energeticas').then((m) => m.ITEMS),
+  'c2-cardiovascular': () => import('./c2-cardiovascular').then((m) => m.ITEMS),
+  'c3-respiratorio-vo2': () => import('./c3-respiratorio-vo2').then((m) => m.ITEMS),
+  'c4-nervioso-digestivo-osteomuscular': () =>
+    import('./c4-nervioso-digestivo-osteomuscular').then((m) => m.ITEMS),
   'c5-umbrales-zonas': () => import('./c5-umbrales-zonas').then((m) => m.ITEMS),
+  'c6-biomecanica': () => import('./c6-biomecanica').then((m) => m.ITEMS),
+  'c7-nutricion-deportiva': () => import('./c7-nutricion-deportiva').then((m) => m.ITEMS),
+  'c8-psicologia-deporte': () => import('./c8-psicologia-deporte').then((m) => m.ITEMS),
+  'c9-dopaje': () => import('./c9-dopaje').then((m) => m.ITEMS),
   'd1-conceptualizacion': () => import('./d1-conceptualizacion').then((m) => m.ITEMS),
   'd2-carga': () => import('./d2-carga').then((m) => m.ITEMS),
   'd3-fuerza': () => import('./d3-fuerza').then((m) => m.ITEMS),
@@ -15,7 +24,8 @@ export const BANCO: Record<string, () => Promise<Item[]>> = {
   'd7-modelos-planificacion': () => import('./d7-modelos-planificacion').then((m) => m.ITEMS),
   'd8-estructuras': () => import('./d8-estructuras').then((m) => m.ITEMS),
   // Los 29 módulos se registran aquí a medida que su contenido existe.
-  // C5 entra en el paso 8; el bloque D en el paso 15; el resto en los pasos 16–17.
+  // C5 entra en el paso 8; el bloque D en el paso 15; el resto del bloque C en
+  // el paso 16; los bloques A y B en el paso 17.
 };
 
 export async function cargarBancoModulo(slug: string): Promise<Item[]> {

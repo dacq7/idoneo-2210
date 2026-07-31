@@ -141,9 +141,24 @@ Los 8 módulos publicados: 25 ítems y 15 tarjetas cada uno. Banco 28 → 228, g
 
 - **Verificable contra el material oficial:** los subtemas de `referencia` se asignaron por coherencia temática, no contra la numeración real de la Cartilla 4. Corregirlo sería un renombrado mecánico de un campo, sin tocar contenido.
 
-## Paso 16 — Resto del bloque C
+## Paso 16 — Resto del bloque C · ✅ CERRADO el 2026-07-31
 
-- Los 8 módulos restantes del bloque C (C1–C4, C6–C9) heredan el mínimo de **28 ítems** (ADR-005 hueco 5). Con `cuotasDelBloque` enforzándolo, el entregable "≥28 cada uno" pasa de promesa a compuerta.
+Los 8 módulos publicados con **28 ítems y 15 tarjetas cada uno**. Banco 228 → **452**, tarjetas 135 → **255**, glosario 49 → **76**. Bloque C completo: 9 de 9.
+
+- ✅ **El mínimo de 28 ítems** (ADR-005 hueco 5) se cumple en los nueve, enforzado por `cuotasDelBloque('C')`.
+- ✅ **La numeración de `Tema/Subtema` se fijó ANTES de escribir**, que era la obligación que dejó el paso 15. El mapa está en `CONTENIDO.md` y se construyó alrededor de las referencias que C5 ya tenía (`2.1` y `2.6.x`), así que **ninguna referencia previa se tocó** y no hubo que remapear nada.
+- ✅ **Sesgo de longitud entre el 24 % y el 33 %** en los ocho, contra un azar del 28 %. Tres módulos salieron por encima en la primera pasada —C2 al 45 %, C6 al 50 % y C9 al **70 %**— y se corrigieron **engordando distractores**, sin quitar un carácter a ninguna explicación.
+- ✅ **ADR-014 aplicado a `datos-duros.ts`**, que nadie había tocado: ver **ADR-029**.
+
+**Obligaciones nuevas que este paso genera:**
+
+- **Paso 17 — `datos-duros.ts` y `glosario.ts` no están exentos de ADR-014** (ADR-029). Quien escriba un módulo verifica también sus datos duros. Lo que queda sin revisar con bibliografía delante son los de los bloques A y B, y en particular **`DD-060` a `DD-074`, la serie de biomarcadores**: son rangos de laboratorio y varían con el método de medición.
+
+- **Paso 17 — dos tests dejaron de fijar un slug y pasaron a fijar la propiedad.** `censo.test.ts` («devuelve el módulo publicado con más banco») y `panel-inicio.test.tsx` (escalón 3) daban por hecho que **solo C5 estaba publicado** y comparaban contra `'c5-umbrales-zonas'`. Con 17 módulos publicados y **varios empatados en 28 ítems**, esa comparación probaba el desempate alfabético, no la función. Ahora comprueban que el elegido está entre los de banco máximo y que la acción principal apunta a un módulo **publicado**. **Lección para el 17: un test que compara contra un slug concreto del catálogo es un detector de pasos de contenido disfrazado de test.** Al escribir A y B, buscar los que queden.
+
+- **Paso 17 — el MDX rompe el build con `<` pegado a un dígito.** `<15 s` y `<1` hacen que MDX intente leer una etiqueta JSX y el prerender falla con «Unexpected character `1` before name». **Se escribe `< 15 s`, con espacio**, que es lo que C5 ya hacía en `< 65 %`. No lo detectan ni el validador ni `typecheck` ni los tests: **solo salta en `npm run build`**, y con 12 módulos por escribir conviene tenerlo presente desde el primer archivo.
+
+- **Paso 17 — el validador atrapó lo que el medidor de escritorio no ve.** Dos `emparejar` de C6 se escribieron con **3 elementos** y `esqItemEmparejar` exige **4–6**: los ítems se descartaban en silencio del recuento y el módulo aparecía con 26. La medición de cuotas por fuera del validador no sustituye a `npm run validar`, porque no corre los esquemas Zod.
 
 ## Paso 18.1 — PWA
 

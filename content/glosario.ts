@@ -348,6 +348,199 @@ export const GLOSARIO: EntradaGlosario[] = [
     modulo: 'd8-estructuras',
     sinonimos: ['Parte final de la sesión', 'Enfriamiento'],
   },
+
+  /* ── C1 · Vías energéticas (paso 16) ── */
+  {
+    termino: 'Fosfocreatina',
+    definicion:
+      'Compuesto de alta energía almacenado en la fibra muscular que cede su grupo fosfato al ADP para regenerar ATP de forma inmediata y sin oxígeno. Sostiene entre 5 y 15 segundos de esfuerzo máximo, según la intensidad y las reservas disponibles.',
+    modulo: 'c1-vias-energeticas',
+    sinonimos: ['PCr', 'Creatina fosfato'],
+  },
+  {
+    termino: 'Creatina quinasa',
+    definicion:
+      'Enzima que cataliza la transferencia del fosfato entre la fosfocreatina y el ADP, en los dos sentidos: durante el esfuerzo regenera ATP y durante la recuperación repone las reservas de fosfocreatina. En sangre se usa además como biomarcador de daño muscular.',
+    modulo: 'c1-vias-energeticas',
+    sinonimos: ['CK', 'Creatín quinasa'],
+  },
+  {
+    termino: 'Glucólisis',
+    definicion:
+      'Vía citoplasmática que degrada la glucosa hasta piruvato con un rendimiento neto de 2 ATP y 2 NADH. Con oxígeno suficiente el piruvato entra a la mitocondria; sin él se reduce a lactato. Es una sola vía con dos finales posibles, no dos vías distintas.',
+    modulo: 'c1-vias-energeticas',
+  },
+  {
+    termino: 'Ciclo de Krebs',
+    definicion:
+      'Secuencia de reacciones que ocurre en la matriz mitocondrial y oxida el acetil-CoA produciendo NADH, FADH₂ y GTP. No genera casi ATP directamente: su función es alimentar de transportadores reducidos a la cadena de transporte de electrones, que es donde se paga el grueso de la factura.',
+    modulo: 'c1-vias-energeticas',
+    sinonimos: ['Ciclo del ácido cítrico', 'Ciclo de los ácidos tricarboxílicos'],
+  },
+
+  /* ── C2 · Sistema cardiovascular (paso 16) ── */
+  {
+    termino: 'Frecuencia cardíaca máxima',
+    definicion:
+      'Número máximo de latidos por minuto que alcanza el corazón en esfuerzo máximo. Depende fundamentalmente de la edad y no aumenta con el entrenamiento. Se estima con fórmulas de regresión —Fox, Astrand, Tanaka, Gellish o Gulati— que arrastran un error de unos diez latidos.',
+    modulo: 'c2-cardiovascular',
+    sinonimos: ['FCmáx', 'FC máxima'],
+  },
+  {
+    termino: 'Volumen sistólico',
+    definicion:
+      'Cantidad de sangre que el ventrículo expulsa en cada latido, en torno a 70 ml en reposo. Es la variable que más mejora con el entrenamiento de resistencia y la que explica que la frecuencia cardíaca de reposo descienda en el deportista entrenado.',
+    modulo: 'c2-cardiovascular',
+  },
+
+  /* ── C3 · Sistema respiratorio y VO₂máx (paso 16) ── */
+  {
+    termino: 'Diferencia arteriovenosa',
+    definicion:
+      'Diferencia entre el contenido de oxígeno de la sangre arterial y el de la venosa: mide cuánto oxígeno extrae el tejido de la sangre que lo atraviesa. Pasa de unos 5 ml por 100 ml en reposo a 15–17 ml por 100 ml en ejercicio intenso.',
+    modulo: 'c3-respiratorio-vo2',
+    sinonimos: ['Diferencia a-vO₂'],
+  },
+  {
+    termino: 'Ventilación',
+    definicion:
+      'Proceso mecánico de movilizar aire entre la atmósfera y el alvéolo. Durante el ejercicio aumenta por el ascenso de la frecuencia respiratoria y del volumen corriente. En una persona sana no es el factor que limita el VO₂máx: el techo lo pone el transporte de oxígeno.',
+    modulo: 'c3-respiratorio-vo2',
+    sinonimos: ['Ventilación pulmonar'],
+  },
+
+  /* ── C4 · Sistemas nervioso, digestivo y osteomuscular (paso 16) ── */
+  {
+    termino: 'Propiocepción',
+    definicion:
+      'Información sobre la posición y el movimiento del cuerpo obtenida sin recurrir a la vista, a partir de receptores situados en músculos, tendones y articulaciones. Es entrenable con trabajo de equilibrio e inestabilidad, y en eso se basan los programas de prevención de esguinces.',
+    modulo: 'c4-nervioso-digestivo-osteomuscular',
+  },
+  {
+    termino: 'Huso muscular',
+    definicion:
+      'Receptor situado en el vientre muscular que detecta el grado de estiramiento y la velocidad a la que se produce. Dispara el reflejo miotático, que responde con una contracción protectora, y por eso estirar de forma brusca resulta contraproducente.',
+    modulo: 'c4-nervioso-digestivo-osteomuscular',
+  },
+  {
+    termino: 'Contracción excéntrica',
+    definicion:
+      'Contracción isotónica en la que el músculo se alarga mientras frena una carga que lo supera. Genera más tensión que la concéntrica reclutando menos unidades motoras, de modo que cada fibra activa soporta más: de ahí su mayor microdaño y el dolor muscular tardío.',
+    modulo: 'c4-nervioso-digestivo-osteomuscular',
+  },
+  {
+    termino: 'Fibra tipo II',
+    definicion:
+      'Fibra muscular rápida, de metabolismo predominantemente glucolítico, capaz de generar mucha fuerza en poco tiempo y con baja resistencia a la fatiga. Se recluta en último lugar, así que solo se alcanza con intensidad alta o con velocidad de ejecución alta.',
+    modulo: 'c4-nervioso-digestivo-osteomuscular',
+    sinonimos: ['Fibra rápida', 'Fibra blanca'],
+  },
+
+  /* ── C6 · Biomecánica (paso 16) ── */
+  {
+    termino: 'Cinética',
+    definicion:
+      'Rama de la biomecánica que estudia las fuerzas que producen o modifican el movimiento: fuerzas, momentos, presiones y sus efectos sobre el aparato locomotor. Responde al porqué del movimiento.',
+    modulo: 'c6-biomecanica',
+  },
+  {
+    termino: 'Cinemática',
+    definicion:
+      'Rama de la biomecánica que describe el movimiento —posición, desplazamiento, velocidad, aceleración y ángulos— sin atender a las fuerzas que lo causan. Responde al qué pasa, no al porqué.',
+    modulo: 'c6-biomecanica',
+  },
+  {
+    termino: 'Centro de gravedad',
+    definicion:
+      'Punto teórico en el que se considera concentrada toda la masa del cuerpo. En posición anatómica se sitúa en torno al 55 % de la estatura, a la altura de la segunda vértebra sacra, y puede quedar fuera del cuerpo cuando este cambia de forma.',
+    modulo: 'c6-biomecanica',
+    sinonimos: ['CG', 'Centro de masas'],
+  },
+  {
+    termino: 'Cadena cinemática',
+    definicion:
+      'Conjunto de segmentos articulados que actúan de forma coordinada. Es abierta cuando el extremo distal se mueve libre —extensión de rodilla en máquina— y cerrada cuando está fijo contra una resistencia —sentadilla—. La cerrada reparte la carga entre varias articulaciones; la abierta la concentra.',
+    modulo: 'c6-biomecanica',
+  },
+
+  /* ── C7 · Nutrición deportiva (paso 16) ── */
+  {
+    termino: 'Índice glucémico',
+    definicion:
+      'Medida de la velocidad con la que un alimento eleva la glucosa en sangre respecto a un alimento de referencia. Mide rapidez, no cantidad: antes del esfuerzo interesan los hidratos de bajo índice glucémico y en la recuperación los de alto.',
+    modulo: 'c7-nutricion-deportiva',
+    sinonimos: ['IG'],
+  },
+  {
+    termino: 'Ventana de recuperación',
+    definicion:
+      'Período de 30 a 60 minutos posterior al esfuerzo en el que el músculo capta glucosa con mayor facilidad, de modo que reponer entonces acelera la recarga de glucógeno. No es un plazo absoluto: pasada esa hora se sigue reponiendo, solo que más despacio.',
+    modulo: 'c7-nutricion-deportiva',
+    sinonimos: ['Ventana metabólica', 'Ventana anabólica'],
+  },
+  {
+    termino: 'Bebida isotónica',
+    definicion:
+      'Bebida cuya concentración de solutos es similar a la del plasma sanguíneo y que aporta agua, hidratos de carbono y electrolitos a la vez. Se indica en esfuerzos de más de 60 minutos; una bebida hipertónica retrasaría el vaciado gástrico en lugar de rehidratar.',
+    modulo: 'c7-nutricion-deportiva',
+  },
+  {
+    termino: 'Gasto energético total',
+    definicion:
+      'Suma de la energía que consume el organismo en un día: metabolismo basal, que es con diferencia el componente mayor, efecto térmico de los alimentos, en torno al 10 %, y gasto por actividad física, que es el único realmente modificable a corto plazo.',
+    modulo: 'c7-nutricion-deportiva',
+    sinonimos: ['GET'],
+  },
+
+  /* ── C8 · Psicología del deporte (paso 16) ── */
+  {
+    termino: 'Condicionamiento operante',
+    definicion:
+      'Teoría del aprendizaje de Skinner según la cual la conducta se modifica en función de sus consecuencias. Los refuerzos, positivos o negativos, aumentan la conducta; los castigos la disminuyen. Refuerzo negativo y castigo no son lo mismo.',
+    modulo: 'c8-psicologia-deporte',
+  },
+  {
+    termino: 'Aprendizaje vicario',
+    definicion:
+      'Aprendizaje por observación de un modelo, descrito por Bandura. Exige atención, retención, capacidad de reproducción y motivación. Un modelo de nivel cercano suele enseñar más que uno perfecto, porque el observador se ve capaz de reproducir lo que ve.',
+    modulo: 'c8-psicologia-deporte',
+    sinonimos: ['Aprendizaje social', 'Aprendizaje por observación', 'Modelado'],
+  },
+  {
+    termino: 'Refuerzo positivo',
+    definicion:
+      'Procedimiento que añade un estímulo agradable tras una conducta para que esta se repita con mayor frecuencia. Para que enseñe debe ser específico, inmediato y referido al proceso: un elogio genérico y tardío no le dice al deportista qué debe repetir.',
+    modulo: 'c8-psicologia-deporte',
+  },
+  {
+    termino: 'Activación mental',
+    definicion:
+      'Nivel de alerta psicofisiológica del deportista. Su relación con el rendimiento tiene forma de U invertida: existe un punto óptimo y el rendimiento cae tanto por defecto como por exceso. Cuanto más fina y compleja es la tarea, más bajo es ese punto óptimo.',
+    modulo: 'c8-psicologia-deporte',
+    sinonimos: ['Arousal', 'Nivel de activación'],
+  },
+
+  /* ── C9 · Prevención y control del dopaje (paso 16) ── */
+  {
+    termino: 'AMA/WADA',
+    definicion:
+      'Agencia Mundial Antidopaje. Elabora el Código Mundial Antidopaje y la Lista de sustancias y métodos prohibidos, que revisa cada año, y acredita los laboratorios. No juzga: los recursos los resuelve en última instancia el Tribunal de Arbitraje Deportivo.',
+    modulo: 'c9-dopaje',
+    sinonimos: ['Agencia Mundial Antidopaje', 'WADA', 'AMA'],
+  },
+  {
+    termino: 'Localización fallida',
+    definicion:
+      'Incumplimiento de la obligación de declarar el paradero o de estar disponible para un control. Constituye la infracción 2.4 cuando se acumulan tres incumplimientos, en cualquier combinación, dentro de un período de doce meses; la ventana es móvil y no coincide con el año natural.',
+    modulo: 'c9-dopaje',
+    sinonimos: ['Incumplimiento de localización', 'Fallo de paradero'],
+  },
+  {
+    termino: 'Asociación prohibida',
+    definicion:
+      'Infracción 2.10 del Código Mundial Antidopaje: colaborar en el ámbito deportivo con personal de apoyo que cumple sanción por dopaje. Alcanza a entrenadores, médicos y preparadores, y no depende de que la relación sea remunerada.',
+    modulo: 'c9-dopaje',
+  },
 ];
 
 /** Filtro del glosario en cliente. <400 entradas: no necesita índice. */
