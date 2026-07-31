@@ -289,8 +289,22 @@
      desplazamiento. Esto sí, y es la línea que faltaba — el desplazamiento por
      foco deja de terminar debajo de la barra.
 
-     Va en `html` y no en un contenedor: el que desplaza es el documento. */
+     Va en `html` y no en un contenedor: el que desplaza es el documento.
+
+     [A-40 · mismo criterio] `scroll-padding-top` es **la otra mitad del mismo
+     arreglo**, y faltaba: el encabezado es `sticky top-0` con 60 px de alto, así
+     que al subir el foco con Shift+Tab —la navegación hacia atrás normal— el
+     navegador alinea el elemento con el borde del scrollport y lo deja debajo.
+
+     Medido: a 188×334 (200 % de zoom sobre 375 px) el botón «Hacer el
+     diagnóstico» quedaba oculto al **100 %**, y es la ÚNICA acción principal de
+     la portada. A tamaños de dispositivo reales el solape llegaba al 87,7 %
+     —eso es 2.4.12 (AAA), no obligatorio, pero lo cierra la misma línea—.
+
+     Afecta justo al público de la app: quien estudia con presbicia y el
+     navegador al 175–200 %. Se tapó la banda de abajo y se dejó la de arriba. */
   html {
+    scroll-padding-top: calc(var(--alto-encabezado) + 0.5rem);
     scroll-padding-bottom: calc(4rem + env(safe-area-inset-bottom) + 0.5rem);
   }
 }

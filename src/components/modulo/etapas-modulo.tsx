@@ -25,6 +25,7 @@ import { ArrowRight, Check } from 'lucide-react';
 import { useEstado } from '@/hooks/usar-estado';
 import { estadoModuloInicial, UMBRAL_DOMINIO } from '@/lib/almacenamiento';
 import { CLASES_BLOQUE, cn } from '@/lib/utils';
+import { OrdenPublicacion } from './orden-publicacion';
 import type { BloqueId, EstadoModulo } from '@/lib/tipos';
 
 /** Lo mínimo que las etapas necesitan saber del módulo. Todo serializable. */
@@ -171,11 +172,17 @@ export function EtapasModulo({ datos, etapaActual }: Props) {
       </ol>
 
       {hayPendientes ? (
-        <p className="text-[0.8125rem] text-muted-foreground">
-          Las etapas marcadas como «Sin publicar» todavía no tienen contenido escrito. No
-          es un fallo de la app ni algo que hayas hecho mal: ese material aún no se ha
-          subido, y preferimos decirlo a enseñarte una etapa vacía.
-        </p>
+        <div className="space-y-2">
+          <p className="text-[0.8125rem] leading-[1.45] text-muted-foreground">
+            Las etapas marcadas como «Sin publicar» todavía no tienen contenido escrito. No
+            es un fallo de la app ni algo que hayas hecho mal: ese material aún no se ha
+            subido, y preferimos decirlo a enseñarte una etapa vacía.
+          </p>
+          {/* La tercera pregunta del estado vacío honesto —qué falta, CUÁNDO
+              llega, y qué se puede hacer hoy—. Sin fecha inventada: el orden
+              de producción sí está decidido y es información real. */}
+          <OrdenPublicacion bloque={datos.bloque} />
+        </div>
       ) : null}
     </section>
   );

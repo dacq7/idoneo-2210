@@ -1,33 +1,62 @@
-// src/app/page.tsx — Server Component.
+// src/app/page.tsx — Server Component. La portada.
 //
-// PROVISIONAL. La portada real es del Paso 14.4 (continuar donde ibas, racha,
-// resumen de progreso, cola de repaso, acceso al diagnóstico). Aquí solo hay
-// contenido suficiente para verificar el armazón del Paso 5, y a propósito no
-// se adelanta nada de esa pantalla.
+// Reemplaza la provisional del Paso 5. Responde una sola pregunta —«¿qué hago
+// ahora?»— y todo lo demás de la pantalla existe para justificar la respuesta.
+//
+// ══ ES LA ÚNICA RUTA CON SEO (§10.1) ══
+// El resto de la app es privada de facto: no hay contenido público que indexar,
+// así que las demás rutas exportan `robots: { index: false }`. Aquí sí hay
+// metadata completa, porque compartir la app es mandar un link y ese link
+// aterriza en esta pantalla.
+//
+// ══ FRONTERA (ADR-010 · ADR-026) ══
+// Los módulos se proyectan a los siete campos que el panel necesita. Pasar los
+// `Modulo` completos costaría 4 457 B gz por nada — la lección de ADR-026, que
+// nació de haber escrito «ahorraría poco» sin medirlo.
+
+import type { Metadata } from 'next';
+import { BLOQUES, MODULOS } from '@/content/estructura';
+import { PanelInicio } from '@/components/inicio/panel-inicio';
+
+export const metadata: Metadata = {
+  title: 'Idóneo 2210 — Evaluación de Idoneidad del Entrenador Deportivo',
+  description:
+    'Preparación para la Evaluación de Idoneidad exigida por la Ley 2210 de 2022 (COLEF/COCED). 29 módulos con teoría, tarjetas y quiz, repaso espaciado y simulacros cronometrados. Funciona sin conexión y sin registro.',
+  openGraph: {
+    title: 'Idóneo 2210',
+    description:
+      'Estudio dirigido y simulacros cronometrados para la Evaluación de Idoneidad del Entrenador Deportivo (Ley 2210 de 2022).',
+    locale: 'es_CO',
+    type: 'website',
+  },
+};
 
 export default function Inicio() {
   return (
-    <section className="space-y-6 py-2">
-      <div className="space-y-3">
-        <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+    <div className="space-y-8 py-2">
+      <header className="space-y-3">
+        <p className="text-[0.6875rem] font-semibold uppercase leading-[1.1] tracking-[0.08em] text-muted-foreground">
           Ley 2210 de 2022 · COLEF / COCED
         </p>
-        <h1>Preparación para la Evaluación de Idoneidad</h1>
+        <h1>Idóneo 2210</h1>
         <p className="text-muted-foreground">
-          29 módulos con teoría, tarjetas, práctica y quiz; repaso espaciado con lo que fallaste, y
-          simulacros cronometrados con el formato del examen. Todo el progreso vive en este
-          navegador: sin cuentas, sin correo, sin contraseña.
+          Estudio dirigido para la Evaluación de Idoneidad del Entrenador Deportivo. Todo tu
+          progreso vive en este navegador: sin cuentas, sin correo, sin contraseña.
         </p>
-      </div>
+      </header>
 
-      <div className="rounded-lg border border-border bg-card p-4 shadow-sm sm:p-6">
-        <h2>Esta pantalla todavía no es la definitiva</h2>
-        <p className="mt-2 text-muted-foreground">
-          El armazón de navegación ya está listo. La portada con «continuar donde ibas», la racha y
-          el resumen de progreso se construyen en el Paso 14.4, cuando exista el estado que tienen
-          que mostrar.
-        </p>
-      </div>
-    </section>
+      <PanelInicio
+        modulos={MODULOS.map((m) => ({
+          slug: m.slug,
+          titulo: m.titulo,
+          bloque: m.bloque,
+          orden: m.orden,
+          minutosEstimados: m.minutosEstimados,
+          prerequisitos: m.prerequisitos,
+          publicado: m.estadoContenido === 'completo',
+        }))}
+        bloques={BLOQUES.map((b) => ({ id: b.id, pesoExamen: b.pesoExamen }))}
+      />
+    </div>
   );
 }

@@ -2262,3 +2262,52 @@ Cerrados con `censo.test.ts` (8) y `controlador-simulacro.test.tsx` (5). Los tre
 **Peso tras la revisión:** `/plan` 135.3 kB gz de JS y **4 657 B gz** de carga útil RSC. `/diagnostico` 150.3, igual que los simulacros porque es el mismo controlador.
 
 Suite **651** (636 → 651).
+
+---
+
+## Paso 14 — Punto de corte usable — 2026-07-31
+
+**Estado:** ✅ Completado · **Rama:** `paso-14-esqueleto`
+
+**Es el paso que hace la app compartible.** Después de él se le puede mandar el enlace a alguien que no sepa nada del proyecto y que la app le explique sola qué es, qué hay y qué falta.
+
+**Archivos creados:** `src/components/inicio/{panel-inicio,tarjeta-continuar,racha,resumen-inicio}.tsx`, `src/components/modulo/orden-publicacion.tsx`, `src/components/inicio/__tests__/panel-inicio.test.tsx` (12 tests).
+**Reemplazado:** `src/app/page.tsx` (la portada provisional del Paso 5).
+**Borrados:** los 5 SVG de create-next-app. `public/` queda **vacío** hasta el 18.1.
+
+**Compuertas:** typecheck · lint · **663 tests** (651 → 663) · build 136 páginas · canario · validar.
+
+**La decisión del paso (ADR-027): `/plan` y `/diagnostico` entran por la portada.** Añadirlos a la barra habría reabierto **A-01**, un fallo AA serio que costó una desviación de maquetación cerrar: a 200 % de zoom las cinco celdas ya están en 38 px, y una sexta las deja en ~31. La portada es el destino «Inicio» de esa misma barra, así que no se pierde nada — y de paso deja de ser una pantalla de bienvenida para ser el **hub** que decide qué toca ahora.
+
+**Un defecto que encontró su propio test.** La prioridad de «continuar donde ibas» tiene seis escalones, y los escalones 4 y 6 eran **inalcanzables**: el escalón 3 ofrece el módulo del plan de hoy, y el plan sigue incluyendo los módulos dominados —decisión deliberada del Paso 13, porque repasarlos vale algo—. Así que con C5 dominado la portada mandaba a reestudiarlo en vez de ofrecer la cola de repaso vencida. Corregido: el escalón 3 se salta el módulo del día si ya está dominado. **Lo que está a punto de olvidarse gana a lo que ya se sabe.**
+
+**El «cuándo llega» de los estados vacíos.** Faltaba la tercera pregunta del estado vacío honesto —qué falta, **cuándo llega**, qué se puede hacer hoy—. No hay fecha comprometida y inventarla sería mentir justo en la pantalla que existe para no hacerlo, así que se da lo que sí está decidido: el **orden de producción** de §14.4 (C5 → D → resto de C → B → A). Quien mira un módulo del bloque D sabe que el suyo es lo siguiente; quien mira uno del A sabe que va al final y puede planificar. Más útil que un «pronto» y más honesto que una fecha.
+
+**Peso — js gz por ruta.** `/page` sube de **102.8 a 136.5 kB gz**, y es esperado: la portada pasó de HTML estático a Client Component con estado, plan y SRS. Queda por debajo de las rutas de sesión (144–150) y del layout más su propio código. El resto no se movió.
+
+**Lo que queda para el 18:** `public/` vacío espera los iconos de la PWA, y `/ajustes` sigue en 404 — la portada, a diferencia del pie y de `DESTINOS`, **no** enlaza ahí.
+
+### Revisión del `code-reviewer` — Paso 14
+
+**RECHAZADO**, dos bloqueantes, con las seis compuertas en verde. Detalle en `REVISIONES.md`.
+
+La lección del paso: **una pantalla que decide qué hacer no se valida con compuertas.** Los 663 tests, el build y el canario no detectan que el consejo sea equivocado — solo que el código compila y no revienta. Los dos bloqueantes eran consejos falsos en estados alcanzables:
+
+- **B1** — una sesión de hace tres días producía «el cronómetro sigue corriendo», y como nada limpia esa clave salvo visitar la ruta del simulacro, la portada **se quedaba clavada en ese escalón para siempre**.
+- **B2** — el día del examen la portada ofrecía 45 minutos de teoría nueva mientras `/plan`, en la misma app, decía «nada de teoría nueva». Con el examen pasado, idéntico.
+
+Los cinco relevantes también se aplicaron, incluido un **test que no comprobaba lo que su nombre decía** (pasaba igual con el mutante) y `/ajustes`, que era el quinto destino de la barra devolviendo 404 en las 18 rutas justo en el paso que declara la app compartible.
+
+Suite **673** (663 → 673). Cuatro mutantes sobre los arreglos, cuatro muertos.
+
+### Auditoría del `accessibility-auditor` — Paso 14
+
+**axe-core: 0 violaciones** en cinco combinaciones. Los dos incumplimientos AA salieron **a mano**, y ninguno era detectable automáticamente — igual que los dos bloqueantes del `code-reviewer` no los detectaron 663 tests. Dos veces en el mismo paso.
+
+- **A-40 · Serio** — faltaba `scroll-padding-top`: al 200 % de zoom el botón «Hacer el diagnóstico», que es la **única acción principal de la portada**, quedaba oculto al **100 %** al recibir el foco con Shift+Tab. Es la mitad que faltaba del arreglo de A-29: en el Paso 11 se tapó la banda de abajo y se dejó la de arriba. Verificado tras el arreglo: **0 % en los tres tamaños**.
+- **A-41 · Moderado** — el detalle de los dos destinos caía a **4,44:1** en hover sobre tema oscuro, porque el `<span>` declara su color y gana sobre el heredado. Ahora **10,93:1**.
+- **A-42 y A-44** también corregidos: la cifra `0/1` no se pronunciaba «0 de 1» en ningún lector, y `/diagnostico` aparecía dos veces en la primera pantalla del usuario nuevo.
+
+**Lo que confirmó, y era el riesgo de ADR-027: A-01 no se ha reabierto.** A 188 px la barra sigue con cinco destinos de **37,59 px**, todos enteros. Una sexta celda los dejaría en ~31. La decisión de meter `/plan` y `/diagnostico` por la portada se sostiene con la medición.
+
+Suite **675**.

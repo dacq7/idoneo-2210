@@ -105,10 +105,18 @@ Las dos obligaciones heredadas, cerradas: el diagnóstico persiste su `IntentoSi
 - **Paso 14.4 — `/plan` y `/diagnostico` no son alcanzables desde el armazón.** No están en `DESTINOS` (§11.5 fija cinco: Inicio, Módulos, Repaso, Simulacros, Ajustes) ni en la portada provisional. Hoy solo se llega escribiendo la URL, o desde el enlace a `/diagnostico` que vive dentro de `/plan`. La portada real del 14.4 es su sitio natural.
 - **Paso 18.5 — `/ajustes` sigue devolviendo 404 y ya hay tres sitios que enlazan ahí**: el pie (desde el Paso 5), `DESTINOS` y ahora la nav. **`/plan` ya NO**: su campo de fecha de examen se construyó en este paso precisamente porque el remedio del requisito «sin fecha el plan sigue siendo útil» no podía ser un enlace roto. Cuando `/ajustes` exista tendrá su propio campo de fecha; los dos escriben por `guardarDatosPersonales`.
 
-## Paso 14.4 — Punto de corte usable
+## Paso 14 — Punto de corte usable · ✅ CERRADO el 2026-07-31
 
-- Reemplazar la portada **provisional** que dejó el Paso 5 en `src/app/page.tsx` por la real (continuar donde ibas, racha, resumen, cola de repaso, acceso al diagnóstico).
-- Borrar **los 5 SVG** de create-next-app en `public/` (`file`, `globe`, `next`, `vercel`, `window`). Desde el Paso 5 **ya no los referencia nadie**, así que se pueden borrar sin tocar código. Si sobreviven, entran al manifiesto de precache de Serwist en el 18.1 y son peso muerto en la caché offline.
+- ✅ **La portada real** reemplaza la provisional del Paso 5. `tareasDeHoy`/`diaVigente` del Paso 13 ya tienen consumidor: la prioridad de «continuar donde ibas» consulta el plan del día.
+- ✅ **Los 5 SVG de create-next-app borrados.** `public/` queda vacío hasta que el 18.1 meta los iconos de la PWA — que era justo el motivo de borrarlos antes: no colarse en el precache de Serwist.
+- ✅ **`/plan` y `/diagnostico` alcanzables** desde la portada, sin tocar los cinco destinos de la barra (§11.5) ni reabrir A-01. Ver ADR-027.
+- ✅ **Los 28 módulos navegables** con estado vacío honesto en las cuatro etapas, ahora también con el **cuándo**: `OrdenPublicacion` dice en qué puesto de la cola va el bloque, sin inventar fechas.
+
+**Obligaciones nuevas que este paso genera:**
+
+- **Paso 18.1 — `public/` está vacío.** Los iconos `icono-192.png`, `icono-512.png`, `icono-maskable.png` y `og.png` que pide §16 hay que crearlos: ya no hay ningún archivo ahí que sirva de plantilla ni que estorbe.
+- **Paso 18.5 — `/ajustes` YA NO es 404: tiene un anticipo honesto** (`src/app/ajustes/page.tsx`), porque era el quinto destino de la barra en las 18 rutas y este paso declara la app compartible. **El 18.5 reemplaza ese archivo entero** y no debe conservar nada suyo salvo dos cosas: la obligación de exponer la cuarentena de ADR-008, y el aviso de que sin respaldo el progreso se pierde al borrar los datos del navegador — que hoy solo está ahí.
+- **Pasos 15–17 — la portada mejora sola con el contenido.** Hoy el denominador de «módulos dominados» es 1 (los publicados), y el escalón 6 de la prioridad —«vas al día con lo que hay»— es alcanzable de verdad. Con 29 módulos publicados ese escalón pasa a ser raro y el plan del día toma el mando.
 
 ## Paso 15 — Contenido del bloque D · y todo paso que escriba tablas
 

@@ -440,3 +440,46 @@ Importa porque **`/progreso` está en la barra de navegación**: se llega sin pa
 - **ADR-023 por las dos mitades**: el esquema rechaza los cinco campos ausentes, y `construirInforme` con ese mismo desglose cojo **no lanza**.
 - **La compuerta `max-lines` tiene dientes** (mutante de +320 líneas → único `error` del lint), **81 archivos en alcance, 0 incumplidores**, y la regla 1 completa se cumple: ningún archivo exporta más de un componente.
 - **recharts diferido**: de los 10 chunks ansiosos de `/resultados`, ninguno lo contiene, y la tabla se renderiza en el primer pintado sin él.
+
+---
+
+## Paso 14 — Punto de corte usable — 2026-07-31
+
+**Veredicto del `code-reviewer`: RECHAZADO**, dos bloqueantes. Las seis compuertas estaban en verde; lo que falló fue **el criterio del paso**: la portada daba un consejo falso en dos combinaciones de estado alcanzables, y una de ellas era el día del examen.
+
+Es la lección del paso y conviene dejarla escrita: **una pantalla que decide qué hacer no se valida con compuertas**. Typecheck, lint, 663 tests, build, canario y validar no detectan que el consejo sea equivocado — solo que el código compila y no revienta.
+
+### 🔴 B1 · Una sesión vencida secuestraba la portada
+
+El escalón 1 comprobaba `sesionViva !== null` y **nunca miraba el reloj**. Con una sesión de hace tres días afirmaba «el cronómetro sigue corriendo desde que lo empezaste», que es falso (§22 regla 10), y como nada limpia esa clave salvo visitar la ruta del simulacro, **la portada se quedaba clavada ahí indefinidamente**: los escalones 2 a 7 quedaban inalcanzables.
+
+Arreglado con `restantes()` —que ya existía, puro y con el reloj inyectado—: con el tiempo agotado cambian el titular, el motivo y la acción («Ver cómo quedó» en vez de «Retomarlo ahora»).
+
+### 🔴 B2 · El día del examen contradecía a `/plan`
+
+Misma fecha, mismo estado, dos pantallas:
+
+- **`/plan`**: «Modo Última noche: solo los datos duros. **Nada de teoría nueva.**»
+- **La portada**: «Umbrales y zonas de entrenamiento · El siguiente que te falta por dominar · **45 min**».
+
+`generarPlan` degenera a propósito cuando no quedan días y devuelve un único día sin tareas de módulo, así que la portada caía hasta el escalón «siguiente sin dominar». Con el examen ya pasado decía exactamente lo mismo, y en ningún momento mencionaba la fecha.
+
+Arreglado con un escalón nuevo en segunda posición, que distingue «hoy» de «ya pasó».
+
+### 🟡 Los cinco relevantes, todos aplicados
+
+| # | Hallazgo | Arreglo |
+|---|---|---|
+| R1 | **Un test que no comprobaba lo que su nombre decía**: renderizaba antes de sembrar y afirmaba el escalón 2, así que pasaba igual quitándole el `publicado: false`. Lo cazó con un mutante | Reescrito: siembra primero y comprueba el escalón 7 de verdad |
+| R2 | El escalón «siguiente sin dominar» **sin test**, y era justo el que emitía el copy de B2 | Cubierto |
+| R3 | `dominados` no se cruzaba con `publicados` → **«3/1 módulos dominados»**, numerador mayor que denominador. Vía real: importar un respaldo en el 18.5. Y la pluralización miraba el denominador, de ahí «3/1 módulo dominado» en singular | Cruce añadido y concordancia corregida |
+| R4 | **`/ajustes` es el quinto destino de la barra y devolvía 404** en las 18 rutas, en el paso que declara la app compartible | Anticipo honesto de la pantalla. Ver abajo |
+| R5 | El comentario que documenta la prioridad **defendía un orden que el código no tenía** («el repaso va antes que materia nueva» — está después) | Reescrito diciendo el orden real y por qué |
+
+**Sobre R4, que era una decisión y no un arreglo mecánico.** Las tres salidas eran: dejar el 404, retirar «Ajustes» de la barra hasta el 18.5, o adelantar una pantalla. Se eligió la tercera. Retirarlo deja la barra en cuatro destinos y obliga a devolverlo después, moviendo la navegación bajo los pies de quien ya se acostumbró —y el pie seguiría enlazando ahí—. Dejar el 404 es decirle al usuario que se equivocó él. La pantalla que hay dice qué habrá, qué se puede hacer mientras tanto, y **avisa de que sin respaldo el progreso se pierde al borrar los datos del navegador**, que es información que hoy no estaba en ninguna parte.
+
+**Menores aplicados:** una sesión `tipo: 'quiz'` producía `/simulacros/bloque/<slug-de-módulo>`, un 404 silencioso; el escalón «siguiente sin dominar» ordenaba por el array del catálogo mientras el escalón del plan presumía que «el plan ya resolvió el orden» —dos escalones de la misma pantalla con criterios distintos—; y `orden-publicacion.tsx` afirmaba «es el que se está escribiendo ahora», que solo sería cierto durante el Paso 15.
+
+**Mutación de los arreglos: 4 mutantes, 4 muertos.**
+
+**Lo que confirmó bien:** **116 de 116 rutas de módulo** (29 × 4) responden 200 con contenido real —no esqueleto—, la proyección de siete campos mantiene el canario verde, y el estado corrupto no produce ninguna pantalla en blanco: versión futura → cuarentena, JSON basura → renderiza, sesión ilegible → se autolimpia.

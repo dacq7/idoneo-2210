@@ -1283,3 +1283,29 @@ Viajaban `objetivos`, `conceptosClave`, `subtitulo` y `estadoContenido`, que `ge
 **En un proyecto que mide el peso en kB gz en cada paso, «ahorraría poco» sin una cifra al lado no es una justificación: es una suposición con tono de conclusión.** El canario no lo habría detectado nunca —vigila contenido en chunks de cliente, y esto era carga útil RSC—, así que la única defensa era medir. Queda como criterio: **toda excepción a la proyección de ADR-010 se documenta con su medición, o no es una excepción, es un descuido**.
 
 **Verificado tras el cambio:** la sonda de contenido ya no acierta en `plan.rsc`.
+
+---
+
+## ADR-027 · `/plan` y `/diagnostico` entran por la portada, no por la barra
+
+**Estado:** Aceptada
+**Fecha:** 2026-07-31 · **Autor:** Paso 14
+
+**Contexto.** Las dos rutas del Paso 13 solo se alcanzaban escribiendo la URL. La solución obvia —añadirlas a la barra de navegación— **está prohibida por partida doble**:
+
+- **§11.5 fija cinco destinos**: Inicio, Módulos, Repaso, Simulacros, Ajustes.
+- **A-01 los midió al límite.** A 200 % de zoom (viewport de 188 px CSS) las cinco celdas quedan en **38 px cada una**, todas visibles por poco y con el centro dentro de la pantalla. Ese arreglo costó una desviación de maquetación (`min-w-0` más `max-[22rem]:sr-only` en la etiqueta) y cerró un fallo AA **serio**: antes, el quinto destino quedaba en una astilla de 3 px sin scroll con el que recuperarla.
+
+Un sexto destino deja las celdas en ~31 px y reabre A-01, esta vez con dos destinos comprometidos en lugar de uno. **Eso rompe un hallazgo cerrado, así que no se hace.**
+
+**Decisión: el acceso es la portada**, que **es** el destino «Inicio» de la barra. Una sección propia, «Prepararte con método», con las dos rutas y una frase que dice para qué sirve cada una.
+
+**No es un rodeo, es la jerarquía correcta.** El plan se consulta al empezar la sesión de estudio y el diagnóstico se hace una vez (o se repite cada varias semanas): ninguno de los dos es un sitio al que se salta a media tarea, que es para lo que sirve una barra permanente. La barra queda para lo que se usa a diario — estudiar, repasar, medirse.
+
+**Alternativas descartadas:**
+
+- **Sustituir un destino de la barra.** El candidato sería «Módulos», y es el catálogo completo: se usa más que el plan.
+- **Añadirlos solo a la barra lateral de `lg`**, donde sí hay espacio. `COMPONENTES.md` fija que las dos barras «nunca con contenido distinto», y romperlo significaría que la ayuda que le des a alguien por teléfono depende de su pantalla.
+- **Un menú «más»** como sexto destino. Añade un nivel de navegación para dos enlaces, y el sexto destino sigue midiendo 31 px a 200 %.
+
+**Consecuencia:** la portada deja de ser una pantalla de bienvenida y pasa a ser el **hub** de la app. Eso es coherente con lo que ya hacía —decidir qué toca ahora— y es lo que la vuelve compartible: un amigo que abre el enlace aterriza en un sitio que le dice qué hacer, no en un menú.
