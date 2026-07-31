@@ -3097,3 +3097,211 @@ Es el mismo par que `nav-inferior.tsx` ya había documentado y esquivado; allí 
 ### Para el 18.10, sin verificar aquí
 
 La `<dl>` del resumen es contenedor `grid`. Chromium **conserva** la semántica —medido: `DescriptionList` con sus `term`/`definition`—, pero cambiar `display` en listas ha roto roles en Safari históricamente. Hay que comprobarlo con VoiceOver en un iPhone real.
+
+---
+
+## Paso 18 · `/herramientas` y `/glosario` — 2026-07-31
+
+Auditoría de las dos pantallas de interacción nueva del Paso 18, sobre **build de producción**
+(`npm run build && npm run start -p 3310`), a 375 px y a 188 px (375 al 200 %), en los dos temas.
+Sin axe: no hay red para inyectarlo desde el CDN, así que todo son mediciones a mano sobre el DOM
+con `getComputedStyle` y un conversor `oklch/oklab → sRGB` propio (Chromium no serializa `rgb()`).
+
+### Cobertura
+
+| Ruta | Teclado | Lector | Contraste claro | Contraste oscuro | 375 px | 200 % | Veredicto | Fecha |
+|---|---|---|---|---|---|---|---|---|
+| `/herramientas` | ✅ | ⚠️ A-46, A-47, A-49, A-50 | ⚠️ A-45 | ✅ | ✅ | ✅ | **PARCIAL** | 2026-07-31 |
+| `/glosario` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **APROBADA** con A-52 (menor) | 2026-07-31 |
+| `/ultima-noche` (barrido) | — | — | ✅ | ✅ | ✅ | — | barrido limpio, no auditada a fondo | 2026-07-31 |
+| `/ajustes` (barrido) | — | ⚠️ A-54 | ✅ | ✅ | ✅ | — | barrido limpio, no auditada a fondo | 2026-07-31 |
+
+### A-45 · Moderado · 1.4.3 — la pestaña inactiva mide 4,40:1 en claro · **ABIERTO**
+
+**Dónde:** `src/components/herramientas/calculadora.tsx:45`, vía `src/components/ui/tabs.tsx:69`.
+**Problema:** `TabsTrigger` de shadcn pinta el texto con `text-foreground/60`. Medido sobre `--muted`
+(#edf0f4): **4,40:1 en claro**, mínimo 4,5 para 14 px. En oscuro pasa (**5,06:1**) porque shadcn añade
+`dark:text-muted-foreground`. Son las cuatro pestañas a las que el usuario quiere ir.
+**Arreglo:** en `calculadora.tsx:45`, `className="min-h-11 shrink-0 text-muted-foreground
+data-[state=active]:text-foreground"`. `muted-foreground` sobre `muted` ya está medido en este
+documento a **4,93:1 / 5,04:1**.
+**Estado:** abierto.
+
+### A-46 · Serio · 3.3.2 — la unidad del campo no llega al lector · **ABIERTO** · regresión de A-26
+
+**Dónde:** `src/components/herramientas/campo-numero.tsx:65-74`.
+**Problema:** el sufijo de unidad lleva `aria-hidden="true"`, justificado en el comentario de las
+líneas 67-68 con «la unidad ya va en la etiqueta o en la ayuda». Medido campo a campo: **es falso en
+10 de los 14**. `Peso`→kg, `Cintura`→cm, `Cadera`→cm, `FC máxima`→lpm, `FC en reposo`→lpm,
+`Intensidad`→%, `Volumen sistólico`→mL, `Tiempo de trabajo`→s, `Consumo de oxígeno`→ml/kg/min,
+`Edad`→años. Solo `Latidos contados`, `Estatura` (la ayuda dice «En metros»), `Tiempo de pausa` y
+`Equivalentes metabólicos` la comunican.
+A-26 dictaminó exactamente lo contrario para el ítem de `calculo` y se cerró con
+`aria-describedby={idUnidad + idAyuda}`. Aquí se construyó al revés.
+**Arreglo:** quitar `aria-hidden`, dar `id={idUnidad}` al `<span>` y sumarlo al `aria-describedby`
+del `<Input>`, como en `items/calculo.tsx`.
+**Estado:** abierto.
+
+### A-47 · Serio · 1.3.1 — el resultado se anuncia sin decir de qué resultado se trata · **ABIERTO**
+
+**Dónde:** `src/components/herramientas/resultado.tsx:51`.
+**Problema:** el `aria-live="polite"` está en el `<p>` del valor; el `rotulo` que lo nombra vive fuera,
+en las líneas 48-50. En la pestaña **Cardio** hay **tres** regiones vivas simultáneas y ninguna tiene
+nombre. Medido: rellenar «FC máxima» dispara **dos a la vez** y el lector emite «144 lpm» … «12,60
+L/min» sin decir cuál es Karvonen y cuál el gasto cardíaco. Antropometría tiene el mismo problema con
+dos.
+Incumple además la regla ya escrita en este documento: «si hay más de un `role="status"` en pantalla,
+todos llevan `aria-label`».
+**Arreglo:** `aria-label={rotulo}` y `aria-atomic="true"` en el `<p>` con `aria-live`.
+**Estado:** abierto.
+
+### A-48 · Moderado · 1.3.1 — salto de encabezado h1 → h3, sin ningún h2 · **ABIERTO**
+
+**Dónde:** `panel-cardio.tsx:56,92,134` · `panel-antropometria.tsx:43,73` · `panel-fc-zonas.tsx:87`.
+**Problema:** la página aporta el único `<h1>` («Calculadora») y los paneles arrancan en `<h3>`.
+No hay ningún `<h2>` en la ruta. Confirmado en tres de las cinco pestañas; en «FC y zonas» el salto
+aparece al rellenar la edad.
+**Arreglo:** `<h3>` → `<h2>` en los seis sitios. La escala de `globals.css` ya da a `h2` 1.375rem/600,
+que es más grande que el `text-[0.9375rem]` que llevan ahora; conviene conservar la clase de tamaño.
+**Estado:** abierto.
+
+### A-49 · Moderado · 1.3.1 / 3.3.2 — la población de la fórmula no está asociada al `<select>` · **ABIERTO**
+
+**Dónde:** `src/components/herramientas/panel-fc-zonas.tsx:54-68`.
+**Problema:** el `<p>` «Validada en: {población}» no tiene `id` y el `<select>` no tiene
+`aria-describedby`. El propio archivo, en sus líneas 7-10, dice que ese dato es lo que evita elegir
+Fox para una mujer de 55 años — y es justo lo que no llega al lector. El `<select>` de ventana de
+`panel-cardio.tsx:68-79` no tiene texto de apoyo, así que ahí no aplica.
+**Arreglo:** `id="poblacion-fcmax"` en el `<p>` y `aria-describedby="poblacion-fcmax"` en el `<select>`.
+**Estado:** abierto.
+
+### A-50 · Moderado · 4.1.2 + 1.4.11 — la `<p>` de la fórmula es parada de foco sin nombre y con el contorno del navegador · **ABIERTO** · recurrencia de A-10
+
+**Dónde:** `src/components/herramientas/resultado.tsx:59`.
+**Problema:** `overflow-x-auto` + `whitespace-nowrap` hacen que Chromium la vuelva enfocable por sí
+sola (no tiene hijos enfocables). Medido: es la **parada 7** del recorrido de `/herramientas`, sin rol
+ni nombre accesible, y oculta entre **33 y 65 px** de fórmula sin señalarlo.
+Su indicador de foco **no es el del proyecto**: como la regla de `globals.css:662-671` solo lista
+`a, button, [role=button], input, select, textarea, summary, [tabindex]`, una `<p>` enfocable por
+desbordamiento cae al `* { outline-ring/50 }` de `@layer base` → `1px auto` con alfa 0,5, que mide
+**2,26:1 en claro y 2,64:1 en oscuro**, por debajo del 3:1 de 1.4.11. Es exactamente el «falso 2,26:1
+a alfa 0,5» que este documento ya advertía, salvo que aquí no es transitorio: es el estado final.
+**Arreglo:** el mismo que cerró A-10 — `role="group"` + `aria-label` (p. ej. «Fórmula, desplazable»)
++ `tabIndex={0}` explícito. El `tabIndex` la mete en el selector `[tabindex]` y recupera de paso el
+contorno de 2 px.
+**Estado:** abierto.
+
+### A-51 · Menor · el riel de pestañas recorta 8 px de cada pestaña y con ellos el contorno de foco · **ABIERTO**
+
+**Dónde:** `src/components/herramientas/calculadora.tsx:42-49`.
+**Problema:** `overflow-x-auto` en el envoltorio hace que `overflow-y` compute a `auto` (regla de CSS:
+si un eje deja de ser `visible`, el otro pasa a `auto`). Medido: envoltorio `clientHeight` **36 px**,
+`scrollHeight` **44 px** — el `TabsTrigger` con `min-h-11` mide 44 dentro de un `TabsList` que es `h-9`.
+Tres consecuencias: (a) la píldora blanca de la pestaña activa sobresale del riel gris y se ve
+cortada; (b) el contorno de foco pierde sus bordes superior e inferior y queda reducido a **dos barras
+verticales**; (c) el alto realmente visible y pulsable son **36 px**, no los 44 que declara `min-h-11`
+— pasa 2.5.8 (24 px) pero incumple el piso interno de 44 px.
+**Nota:** este documento ya preveía resolver estos `TabsTrigger` con la **válvula `data-compacto`**, no
+con `min-h-11`. Con `data-compacto` el trigger se queda a la altura del riel y desaparecen los tres
+efectos de golpe.
+**Estado:** abierto.
+
+### A-52 · Menor · el borde de la píldora de filtro no activa mide 1,44:1 · **ABIERTO**
+
+**Dónde:** `src/components/glosario/buscador-glosario.tsx:145`.
+**Problema:** usa `border-border`. Este documento fija que «el borde que **identifica un control** usa
+`--input` (3,03:1 / 3,30:1), **nunca `--border`**» (1,44:1 claro / 1,42:1 oscuro, decorativo y exento).
+No lo cuento como fallo de 1.4.11 porque el texto de la píldora (5,48:1) ya identifica el control,
+pero es la regla propia la que se salta.
+**Arreglo:** `border-input` en la rama no activa.
+**Estado:** abierto.
+
+### A-53 · Menor · 123 enlaces «Ver módulo» seguidos en el orden de tabulación · **ABIERTO**
+
+**Dónde:** `src/components/glosario/buscador-glosario.tsx:202-207`.
+**Problema:** con el filtro «Todos», llegar del buscador al pie exige **123 pulsaciones de Tab**. Los
+filtros por bloque y la búsqueda lo mitigan y no es fallo de 2.4.1 (no es un bloque repetido entre
+páginas), pero es fricción real para quien navega con teclado.
+**Estado:** abierto, a criterio de `ui-designer`.
+
+### A-54 · Menor · 4.1.2 — `input[type=file]` `sr-only` sin nombre y en el orden de tabulación · **ABIERTO** · ruta `/ajustes`
+
+**Dónde:** `src/components/ajustes/respaldo.tsx:113-117`.
+**Problema:** es el disparador oculto del botón «Importar un respaldo». `sr-only` lo saca de la vista
+pero lo deja **en el árbol de accesibilidad y en el orden de foco**, así que hay una segunda parada sin
+nombre justo detrás del botón que sí lo tiene.
+**Arreglo:** `tabIndex={-1}` + `aria-hidden="true"` en el input.
+**Estado:** abierto.
+
+### Contraste medido en esta pasada — 21 pares, los dos temas
+
+| Pieza | Token sobre superficie | Claro | Oscuro | Mínimo | AA |
+|---|---|---|---|---|---|
+| Sufijo de unidad (`campo-numero`, 13 px) | `muted-foreground` / `card` | **5,48** | **6,22** | 4,5 | ✅ |
+| Texto de la fórmula (`resultado`, 13 px) | `muted-foreground` / `card` s/ `primary/5` | **5,62** | **5,70** | 4,5 | ✅ |
+| Rótulo del resultado (12 px versalitas) | `muted-foreground` / `primary/5` | **5,10** | **5,85** | 4,5 | ✅ |
+| Nota del resultado (12 px) | `muted-foreground` / `primary/5` | 5,10 | 5,85 | 4,5 | ✅ |
+| Valor del resultado (30 px mono) | `foreground` / `primary/5` | **15,88** | **14,31** | 3,0 | ✅ |
+| Enlace «Dónde se explica» (13 px) | `primary` / `primary/5` | **5,92** | **6,73** | 4,5 | ✅ |
+| Etiqueta de campo (13 px) | `foreground` / `background` | 17,07 | 15,21 | 4,5 | ✅ |
+| Texto del `<select>` (16 px) | `foreground` / `background` | 17,07 | 11,49 | 4,5 | ✅ |
+| Borde de `input` y de `select` | `input` / `background` | **3,03** | **3,30** | 3,0 | ✅ |
+| Pestaña activa (14 px) | `foreground` / `background` | 17,07 | 9,39 | 4,5 | ✅ |
+| **Pestaña inactiva (14 px)** | `foreground/60` / `muted` | **4,40** | 5,06 | 4,5 | ❌ **A-45** |
+| Píldora de filtro activa (13 px) | `primary-foreground` / `primary` | **6,26** | **7,21** | 4,5 | ✅ |
+| Píldora de filtro inactiva (13 px) | `muted-foreground` / `background` | **5,48** | **6,22** | 4,5 | ✅ |
+| Borde de píldora inactiva | `border` / `background` | 1,44 | 1,42 | 3,0 | ⚠️ A-52 |
+| Insignia «Bloque A» (11 px) | `bloque-a` / `card` | **5,29** | **7,96** | 4,5 | ✅ |
+| Insignia «Bloque B» (11 px) | `bloque-b` / `card` | **5,88** | **6,69** | 4,5 | ✅ |
+| Insignia «Bloque C» (11 px) | `bloque-c` / `card` | **4,98** | **7,36** | 4,5 | ✅ |
+| Insignia «Bloque D» (11 px) | `bloque-d` / `card` | **5,17** | **6,94** | 4,5 | ✅ |
+| Término del glosario (18 px) | `foreground` / `card` | 17,51 | 13,94 | 4,5 | ✅ |
+| Sinónimos y recuento (13 px) | `muted-foreground` / `card` · `background` | 5,62 · 5,48 | 5,70 · 6,22 | 4,5 | ✅ |
+| `placeholder` del buscador (16 px) | `muted-foreground` / `background` | **5,48** | **4,70** | 4,5 | ✅ |
+| Contorno de foco del proyecto (2 px) | `ring` / `background` | 6,37 | 7,15 | 3,0 | ✅ |
+| **Contorno UA de la `<p>` de fórmula (1 px)** | `ring` alfa 0,5 / `primary/5` | **2,21** | **2,63** | 3,0 | ❌ **A-50** |
+
+Las cuatro insignias de bloque **confirman `DISENO.md` §1.2 en runtime**: pasan sobre `bg-card` en los
+dos temas y, además, el color **no es el único portador** — la insignia dice literalmente «Bloque C».
+
+### Lo verificado y correcto — esto es lo que hay que conservar
+
+- **Teclado, cobertura total.** Todo lo interactivo es alcanzable y en orden visual. El riel de
+  pestañas responde a `←` `→` (con envolvimiento), `Home` y `End`, con activación automática de Radix;
+  el panel cambia con el foco. Los dos `<select>` nativos cambian con flechas, tienen `<label htmlFor>`
+  real, miden 343×44 px y su foco es el contorno de 2 px del proyecto.
+- **A-04 no se repite aquí.** La píldora de filtro activa es `bg-primary` y el contorno tiene
+  `outline-offset: 2px`, así que se dibuja **sobre `--background` (6,37:1)** y no sobre el relleno.
+  Verificado en captura: el anillo se ve perfectamente sobre la píldora azul.
+- **Objetivos táctiles:** todo ≥44 px en las dos rutas — pestañas 44, `<select>` 44, píldoras 44,
+  enlaces «Ver módulo» 44, botón de borrar la búsqueda 44. Único matiz, A-51.
+- **Etiquetas:** los 14 campos numéricos tienen `<label htmlFor>` real, no `placeholder`. El
+  `aria-describedby` se conecta bien y **cambia en vivo**: teclear una edad de 3 hace aparecer
+  «Introduce una edad entre 5 y 100 años» y el `describedby` la resuelve en el acto.
+  Los 14 son `type="text"` + `inputMode="decimal"`, así que aceptan coma y punto.
+- **Regiones vivas, sobrias.** Las dos rutas cumplen la regla del proyecto: la región existe **vacía y
+  permanente** antes de tener contenido. Y no son locuaces — teclear «umbral» en el glosario produjo
+  **3** anuncios y no 6, gracias a `useDeferredValue`; teclear «40» en la edad produjo **1**. Ninguna
+  interrumpe al teclear (todas `polite`). El problema de A-47 es de **nombre**, no de frecuencia.
+- **Zoom 200 % (188 px):** **cero scroll horizontal de documento** en las dos rutas. Los dos rieles
+  —pestañas y píldoras— desbordan **dentro de su propio contenedor** con `overflow-x-auto`, que es el
+  comportamiento correcto, y siguen siendo alcanzables con Tab.
+- **Glosario:** buscador con `<label class="sr-only">`, botón de borrar con `aria-label`, grupo de
+  filtros con `role="group"` + `aria-label="Filtrar por bloque"` y `aria-pressed` en cada píldora,
+  `<dl>/<dt>/<dd>` semántico, y estado vacío que dice qué hacer en vez de quedarse mudo.
+- `/ultima-noche`: barrido de contraste **limpio en los dos temas**, sin objetivos por debajo de 44 px.
+- `/ajustes`: jerarquía correcta, un `<h1>` y cinco `<h2>` sin saltos — es lo que `/herramientas`
+  debería tener. Los dos pares que salieron por debajo de 4,5 son botones **`disabled`** (`opacity:
+  0.5`), exentos de 1.4.3; el enlace de 16 px va **dentro de una frase**, exento por la regla de A-05.
+
+### Método y su techo
+
+Chromium headless, build de producción en el puerto 3310. Cruces: claro × oscuro × 375 px × 188 px.
+Espera de 360-450 ms antes de leer el foco, por `transition-colors`. Conversión `oklch`/`oklab` → sRGB
+en JS y composición de alfa recorriendo los ancestros, porque Chromium devuelve `oklch()` desde
+`getComputedStyle`.
+
+**Sin axe en esta pasada:** no hay red para inyectarlo desde el CDN. Dicho lo cual, de los diez
+hallazgos, axe habría visto **como mucho dos** (A-45 por contraste y A-48 por `heading-order`). Los
+otros ocho —la unidad que no se anuncia, las tres regiones vivas anónimas, la `<p>` enfocable sin
+nombre, el recorte del riel— exigen recorrer la pantalla con el teclado y leer lo que se anuncia.

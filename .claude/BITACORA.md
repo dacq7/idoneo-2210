@@ -2975,6 +2975,46 @@ umbral de +20 kB que `COMPONENTES.md` fija para investigar. Las rutas nuevas:
 Ninguna se sale de su tipo. `/ajustes` es la más pesada de las cuatro y tiene por qué: es la única
 que arrastra `almacenamiento.ts` entero con Zod, porque valida el JSON importado.
 
+### Las dos revisiones
+
+**`code-reviewer`: aprobado con cambios, los cuatro aplicados.** El bloqueante era real y era mío:
+un `new Date()` en el cuerpo de un render en `respaldo.tsx`, el **único del proyecto**. Hoy no lo
+veía nadie —`PanelAjustes` no monta esa sección hasta después de su efecto— pero dejaba el grep del
+invariante con algo que hay que re-razonar cada vez, y se recalculaba en cada tecla del campo de
+nombre. También: la nota de Karvonen decía «pide el segundo» donde había que nombrar el método —en
+la pantalla cuya razón de ser es distinguirlos, la frase que los distingue no puede depender de
+resolver un ordinal—; `consulta-rapida.tsx` se declaraba Server Component sin serlo; y las cifras
+«123 conceptos» y «70 valores» estaban a mano en la portada, así que ahora se derivan del catálogo
+y los tests las derivan también, que es la lección del Paso 17 aplicada.
+
+Confirmó además lo que más quería saber: **ninguna de las diez fórmulas está mal** —contrastadas
+contra `datos-duros.ts` y `banco/c2-cardiovascular.ts`— y **el flujo de importar no tiene ningún
+camino que escriba antes de confirmar**.
+
+**`accessibility-auditor`: diez hallazgos, nueve corregidos y verificados en runtime.** Seis
+incumplían AA. El más caro es **A-46**, regresión directa de A-26: el sufijo de unidad del campo
+llevaba `aria-hidden` con el argumento de que «la unidad ya va en la etiqueta», y el auditor lo
+midió campo a campo — **era falso en 10 de 14**. Un lector anunciaba «Peso, edición de texto» y el
+usuario no sabía si teclear kilos o libras. Y **A-47**: en la pestaña Cardio hay tres regiones
+vivas a la vez y ninguna tenía nombre, así que rellenar «FC máxima» disparaba dos anuncios seguidos
+sin decir cuál era Karvonen y cuál el gasto cardíaco.
+
+Dos merecen nota por lo que enseñan. **A-50**: `overflow-x-auto` + `whitespace-nowrap` hacen que
+Chromium vuelva enfocable una `<p>`, y la regla de foco de `globals.css` solo lista controles — así
+que esa parada caía al contorno de 1 px a alfa 0,5, que mide **2,26:1**. Es el falso indicador que
+el propio documento advertía, salvo que aquí no era transitorio. Y **A-51**: el `h-auto` con el que
+arreglé el recorte del riel **no funcionó a la primera** porque la clase base lleva prefijo de
+variante (`group-data-[orientation=horizontal]/tabs:h-9`) y `tailwind-merge` no considera la misma
+propiedad dos clases con prefijos distintos. Lo descubrí midiendo, no leyendo.
+
+Queda abierto **A-53**: 123 enlaces seguidos en el orden de tabulación de `/glosario`. No incumple
+2.4.1 y arreglarlo bien exige cambiar el modelo de interacción de la lista — es diseño, y le toca
+al `ui-designer`.
+
+**Y el aviso de método, que conviene no perder:** el auditor no pudo correr axe —sin red para
+inyectarlo— así que los diez hallazgos son mediciones a mano sobre el DOM. De su propia estimación,
+**axe habría visto dos como mucho**. Ocho de estos diez no los encuentra una auditoría automática.
+
 ### Lo que queda sin ejercitar, y conviene que se sepa
 
 - **Los tres dispositivos reales del 18.10.** Todo lo anterior es Chromium headless a 375 px. Falta
@@ -2987,3 +3027,37 @@ que arrastra `almacenamiento.ts` entero con Zod, porque valida el JSON importado
 - **La rama `version-futura` de la cuarentena.** Se puede provocar a mano escribiendo un estado con
   `version: 2`, pero no se hizo: exige simular un despliegue futuro.
 - **El despliegue.** No hay CLI de Vercel ni remoto de git en esta máquina.
+
+## [2026-07-31 18:40] · accessibility-auditor · Paso 18
+
+**Qué audité:** `/herramientas` (`calculadora.tsx`, `campo-numero.tsx`, `resultado.tsx` y los cinco
+paneles) y `/glosario` (`buscador-glosario.tsx`). Barrido adicional, no exhaustivo, de
+`/ultima-noche` y `/ajustes`.
+
+**Cómo lo probé:** build de producción (`npm run build && npm run start -p 3310`) · Chromium
+headless · recorrido completo por teclado con lectura del indicador de foco tras 360-450 ms ·
+flechas/Home/End en el riel de pestañas · observadores de mutación sobre las regiones vivas mientras
+se teclea · 375 px y 188 px (375 al 200 %) · claro y oscuro por separado · contraste medido con
+`getComputedStyle` + conversor `oklch`/`oklab` → sRGB propio y composición de alfa por ancestros.
+**Sin axe:** no hay red para inyectarlo; todo son mediciones a mano sobre el DOM.
+
+**Hallazgos:** Crítico 0 · Serio 2 · Moderado 4 · Menor 4 (A-45 … A-54).
+
+**Bloqueantes:** ninguno.
+
+**Contraste:** 20 de 21 pares pasan AA en los dos temas. Falla **uno**: la pestaña inactiva en tema
+claro, **4,40:1** frente a 4,5 (`text-foreground/60` de shadcn sobre `--muted`) → A-45; en oscuro
+pasa a 5,06. Fuera de texto, el contorno de foco que Chromium pone por defecto en la `<p>` de la
+fórmula mide **2,26:1 / 2,64:1** frente al 3:1 de 1.4.11 → A-50. Las cuatro insignias de bloque
+quedan verificadas en runtime sobre `bg-card`: 4,98–5,88 claro y 6,69–7,96 oscuro, y llevan el texto
+«Bloque X», así que el color no es el único portador (DISENO.md §1.2, cumplido).
+
+**Pendiente:**
+- Los diez hallazgos A-45 … A-54 siguen abiertos. Los dos Serios (A-46, la unidad que no llega al
+  lector en 10 de 14 campos, regresión de A-26; y A-47, tres regiones vivas anónimas en la pestaña
+  Cardio) son los que conviene cerrar antes del 18.10.
+- A-45 y A-51 tocan `TabsTrigger`: conviene resolverlos juntos, y A-51 con la válvula `data-compacto`
+  que este proyecto ya tenía prevista para estos triggers, no con `min-h-11`.
+- `/ultima-noche` y `/ajustes` solo llevan barrido, no auditoría completa.
+- Nada de esto se ha probado con lector de pantalla real ni en dispositivo real: sigue siendo tarea
+  del 18.10.

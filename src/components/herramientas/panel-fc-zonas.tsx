@@ -55,6 +55,11 @@ export function PanelFcZonas() {
           id="formula-fcmax"
           value={autor}
           onChange={(e) => setAutor(e.target.value as AutorFCmax)}
+          // [A-49] La población es el dato que evita elegir Fox para una mujer
+          // de 55 años, que es el error que el módulo C2 enseña a evitar. Sin
+          // este describedby, era lo único de la pantalla que no llegaba a
+          // quien usa lector: se veía y no se anunciaba.
+          aria-describedby="poblacion-fcmax"
           className="h-11 w-full rounded-md border border-input bg-transparent px-3 text-base md:text-sm dark:bg-input/30"
         >
           {AUTORES_FCMAX.map((clave) => (
@@ -63,7 +68,7 @@ export function PanelFcZonas() {
             </option>
           ))}
         </select>
-        <p className="text-[0.75rem] leading-[1.4] text-muted-foreground">
+        <p id="poblacion-fcmax" className="text-[0.75rem] leading-[1.4] text-muted-foreground">
           Validada en: {formula.poblacion}.
         </p>
       </div>
@@ -84,9 +89,9 @@ export function PanelFcZonas() {
 
       {fcMax !== null ? (
         <section aria-labelledby="zonas-titulo" className="space-y-2">
-          <h3 id="zonas-titulo" className="text-[0.9375rem] font-semibold">
+          <h2 id="zonas-titulo" className="text-[0.9375rem] font-semibold">
             Tus zonas en latidos por minuto
-          </h3>
+          </h2>
           <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border">
             {zonas.map((z) => (
               <li key={z.zona} className="flex items-baseline justify-between gap-3 px-3 py-2.5">

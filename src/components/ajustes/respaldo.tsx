@@ -114,6 +114,12 @@ export function Respaldo({ estado, hoy }: { estado: EstadoProgreso | null; hoy: 
           ref={entrada}
           type="file"
           accept="application/json,.json"
+          // [A-54] `sr-only` lo saca de la vista pero lo deja en el árbol y en
+          // el orden de foco: era una segunda parada anónima justo detrás del
+          // botón que sí tiene nombre. Es el disparador del botón de al lado,
+          // no un control propio, así que se retira de las dos cosas.
+          tabIndex={-1}
+          aria-hidden="true"
           className="sr-only"
           // Se limpia el valor tras leer: sin esto, elegir el MISMO archivo dos
           // veces seguidas no dispara `change` y parece que el botón se rompió.

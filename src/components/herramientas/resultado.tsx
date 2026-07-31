@@ -15,6 +15,12 @@
 // fórmula y el enlace, cada pulsación reanunciaría el bloque entero. Solo el
 // número es `polite`.
 //
+// Y **con nombre**: `aria-label={rotulo}`. En la pestaña Cardio hay TRES
+// regiones vivas a la vez, y sin nombre rellenar «FC máxima» disparaba dos
+// anuncios seguidos —«144 lpm»… «12,60 L/min»— sin decir cuál era Karvonen y
+// cuál el gasto cardíaco. La regla ya estaba escrita en ACCESIBILIDAD.md: si
+// hay más de un `status` en pantalla, todos llevan etiqueta. Ver A-47.
+//
 // ══ EL ESTADO VACÍO NO ES UN CERO ══
 // Con los campos sin rellenar se pinta «—», no «0». Un cero es una respuesta y
 // esto es la ausencia de respuesta; enseñar 0 lpm invita a creer que la
@@ -48,7 +54,12 @@ export function Resultado({
         <p className="text-[0.75rem] font-medium uppercase tracking-wide text-muted-foreground">
           {rotulo}
         </p>
-        <p aria-live="polite" className="font-mono text-3xl font-semibold tabular-nums">
+        <p
+          aria-live="polite"
+          aria-atomic="true"
+          aria-label={rotulo}
+          className="font-mono text-3xl font-semibold tabular-nums"
+        >
           {valor ?? '—'}
           {valor !== null && unidad ? (
             <span className="ml-1.5 text-lg font-normal text-muted-foreground">{unidad}</span>
@@ -56,7 +67,19 @@ export function Resultado({
         </p>
       </div>
 
-      <p className="overflow-x-auto whitespace-nowrap rounded border border-border bg-card px-2.5 py-1.5 font-mono text-[0.8125rem] text-muted-foreground">
+      {/* [A-50] `overflow-x-auto` + `whitespace-nowrap` hacen que Chromium
+          vuelva este bloque enfocable por desbordamiento, y lo era sin rol,
+          sin nombre y —lo peor— con el contorno del navegador: la regla de
+          foco de `globals.css` solo lista controles, así que una `<p>`
+          enfocable caía al `outline-ring/50` de 1 px, que mide 2,26:1. Con
+          `tabIndex` explícito recupera el contorno de 2 px del proyecto, y con
+          rol y nombre deja de ser una parada anónima. Recurrencia de A-10. */}
+      <p
+        role="group"
+        aria-label={`Fórmula de ${rotulo.toLowerCase()}`}
+        tabIndex={0}
+        className="overflow-x-auto whitespace-nowrap rounded border border-border bg-card px-2.5 py-1.5 font-mono text-[0.8125rem] text-muted-foreground"
+      >
         {formula}
       </p>
 

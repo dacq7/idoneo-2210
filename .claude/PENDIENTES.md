@@ -206,6 +206,32 @@ sale con **0 errores y 0 avisos** por primera vez.
   debajo del 12 % ya no es una red teórica: es el que más salta.** Si algún día se revisa el
   umbral, ese dato es la razón para no bajarlo.
 
+## Paso 18 — accesibilidad · lo que queda abierto
+
+El `accessibility-auditor` levantó diez hallazgos sobre `/herramientas` y `/glosario`. **Nueve se
+corrigieron y se verificaron en runtime**; queda uno, a propósito:
+
+- **A-53 · 123 enlaces «Ver módulo» seguidos en el orden de tabulación de `/glosario`.** Del
+  buscador al pie hay 123 paradas con el filtro «Todos». No incumple 2.4.1 —el enlace de salto del
+  armazón existe y funciona— pero es fricción real para quien navega con teclado. Arreglarlo bien
+  exige cambiar el modelo de interacción de la lista (paginar, plegar las fichas, o un índice
+  alfabético que salte), y eso es diseño, no un atributo. **Le toca al `ui-designer`.**
+
+Los otros nueve, cerrados: **A-45** contraste de la pestaña inactiva (4,40 → par medido a 4,93) ·
+**A-46** la unidad del campo entra en `aria-describedby`, que era regresión de A-26 y fallaba en 10
+de 14 campos · **A-47** las regiones vivas del resultado llevan nombre, que hacía falta porque en
+Cardio hay tres a la vez · **A-48** los rótulos de sección suben a `h2` y desaparece el salto
+h1 → h3 · **A-49** la población de la fórmula se asocia al `select` · **A-50** la fórmula
+desbordable deja de ser parada de foco anónima con contorno de 1 px · **A-51** el riel de pestañas
+deja de recortar 8 px, y con ellos el foco —el `h-auto` necesitaba el **mismo prefijo de variante**
+que la clase base, o `tailwind-merge` no los considera la misma propiedad— · **A-52** las píldoras
+de filtro usan `--input` y no `--border` · **A-54** el `input[type=file]` oculto de `/ajustes` sale
+del orden de foco.
+
+**Aviso de método del auditor, que conviene no perder:** no pudo correr axe —sin red para
+inyectarlo— así que las diez son mediciones a mano sobre el DOM. De su propia estimación, **axe
+habría visto dos como mucho**. La auditoría automática no habría encontrado ocho de estos diez.
+
 ## Paso 18.1 — PWA · ✅ CERRADO el 2026-07-31
 
 - ✅ `next.config.ts` reescrito con `withSerwist` y **`reactStrictMode: true` conservado**.

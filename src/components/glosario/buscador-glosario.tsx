@@ -142,7 +142,10 @@ export function BuscadorGlosario({ entradas }: { entradas: EntradaBuscable[] }) 
                 'shrink-0 rounded-full border px-3 py-1.5 text-[0.8125rem] font-medium transition-colors',
                 bloque === id
                   ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-border text-muted-foreground hover:bg-accent hover:text-foreground',
+                  // [A-52] `--input` y no `--border`: la regla del proyecto dice
+                  // que el borde que identifica un control usa el primero
+                  // (3,03/3,30) y no el segundo (1,44), que es decoración.
+                  : 'border-input text-muted-foreground hover:bg-accent hover:text-foreground',
               )}
             >
               {etiqueta}

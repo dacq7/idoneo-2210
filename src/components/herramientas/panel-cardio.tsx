@@ -54,7 +54,7 @@ export function PanelCardio() {
   return (
     <div className="space-y-6">
       <section className="space-y-4">
-        <h3 className="text-[0.9375rem] font-semibold">Tomar el pulso</h3>
+        <h2 className="text-[0.9375rem] font-semibold">Tomar el pulso</h2>
         <CampoNumero
           etiqueta="Latidos contados"
           valor={latidos}
@@ -90,7 +90,7 @@ export function PanelCardio() {
       </section>
 
       <section className="space-y-4">
-        <h3 className="text-[0.9375rem] font-semibold">Intensidad objetivo</h3>
+        <h2 className="text-[0.9375rem] font-semibold">Intensidad objetivo</h2>
         <CampoNumero etiqueta="FC máxima" valor={fcMax} onCambio={setFcMax} unidad="lpm" placeholder="180" />
         <CampoNumero
           etiqueta="FC en reposo"
@@ -132,7 +132,7 @@ export function PanelCardio() {
       </section>
 
       <section className="space-y-4">
-        <h3 className="text-[0.9375rem] font-semibold">Gasto cardíaco</h3>
+        <h2 className="text-[0.9375rem] font-semibold">Gasto cardíaco</h2>
         <CampoNumero
           etiqueta="Volumen sistólico"
           valor={volumen}

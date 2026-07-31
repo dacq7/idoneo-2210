@@ -40,9 +40,27 @@ export function Calculadora() {
           `-mx-4 px-4` hace que el primer y el último elemento no queden
           pegados al borde cuando hay scroll. */}
       <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-        <TabsList className="w-max">
+        {/* [A-51] `h-auto` en la lista: por defecto es `h-9` (36 px) y el
+            trigger de 44 sobresalía, así que el envoltorio lo recortaba 8 px
+            y con ellos el contorno de foco, que quedaba en dos barras
+            verticales. Medido: clientHeight 36 contra scrollHeight 44. Con la
+            lista en auto, el alto pulsable son los 44 de verdad. El `h-auto`
+            va con el MISMO prefijo de variante que la clase base
+            (`group-data-[orientation=horizontal]/tabs:`): sin él, tailwind-merge
+            no los considera la misma propiedad y el `h-9` seguía ganando —lo
+            comprobé, seguía midiendo 36—.
+            [A-45] `text-muted-foreground` en vez del `text-foreground/60` que
+            trae shadcn: ese par mide 4,40:1 sobre `--muted` en tema claro y se
+            queda corto de AA. En oscuro pasaba solo porque shadcn añade su
+            propia regla `dark:`. El par que se usa aquí ya está medido en el
+            proyecto a 4,93 y 5,04. */}
+        <TabsList className="group-data-[orientation=horizontal]/tabs:h-auto w-max">
           {PESTANAS.map((p) => (
-            <TabsTrigger key={p.valor} value={p.valor} className="min-h-11 shrink-0">
+            <TabsTrigger
+              key={p.valor}
+              value={p.valor}
+              className="h-11 shrink-0 text-muted-foreground data-[state=active]:text-foreground"
+            >
               {p.etiqueta}
             </TabsTrigger>
           ))}

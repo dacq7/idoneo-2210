@@ -12,7 +12,13 @@
 //     navegadores: el usuario teclea «1,75» y el campo se queda vacío sin decir
 //     por qué. El teclado del móvil sale igual de numérico con `inputMode`.
 //  2. El sufijo de unidad va DENTRO del campo, a la derecha. Fuera, a 375 px,
-//     se lleva una línea entera por campo.
+//     se lleva una línea entera por campo. **Y se anuncia**: entra en el
+//     `aria-describedby` junto a la ayuda. Llevaba `aria-hidden` con el
+//     argumento de que «la unidad ya va en la etiqueta», y el
+//     `accessibility-auditor` lo midió campo a campo: era falso en 10 de 14
+//     —«Peso» no dice kg, «FC máxima» no dice lpm—. Un lector anunciaba «Peso,
+//     edición de texto» y el usuario no sabía si teclear kilos o libras. Es la
+//     misma corrección que A-26 dictaminó para el ítem de `calculo`. Ver A-46.
 //  3. La etiqueta es `<Label>` de verdad, asociada por `htmlFor`. Un
 //     `placeholder` no es una etiqueta: desaparece al escribir y los lectores
 //     de pantalla no lo anuncian como nombre del control.
@@ -40,6 +46,11 @@ export function CampoNumero({
 }) {
   const id = useId();
   const idAyuda = `${id}-ayuda`;
+  const idUnidad = `${id}-unidad`;
+  // El orden importa: primero la unidad, después la ayuda. El lector las lee
+  // seguidas y «kilogramos» antes que la explicación es lo que hace falta para
+  // empezar a teclear.
+  const descrito = [unidad ? idUnidad : null, ayuda ? idAyuda : null].filter(Boolean).join(' ');
 
   return (
     <div className="space-y-1.5">
@@ -58,15 +69,13 @@ export function CampoNumero({
           value={valor}
           onChange={(e) => onCambio(e.target.value)}
           placeholder={placeholder}
-          aria-describedby={ayuda ? idAyuda : undefined}
+          aria-describedby={descrito === '' ? undefined : descrito}
           className="h-11 font-mono"
           style={unidad ? { paddingRight: `${unidad.length * 0.62 + 1.5}rem` } : undefined}
         />
         {unidad ? (
           <span
-            // aria-hidden: la unidad ya va en la etiqueta o en la ayuda, y
-            // leerla aquí la duplicaría en el anuncio del campo.
-            aria-hidden="true"
+            id={idUnidad}
             className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 font-mono text-[0.8125rem] text-muted-foreground"
           >
             {unidad}

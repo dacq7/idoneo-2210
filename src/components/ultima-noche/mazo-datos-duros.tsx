@@ -161,7 +161,9 @@ function Pildora({
         'shrink-0 rounded-full border px-3 py-1.5 text-[0.8125rem] font-medium transition-colors',
         activa
           ? 'border-primary bg-primary text-primary-foreground'
-          : 'border-border text-muted-foreground hover:bg-accent hover:text-foreground',
+          // [A-52] `--input` y no `--border`: el borde que identifica un control
+          // mide 3,03/3,30 con el primero y 1,44 con el segundo.
+          : 'border-input text-muted-foreground hover:bg-accent hover:text-foreground',
       )}
     >
       {children}

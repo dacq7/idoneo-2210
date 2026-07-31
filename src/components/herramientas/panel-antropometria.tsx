@@ -40,7 +40,7 @@ export function PanelAntropometria() {
   return (
     <div className="space-y-6">
       <section className="space-y-4">
-        <h3 className="text-[0.9375rem] font-semibold">Índice de masa corporal</h3>
+        <h2 className="text-[0.9375rem] font-semibold">Índice de masa corporal</h2>
         <CampoNumero etiqueta="Peso" valor={peso} onCambio={setPeso} unidad="kg" placeholder="70" />
         <CampoNumero
           etiqueta="Estatura"
@@ -70,7 +70,7 @@ export function PanelAntropometria() {
       </section>
 
       <section className="space-y-4">
-        <h3 className="text-[0.9375rem] font-semibold">Índice cintura-cadera</h3>
+        <h2 className="text-[0.9375rem] font-semibold">Índice cintura-cadera</h2>
         <CampoNumero
           etiqueta="Cintura"
           valor={cintura}
