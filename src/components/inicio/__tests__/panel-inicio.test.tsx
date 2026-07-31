@@ -26,6 +26,34 @@ import { PanelInicio } from '../panel-inicio';
 
 const HOY = fechaLocalDe(new Date());
 
+/** Los publicados de verdad, derivados del catálogo. Crece en los pasos 15–17. */
+const PUBLICADOS = MODULOS.filter((m) => m.estadoContenido === 'completo');
+
+/**
+ * Estado que marca **todos** los módulos publicados como dominados.
+ *
+ * Los casos que necesitan «no queda nada por estudiar» lo construían con un
+ * literal de un solo módulo, porque cuando se escribieron solo C5 estaba
+ * publicado. Al publicar el bloque D entero dejaron de alcanzar su escalón:
+ * quedaban 8 módulos sin dominar y la portada, con razón, ofrecía uno.
+ */
+function todosDominados(): EstadoProgreso['modulos'] {
+  return Object.fromEntries(
+    PUBLICADOS.map((m) => [
+      m.slug,
+      {
+        teoriaLeida: true,
+        tarjetasVistas: 15,
+        practicaCompletada: true,
+        mejorQuiz: 90,
+        intentosQuiz: 1,
+        dominado: true,
+        ultimaVisita: null,
+      },
+    ]),
+  );
+}
+
 const MODULOS_PROPS = MODULOS.map((m) => ({
   slug: m.slug,
   titulo: m.titulo,
@@ -115,12 +143,7 @@ describe('PanelInicio — la prioridad de la acción principal', () => {
     sembrar({
       diagnosticoHecho: true,
       intentos: [intentoDiagnostico()],
-      modulos: {
-        'c5-umbrales-zonas': {
-          teoriaLeida: true, tarjetasVistas: 15, practicaCompletada: true,
-          mejorQuiz: 90, intentosQuiz: 1, dominado: true, ultimaVisita: null,
-        },
-      },
+      modulos: todosDominados(),
       colaRepaso: { 'C5-T01': crearTarjetaSRS('C5-T01', HOY) },
     });
     montar();
@@ -134,12 +157,7 @@ describe('PanelInicio — la prioridad de la acción principal', () => {
     sembrar({
       diagnosticoHecho: true,
       intentos: [intentoDiagnostico()],
-      modulos: {
-        'c5-umbrales-zonas': {
-          teoriaLeida: true, tarjetasVistas: 15, practicaCompletada: true,
-          mejorQuiz: 90, intentosQuiz: 1, dominado: true, ultimaVisita: null,
-        },
-      },
+      modulos: todosDominados(),
     });
     montar();
     await waitFor(() =>
@@ -150,12 +168,20 @@ describe('PanelInicio — la prioridad de la acción principal', () => {
 
 describe('PanelInicio — el resto de la pantalla', () => {
   it('el denominador de módulos dominados son los PUBLICADOS, no los 29', async () => {
-    // Mostrar 0/29 haría creer al usuario que va tarde cuando va al día: 28 de
-    // los 29 no están escritos todavía.
+    // Mostrar 0/29 haría creer al usuario que va tarde cuando va al día: los
+    // módulos sin escribir no se pueden dominar.
+    //
+    // Las cifras se DERIVAN del catálogo. Estaban escritas como `'0/1'` y
+    // «Hay 1 de 29», y caducaron al publicar el bloque D — que es justo el
+    // cambio que este test debería sobrevivir.
     montar();
     await waitFor(() => expect(screen.getByText('Dónde estás')).toBeDefined());
-    expect(screen.getByText('0/1')).toBeDefined();
-    expect(screen.getByText(/Hay 1 de 29 módulos publicados/)).toBeDefined();
+    expect(screen.getByText(`0/${PUBLICADOS.length}`)).toBeDefined();
+    expect(
+      screen.getByText(
+        new RegExp(`Hay ${PUBLICADOS.length} de ${MODULOS.length} módulos publicados`),
+      ),
+    ).toBeDefined();
   });
 
   it('da acceso a /plan, que no cabe en la barra (A-01)', async () => {
@@ -330,12 +356,7 @@ describe('PanelInicio — R2 y R3', () => {
     sembrar({
       diagnosticoHecho: true,
       intentos: [intentoDiagnostico()],
-      modulos: {
-        'c5-umbrales-zonas': {
-          teoriaLeida: true, tarjetasVistas: 15, practicaCompletada: true,
-          mejorQuiz: 90, intentosQuiz: 1, dominado: true, ultimaVisita: null,
-        },
-      },
+      modulos: todosDominados(),
     });
     montar();
     await waitFor(() =>
@@ -350,19 +371,22 @@ describe('PanelInicio — R2 y R3', () => {
       teoriaLeida: true, tarjetasVistas: 0, practicaCompletada: true,
       mejorQuiz: 95, intentosQuiz: 1, dominado: true, ultimaVisita: null,
     };
+    // `a1-celula` y `b2-principios` NO están publicados: su progreso no puede
+    // contar. Se eligen del catálogo para que el test no dependa de cuáles lo
+    // estén en cada paso.
+    const sinPublicar = MODULOS.filter((m) => m.estadoContenido !== 'completo').slice(0, 2);
     sembrar({
       diagnosticoHecho: true,
       intentos: [intentoDiagnostico()],
       modulos: {
-        'c5-umbrales-zonas': dominado,
-        'a1-celula': dominado,
-        'd2-carga': dominado,
+        [PUBLICADOS[0].slug]: dominado,
+        ...Object.fromEntries(sinPublicar.map((m) => [m.slug, dominado])),
       },
     });
     montar();
     await waitFor(() => expect(screen.getByText('Dónde estás')).toBeDefined());
-    expect(screen.getByText('1/1')).toBeDefined();
-    expect(screen.queryByText('3/1')).toBeNull();
+    expect(screen.getByText(`1/${PUBLICADOS.length}`)).toBeDefined();
+    expect(screen.queryByText(`3/${PUBLICADOS.length}`)).toBeNull();
   });
 
   it('la racha no se infla al remontar', async () => {

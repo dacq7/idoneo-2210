@@ -149,6 +149,205 @@ export const GLOSARIO: EntradaGlosario[] = [
       'Principio del Artículo 2.1 del Código Mundial Antidopaje: el deportista responde por cualquier sustancia prohibida hallada en su muestra, sin que sea necesario demostrar intención. La intención puede influir en la sanción, no en la existencia de la infracción.',
     modulo: 'c9-dopaje',
   },
+
+  /* ── D1 · Conceptualización y metodología del entrenamiento ── */
+  {
+    termino: 'Metodología del entrenamiento',
+    definicion:
+      'Cuerpo de conocimiento que estudia los métodos, medios y procedimientos con los que se dirige el proceso de entrenamiento, y que justifica por qué se eligen unos y no otros. El entrenamiento es el qué se hace; la metodología es el cómo y el porqué de ese cómo.',
+    modulo: 'd1-conceptualizacion',
+  },
+  {
+    termino: 'Nivel de formación',
+    definicion:
+      'Primero de los tres niveles de la Ley 2210. Habilita para dirigir al deportista principiante, en etapa de iniciación, y prioriza la base motriz multilateral, la técnica elemental y la adherencia al deporte por encima del resultado competitivo.',
+    modulo: 'd1-conceptualizacion',
+    sinonimos: ['Formación'],
+  },
+  {
+    termino: 'Altos logros',
+    definicion:
+      'Tercero y último de los niveles de la Ley 2210. Habilita para dirigir al deportista avanzado, de rendimiento, y prioriza la individualización de la carga y la construcción de picos de forma para un calendario de competencia definido.',
+    modulo: 'd1-conceptualizacion',
+    sinonimos: ['Nivel de altos logros'],
+  },
+  {
+    termino: 'Ley 2210 de 2022',
+    definicion:
+      'Ley colombiana sancionada el 23 de mayo de 2022 que reconoce y regula el ejercicio del entrenador deportivo. Exige acreditar idoneidad y organiza el ejercicio en tres niveles: formación, perfeccionamiento y altos logros. Quien no tiene título profesional afín acredita idoneidad aprobando una evaluación en una categoría deportiva, siendo mayor de 18 años y con 12 meses mínimo de experiencia.',
+    modulo: 'd1-conceptualizacion',
+    sinonimos: ['Ley 2210'],
+  },
+
+  /* ── D2 · La carga y sus componentes ── */
+  {
+    termino: 'Carga interna',
+    definicion:
+      'Respuesta que el organismo del deportista da al trabajo realizado. Se estima con frecuencia cardíaca, lactato, esfuerzo percibido o tiempo de recuperación. Una misma carga externa produce cargas internas distintas según el sueño, la salud, el nivel de entrenamiento, el calor y la altitud.',
+    modulo: 'd2-carga',
+  },
+  {
+    termino: 'Carga externa',
+    definicion:
+      'Trabajo prescrito y ejecutado, medido fuera del organismo: kilos, kilómetros, series, repeticiones o velocidad. Es lo que el entrenador escribe en la planilla y puede cuantificar sin consultar al deportista. Se planifica, mientras que la carga interna se controla.',
+    modulo: 'd2-carga',
+  },
+
+  /* ── D3 · Capacidad física: fuerza ── */
+  {
+    termino: 'Fuerza máxima',
+    definicion:
+      'La mayor tensión que un músculo o grupo muscular puede generar en una contracción voluntaria. Se entrena por encima del 85 % del 1RM, con menos de 6 repeticiones y descansos de 2 a 5 minutos, y mejora sobre todo por adaptación nerviosa: más unidades motoras reclutadas y mejor sincronizadas.',
+    modulo: 'd3-fuerza',
+  },
+  {
+    termino: 'Fuerza explosiva',
+    definicion:
+      'Capacidad de generar la mayor tensión posible en el menor tiempo posible. La define la intención de mover rápido, no lo ligero de la carga: como la potencia es el producto de fuerza por velocidad, su máximo aparece con cargas medias y no con el 1RM.',
+    modulo: 'd3-fuerza',
+    sinonimos: ['Fuerza rápida', 'Potencia'],
+  },
+  {
+    termino: 'Test de 1RM',
+    definicion:
+      'Prueba que determina la carga máxima movilizable una sola vez con técnica correcta en un ejercicio concreto. Se resuelve en 3 a 5 intentos máximos con 3 a 5 minutos de descanso, tras dos series de aproximación, y es la referencia sobre la que se calculan todos los porcentajes de prescripción.',
+    modulo: 'd3-fuerza',
+    sinonimos: ['1RM', 'Una repetición máxima'],
+  },
+
+  /* ── D4 · Capacidad física: resistencia ── */
+  {
+    termino: 'Resistencia aeróbica',
+    definicion:
+      'Capacidad de sostener un esfuerzo prolongado en el que el aporte de oxígeno cubre la demanda energética, retrasando la fatiga y permitiendo una recuperación rápida. Es la base sobre la que se construye el resto del trabajo de resistencia.',
+    modulo: 'd4-resistencia',
+  },
+  {
+    termino: 'Método interválico',
+    definicion:
+      'Método fraccionado en el que las series se separan por una pausa incompleta o pausa útil: se reanuda con el pulso todavía alto, en la franja de 120 a 140 lpm. Se llama útil porque el volumen sistólico alcanza su valor más alto durante esa pausa, y esperar la recuperación total lo convertiría en método de repeticiones.',
+    modulo: 'd4-resistencia',
+    sinonimos: ['Interválico', 'Entrenamiento por intervalos'],
+  },
+  {
+    termino: 'Test de Cooper',
+    definicion:
+      'Prueba de campo que consiste en recorrer la mayor distancia posible en 12 minutos, con la que se estima el VO₂máx mediante la fórmula (distancia en metros − 504,9) / 44,73. Es indirecta, colectiva y de ritmo libre, así que la estrategia de dosificación forma parte de la prueba.',
+    modulo: 'd4-resistencia',
+  },
+  {
+    termino: 'Course Navette',
+    definicion:
+      'Prueba progresiva y máxima de ida y vuelta entre dos líneas separadas 20 metros, al ritmo de una señal sonora que arranca en 8,5 km/h y sube 0,5 km/h en cada palier de un minuto. Termina cuando el evaluado no llega a la línea a tiempo dos veces seguidas.',
+    modulo: 'd4-resistencia',
+    sinonimos: ['Test de Léger', 'Test de ida y vuelta de 20 metros'],
+  },
+
+  /* ── D5 · Capacidad física: velocidad ── */
+  {
+    termino: 'Velocidad de reacción',
+    definicion:
+      'Capacidad de responder a un estímulo en el menor tiempo posible, medida como el intervalo entre la aparición del estímulo y el inicio del movimiento. Es simple cuando hay un solo estímulo previsto y una sola respuesta, y compleja o discriminativa cuando hay varios estímulos posibles y el deportista debe elegir.',
+    modulo: 'd5-velocidad',
+    sinonimos: ['Tiempo de reacción', 'Reacción discriminativa'],
+  },
+  {
+    termino: 'Velocidad gestual',
+    definicion:
+      'Capacidad de ejecutar un gesto técnico único en el menor tiempo posible: un golpeo, un remate, un lanzamiento. Se llama acíclica o segmentaria porque el gesto se realiza una sola vez y con un segmento corporal, sin repetir un ciclo de desplazamiento.',
+    modulo: 'd5-velocidad',
+    sinonimos: ['Velocidad acíclica', 'Velocidad segmentaria'],
+  },
+  {
+    termino: 'Resistencia a la velocidad',
+    definicion:
+      'Capacidad de sostener la velocidad máxima o cercana a la máxima el mayor tiempo posible frente a la fatiga. Es el único trabajo de velocidad que se realiza con recuperación incompleta y buscando la fatiga a propósito, con predominio de la vía anaeróbica láctica.',
+    modulo: 'd5-velocidad',
+    sinonimos: ['Velocidad-resistencia'],
+  },
+
+  /* ── D6 · Capacidad física: flexibilidad ── */
+  {
+    termino: 'Movilidad articular',
+    definicion:
+      'Recorrido que permite una articulación por su propia estructura: forma de las superficies óseas, cápsula y ligamentos. Es un factor articular y no muscular; junto con la elasticidad muscular determina la flexibilidad que el deportista alcanza.',
+    modulo: 'd6-flexibilidad',
+    sinonimos: ['Movilidad'],
+  },
+  {
+    termino: 'Elasticidad muscular',
+    definicion:
+      'Capacidad del músculo de deformarse y recuperar su forma y su longitud originales cuando cesa la fuerza que lo deformó. No debe confundirse con la extensibilidad, que es la capacidad de alargarse por encima de la longitud de reposo: la elasticidad describe el retorno, no la ida.',
+    modulo: 'd6-flexibilidad',
+    sinonimos: ['Elasticidad'],
+  },
+  {
+    termino: 'FNP',
+    definicion:
+      'Facilitación neuromuscular propioceptiva: procedimiento de estiramiento que alterna fases pasivas con contracciones del propio músculo. En el método mantener-relajar se estira unos 10 s, se contrae de forma isométrica y submáxima unos 6 s, se relaja y se vuelve a estirar de 10 a 30 s. Se explica clásicamente por la inhibición autógena y la inhibición recíproca.',
+    modulo: 'd6-flexibilidad',
+    sinonimos: ['Facilitación neuromuscular propioceptiva', 'PNF'],
+  },
+  {
+    termino: 'Sit and reach',
+    definicion:
+      'Test de campo que evalúa sobre todo la extensibilidad de los isquiosurales: sentado con las piernas extendidas y las plantas contra el cajón, se flexiona el tronco al frente sin rebotes y se mide el alcance en centímetros. En el cajón clásico el cero está en la planta del pie; en el calibrado, la planta marca 23 cm.',
+    modulo: 'd6-flexibilidad',
+    sinonimos: ['Test de Wells', 'Flexión profunda de tronco'],
+  },
+
+  /* ── D7 · Modelos de planificación ── */
+  {
+    termino: 'Modelo tradicional',
+    definicion:
+      'Periodización clásica formulada por Matveiev. Ordena la temporada en un macrociclo con un único pico de forma, dividido en período preparatorio, competitivo y transitorio, con relación inversa entre volumen e intensidad y desarrollo simultáneo de varias capacidades, de lo general a lo específico.',
+    modulo: 'd7-modelos-planificacion',
+    sinonimos: ['Periodización clásica', 'Modelo de Matveiev'],
+  },
+  {
+    termino: 'Modelo contemporáneo',
+    definicion:
+      'Familia de modelos que responde al calendario denso del deporte actual concentrando la carga de una sola orientación por bloque y repartiendo la temporada en tres o cuatro macrociclos con su propio pico. Se define por tres rasgos: flexibilidad, multifuncionalidad e individualización.',
+    modulo: 'd7-modelos-planificacion',
+    sinonimos: ['Modelos contemporáneos', 'Planificación por bloques'],
+  },
+  {
+    termino: 'Pico de rendimiento',
+    definicion:
+      'Momento en que coinciden la mejor condición física, técnica y psicológica del deportista. No se sostiene indefinidamente: se construye, se mantiene unas semanas y se pierde, por lo que planificar consiste en colocarlo sobre la fecha de la competencia objetivo.',
+    modulo: 'd7-modelos-planificacion',
+    sinonimos: ['Pico de forma', 'Forma deportiva máxima'],
+  },
+
+  /* ── D8 · Estructuras de la planificación ── */
+  {
+    termino: 'Macrociclo',
+    definicion:
+      'Estructura mayor de la planificación, de tres a doce meses de duración. Agrupa mesociclos y es el nivel donde se decide cuál es la competencia principal, en qué fecha cae y cómo se reparte el tiempo en períodos.',
+    modulo: 'd8-estructuras',
+    sinonimos: ['Macroestructura'],
+  },
+  {
+    termino: 'Mesociclo',
+    definicion:
+      'Agrupación de microciclos con una orientación de carga común, de dos a seis semanas de duración, lo habitual cuatro. Es el nivel donde se decide de qué va el bloque de trabajo. El mesociclo básico se subdivide en desarrollador y estabilizador.',
+    modulo: 'd8-estructuras',
+    sinonimos: ['Mesoestructura'],
+  },
+  {
+    termino: 'Microciclo',
+    definicion:
+      'Conjunto de sesiones de unos pocos días, de tres a diez, lo habitual siete por comodidad del calendario semanal y no por razón fisiológica. Es el nivel donde se decide la alternancia entre días de carga y días de recuperación.',
+    modulo: 'd8-estructuras',
+    sinonimos: ['Microestructura'],
+  },
+  {
+    termino: 'Vuelta a la calma',
+    definicion:
+      'Parte final de la sesión, de cinco a diez minutos, en la que la actividad se hace progresivamente más suave para devolver el organismo a valores de reposo, favorecer la retirada de metabolitos y evitar que la sangre quede acumulada en las piernas al detenerse de golpe.',
+    modulo: 'd8-estructuras',
+    sinonimos: ['Parte final de la sesión', 'Enfriamiento'],
+  },
 ];
 
 /** Filtro del glosario en cliente. <400 entradas: no necesita índice. */

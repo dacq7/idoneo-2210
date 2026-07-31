@@ -2311,3 +2311,280 @@ Suite **673** (663 → 673). Cuatro mutantes sobre los arreglos, cuatro muertos.
 **Lo que confirmó, y era el riesgo de ADR-027: A-01 no se ha reabierto.** A 188 px la barra sigue con cinco destinos de **37,59 px**, todos enteros. Una sexta celda los dejaría en ~31. La decisión de meter `/plan` y `/diagnostico` por la portada se sostiene con la medición.
 
 Suite **675**.
+
+## [2026-07-31 21:05] · technical-writer · Paso 15 (parcial: D1 y D2)
+
+**Qué escribí:**
+- `content/teoria/d1-conceptualizacion.mdx` · `content/tarjetas/d1-conceptualizacion.ts` · `content/banco/d1-conceptualizacion.ts`
+- `content/teoria/d2-carga.mdx` · `content/tarjetas/d2-carga.ts` · `content/banco/d2-carga.ts`
+- `/tmp/glosario-d1-d2.ts` — 6 entradas de glosario, fuera del repo para que las integre el `minimal-change-engineer`
+- `.claude/CONTENIDO.md` — filas de d1 y d2 y línea de totales
+
+**Conteo entregado:** teoría sí (los 2) · 30 tarjetas (15 + 15) · 50 ítems (25 + 25) · 6 términos de glosario.
+
+**Reparto de los ítems:**
+- **d1-conceptualizacion** — nivel 11 recuerdo (44 %) / 8 comprensión (32 %) / 6 aplicación (24 %) · dificultad 5·13·7 · 6 tipos: 14 única, 3 caso, 3 emparejar, 2 ordenar, 2 múltiple, 1 V/F. `verificarCuotas` con `CUOTAS` en verde.
+- **d2-carga** — nivel 11 / 8 / 6 igual · dificultad 5·14·6 · 7 tipos: 12 única, 4 cálculo, 3 caso, 2 múltiple, 2 emparejar, 1 ordenar, 1 V/F. `verificarCuotas` en verde.
+- Los 4 ítems de cálculo de D2 cubren densidad (30/60 → 33,3 %), densidad de circuito (45/15 → 75 %), tonelaje (4×8×60 → 1920 kg) y carga de sesión (RPE 7 × 75 min → 525 UA).
+
+**Erratas o datos duros nuevos:** ninguno. Los datos duros existentes quedan cubiertos por tarjetas: DD-090, DD-091 y DD-092 en d2; DD-100 y DD-101 en d1.
+
+**Datos verificados que van más allá del temario mínimo (ADR-014), enseñados sin anunciar discrepancia:**
+- Ley 2210 sancionada el **23 de mayo de 2022** (dato ya verificado en `CONTENIDO.md`, reutilizado sin volver a derivarlo).
+- **Escala de Borg**: la original va de **6 a 20** y la **CR-10 de 0 a 10**. La equivalencia «RPE × 10 ≈ FC» se enseña como aproximación calibrada en adultos jóvenes sanos, con su límite explícito (edad, betabloqueantes, calor, deshidratación). Enseñar solo «la escala de Borg» sin distinguir las dos versiones deja al usuario sin poder resolver el cálculo de carga de sesión.
+- **Carga de sesión = RPE (0–10) × minutos**, en unidades arbitrarias. Es la vía de cuantificar carga interna sin instrumentación y sostiene el ítem D2-023.
+- **Densidad**: se enseña con el denominador correcto (trabajo + descanso) y se añade la regla `1 ÷ (1 + n)` para la notación de relación trabajo:descanso, porque el error de campo es dividir 1 entre n.
+
+**Dudas de fuente:** ninguna que bloquee. Dos decisiones de alcance que dejo anotadas por si se quieren estrechar:
+1. Los subtemas de `referencia` (Cartilla 4, Tema 1, Subtemas 1.1–1.6 y Tema 2, Subtemas 2.1–2.6) los asigné por coherencia temática con la estructura del bloque. Si la numeración real de la Cartilla 4 difiere, es un renombrado mecánico de un campo, sin tocar contenido.
+2. El módulo D1 **no lleva ítems de cálculo**: es un módulo conceptual (definiciones, componentes, fases, niveles) y cualquier cálculo saldría forzado. Cumple con 6 tipos distintos, muy por encima del mínimo de 4, y D2 aporta 4 ítems de cálculo, así que el bloque D no queda corto de ese tipo para el blueprint final.
+
+**Pendiente (no es mío, es del `minimal-change-engineer`):**
+- Cablear `d1-conceptualizacion` y `d2-carga` en `content/banco/indice.ts` y `content/tarjetas/indice.ts`.
+- Integrar los 6 términos de `/tmp/glosario-d1-d2.ts` en `content/glosario.ts`. **No** duplicar `Densidad` ni `Escala de Borg (RPE)`, que ya existen.
+- Pasar los dos módulos a `estadoContenido: 'completo'` en `content/estructura.ts`.
+- Cerrar la columna **Validado** en `.claude/CONTENIDO.md`.
+- Faltan los 6 módulos restantes del bloque D: D3, D4, D5, D6, D7 y D8.
+
+## [2026-07-31 · paso 15] · technical-writer · Bloque D — d5-velocidad y d6-flexibilidad
+
+**Qué escribí:**
+- `content/teoria/d5-velocidad.mdx` · `content/tarjetas/d5-velocidad.ts` · `content/banco/d5-velocidad.ts`
+- `content/teoria/d6-flexibilidad.mdx` · `content/tarjetas/d6-flexibilidad.ts` · `content/banco/d6-flexibilidad.ts`
+- `/tmp/glosario-d5-d6.ts` (7 entradas, fuera del repo: `content/glosario.ts` no se toca aquí)
+- Filas de d5 y d6 en `.claude/CONTENIDO.md`
+
+**Conteo entregado:** teoría sí (los dos) · 15 + 15 tarjetas · 25 + 25 ítems · 7 términos de glosario.
+
+**Reparto de los ítems** (idéntico en los dos módulos, verificado con `verificarCuotas(CUOTAS)`):
+- Nivel: 11 recuerdo (44 %) · 8 comprensión (32 %) · 6 aplicación (24 %) — cuotas 40/30/20.
+- Dificultad: 6 de nivel 1 · 12 de nivel 2 · 7 de nivel 3 — mínimo 3 de cada una.
+- Tipos: 13 única · 3 caso · 3 cálculo · 2 múltiple · 2 emparejar · 1 ordenar · 1 V/F — los 7, mínimo 4.
+- `npm run validar` en verde y `tsc --noEmit` limpio. Los avisos de blueprint para d5/d6 siguen
+  ahí porque el contenido aún no está cableado en los índices: eso es del `minimal-change-engineer`.
+
+**Erratas o datos duros nuevos:** ninguno añadido a `content/datos-duros.ts` (no me corresponde tocarlo
+en este paso). Sí quedan candidatos claros para cuando se abra ese archivo: los parámetros del
+estiramiento estático (10–30 s por repetición, ~60 s acumulados por grupo muscular), el protocolo de
+FNP mantener-relajar (10 s / 6 s isométricos submáximos / 10–30 s), el umbral de salida falsa de
+0,100 s y la relación trabajo:descanso 1:12–1:20 del trabajo aláctico.
+
+**Aplicación de ADR-014 — dónde enseñé el dato verdadero sin anunciar discrepancia:**
+- **Estiramiento estático:** 10–30 s por repetición y ~60 s acumulados por grupo muscular. No los
+  "6–12 s" ni los "3 s" que circulan en material de curso: por debajo de 10 s no se produce el efecto
+  y pasar de 30 s en una repetición no aporta nada extra.
+- **FNP:** contracción isométrica **submáxima de ~6 s**, no máxima ni de 20 s. El efecto es el mismo y
+  el riesgo, menor. El rango se gana en el estiramiento posterior, no en la contracción (ítem D6-024).
+- **Mecanismo del FNP:** enseño la inhibición autógena (OTG, reflejo miotático inverso) y la
+  recíproca, que es lo que se pregunta, y añado en la teoría que la mayor parte de la ganancia aguda
+  es aumento de la **tolerancia al estiramiento**, no relajación refleja.
+- **Estático antes de potencia:** el estático prolongado (>60 s por grupo) inmediatamente antes de un
+  esfuerzo de fuerza/potencia/velocidad **baja el rendimiento** agudamente; por debajo de 60 s el
+  efecto es trivial. De ahí que el calentamiento lleve dinámicos (ítems D6-015 y D6-023).
+- **Estiramiento y lesiones:** no está demostrado que prevenga lesiones musculares ni que quite
+  agujetas; lo que reduce lesiones es el trabajo de fuerza, sobre todo excéntrica (ítem D6-019).
+- **Sit and reach:** el resultado depende de dónde tenga el cero el cajón — planta del pie en la
+  versión clásica (admite negativos) o 23 cm en la calibrada. Ítems D6-017 y D6-020.
+- **Salida falsa:** 0,100 s es el **umbral reglamentario**, no el tiempo de reacción de nadie; el real
+  de un velocista de élite está en 0,12–0,20 s.
+- **Velocidad resistida:** la carga no debe frenar más de un ~10 % la velocidad normal si se busca
+  transferencia; con más, cambia el patrón de carrera.
+
+**Dudas de fuente:** ninguna que bloquee. Dejo señalado que los subtemas de referencia usan la
+numeración `Cartilla 4, Tema 3, Subtema 3.3.x` (velocidad) y `3.4.x` (flexibilidad), coherente con
+tratar el Tema 3 de la Cartilla 4 como el de capacidades físicas. Si al escribir d3 y d4 se fija otra
+numeración para fuerza y resistencia, hay que alinear las referencias de los cuatro módulos.
+
+**Pendiente (del `minimal-change-engineer`, no mío):** cablear d5 y d6 en `content/banco/indice.ts` y
+`content/tarjetas/indice.ts`, integrar las 7 entradas de `/tmp/glosario-d5-d6.ts` en
+`content/glosario.ts`, pasar los dos módulos a `estadoContenido: 'completo'` y cerrar la columna
+**Validado** de `.claude/CONTENIDO.md`.
+
+## [2026-07-31 18:40] · technical-writer · Paso 15 — bloque D, módulos D7 y D8
+
+**Qué escribí:**
+- `content/teoria/d7-modelos-planificacion.mdx` · `content/tarjetas/d7-modelos-planificacion.ts` · `content/banco/d7-modelos-planificacion.ts`
+- `content/teoria/d8-estructuras.mdx` · `content/tarjetas/d8-estructuras.ts` · `content/banco/d8-estructuras.ts`
+- `/tmp/glosario-d7-d8.ts` (7 entradas, fuera del repo — las inserta el `minimal-change-engineer`)
+
+**Conteo entregado:** teoría sí (los 2) · 30 tarjetas (15 + 15) · 50 ítems (25 + 25) · 7 términos de glosario.
+
+**Reparto de los ítems** (verificado ejecutando `verificarCuotas(items, CUOTAS)` contra el módulo real, no a ojo):
+- **d7-modelos-planificacion** — nivel 11 recuerdo (44 %) / 8 comprensión (32 %) / 6 aplicación (24 %) · dificultad 6·12·7 · los 7 tipos: 13 única, 3 caso, 2 emparejar, 2 múltiple, 2 ordenar, 2 cálculo, 1 V/F. Explicación más corta: 414 caracteres.
+- **d8-estructuras** — nivel 11 / 8 / 6 igual · dificultad 7·12·6 · los 7 tipos: 13 única, 3 caso, 2 emparejar, 2 ordenar, 2 múltiple, 2 cálculo, 1 V/F. Explicación más corta: 377 caracteres.
+- **Cálculos de D7:** bloques ATR que caben en la temporada (4+3+2=9 semanas en 36 → 4 bloques, es decir 4 picos) y reparto porcentual de los períodos del macrociclo tradicional (40 semanas al 60/30/10 → el preparatorio dura 12 semanas más que el competitivo).
+- **Cálculos de D8:** mesociclos de un macrociclo (28 ÷ 4 = 7) y porcentaje que ocupa la parte principal de una sesión (90 − 15 − 10 = 65 → 72,2 %).
+- **Los 4 ordenar** son el tipo que mejor encaja en estos dos módulos y por eso van 2 en cada uno: en D7, las etapas del macrociclo tradicional y las fases del bloque ATR; en D8, la jerarquía de estructuras de mayor a menor y los momentos de la sesión.
+- **El par de distractores natural se explota en los dos módulos:** en D7, tradicional contra contemporáneo (D7-004, D7-012, D7-014, D7-015, D7-019, D7-020); en D8, cruzar los niveles de estructura entre sí (D8-002, D8-003, D8-008, D8-013, D8-017, D8-018).
+
+**Erratas o datos duros nuevos:** ninguno. D7 y D8 no tienen entradas propias en `content/datos-duros.ts`; las cifras que sí se memorizan (duraciones de las estructuras, partes de la sesión, picos por modelo) quedan cubiertas por tarjeta y por ítem.
+
+**Datos verificados que van más allá del temario mínimo (ADR-014), enseñados sin anunciar discrepancia:**
+- **Las duraciones de las estructuras son rangos con un valor habitual, no cifras fijas.** Macrociclo 3–12 meses · mesociclo 2–6 semanas (habitual 4) · microciclo 3–10 días (habitual 7) · sesión 60–120 min. Enseñar «el microciclo dura 7 días» como definición es falso y además impide entender por qué existen microciclos de choque de 5 días o de aproximación de 10.
+- **El microciclo dura 7 días por el calendario social y competitivo, no por fisiología.** No hay un ciclo de supercompensación de siete días: los tiempos de recuperación varían por capacidad y por magnitud de la carga. Sostiene D8-007 y D8-012.
+- **La vuelta a la calma no previene las agujetas.** El dolor muscular de aparición tardía viene del daño microscópico de la fibra, sobre todo por trabajo excéntrico, y aparece igual con o sin vuelta a la calma. Lo que sí hace es acelerar el retorno a valores basales, favorecer la retirada de metabolitos y evitar el estancamiento de sangre en los miembros inferiores al parar en seco. Es la creencia más repetida del campo y por eso es distractor en D8-006, D8-016 y D8-025.
+- **Atribución de los modelos a sus autores:** tradicional → Matveiev · cargas concentradas y efecto retardado → Verkhoshansky · ATR → Issurin y Kaverin · péndulo → Arosiev · alta intensidad → Tschiene · microciclo estructurado → Seirul·lo. Se distingue explícitamente Verkhoshansky de Issurin, que están emparentados pero no son lo mismo (D7-007).
+- **Efecto residual y efecto retardado son cosas distintas** y se confunden por el nombre: residual es lo que queda de una capacidad al dejar de entrenarla —lo que hace viable concentrar la carga—; retardado es cuándo aparece la mejora —después del bloque, no dentro—. Sostiene D7-013 y D7-017.
+- **Ciclo plurianual por encima del macrociclo** (2–4 años). Se enseña porque es el nivel donde se piensa una carrera olímpica y su ausencia deja la jerarquía coja (D8-013).
+- **Orden dentro de la parte principal: técnica y velocidad → fuerza → resistencia**, por estado del sistema nervioso, no por gasto energético (D8-015, D8-022).
+
+**Dudas de fuente:** una, que no bloquea. Los subtemas de `referencia` (Cartilla 4, Tema 4, Subtemas 4.1–4.1.3 para D7 y 4.2–4.2.4 para D8) los asigné agrupando los dos módulos bajo un mismo Tema de planificación, por coherencia temática con el resto del bloque. Si la numeración real de la Cartilla 4 difiere, es un renombrado mecánico de un campo de texto, sin tocar contenido ni cuotas.
+
+**Pendiente (no es mío, es del `minimal-change-engineer`):**
+- Cablear `d7-modelos-planificacion` y `d8-estructuras` en `content/banco/indice.ts` y `content/tarjetas/indice.ts`.
+- Integrar los 7 términos de `/tmp/glosario-d7-d8.ts` en `content/glosario.ts`. Ninguno existe todavía en el archivo, así que no hay riesgo de duplicado.
+- Pasar los dos módulos a `estadoContenido: 'completo'` en `content/estructura.ts`.
+- Cerrar la columna **Validado** en `.claude/CONTENIDO.md`.
+
+---
+
+## [2026-07-31 18:40] · technical-writer · Paso 15 — bloque D, módulos D3 y D4
+
+**Qué escribí:**
+- `content/teoria/d3-fuerza.mdx`
+- `content/tarjetas/d3-fuerza.ts`
+- `content/banco/d3-fuerza.ts`
+- `content/teoria/d4-resistencia.mdx`
+- `content/tarjetas/d4-resistencia.ts`
+- `content/banco/d4-resistencia.ts`
+- `/tmp/glosario-d3-d4.ts` (7 entradas, fuera del repo — las inserta el `minimal-change-engineer`)
+
+**Conteo entregado:** teoría sí (los 2) · 30 tarjetas (15 + 15) · 50 ítems (25 + 25) · 7 términos de glosario.
+
+**Reparto de los ítems** (verificado ejecutando `verificarCuotas(items, CUOTAS)` contra los módulos reales, más `esqItem.safeParse` sobre los 50):
+- **d3-fuerza** — nivel 11 recuerdo (44 %) / 8 comprensión (32 %) / 6 aplicación (24 %) · dificultad 6·13·6 · los 7 tipos: 13 única, 3 caso, 3 cálculo, 2 emparejar, 2 múltiple, 1 ordenar, 1 V/F. Explicación más corta: 499 caracteres.
+- **d4-resistencia** — nivel 11 / 8 / 6 igual · dificultad 6·13·6 · los 7 tipos con el mismo reparto. Explicación más corta: 495 caracteres.
+- **Cálculos de D3:** carga de trabajo desde el 1RM (120 kg al 75 % → 90 kg), estimación de Epley (80 kg × 8 → 101,3 kg) y estimación de Brzycki (60 kg × 12 → 86,4 kg). Los tres verificados numéricamente; el mayor desvío contra el valor declarado es 0,033 kg, muy dentro de la tolerancia.
+- **Cálculos de D4:** Cooper directo (2600 m → 46,8 ml/kg/min), Course Navette en dos pasos (palier 7 → 11,5 km/h → 47,9 ml/kg/min) y Cooper encadenado con MET (2800 m → 51,3 ml/kg/min → 14,7 MET). Mayor desvío: 0,04.
+- **El par de distractores natural se explota en los dos módulos:** en D3, cruzar las filas de la tabla de %1RM entre sí (D3-002, D3-003, D3-005, D3-006, D3-018, D3-023, D3-025); en D4, confundir interválico con repeticiones por el tipo de pausa (D4-003, D4-004, D4-010, D4-013, D4-018).
+
+**Erratas o datos duros nuevos:** ninguno. D3 cubre sus tres datos duros existentes —DD-010 fuerza máxima, DD-011 hipertrofia, DD-012 resistencia muscular— con una tarjeta de fila completa cada uno (D3-T03, D3-T04, D3-T05) y con ítems dedicados; los valores se respetan al pie de la letra, incluida la duración de serie y el descanso. D4 no tiene entradas propias en `content/datos-duros.ts`: los valores que sí se preguntan con número exacto (cortes de duración, constantes de Cooper, protocolo de la Navette) quedan cubiertos por tarjeta de tipo `dato` o `formula` y por al menos un ítem.
+
+**Datos verificados que van más allá del temario mínimo (ADR-014), enseñados sin anunciar discrepancia:**
+- **Las cuatro columnas de la tabla de %1RM son la misma realidad dicha de cuatro maneras**, no cuatro datos sueltos. Se enseña la coherencia carga↔repeticiones↔duración↔descanso y se usa como criterio de corrección en D3-018: al 90 % del 1RM se completan 4 o 5 repeticiones, así que «3×12 al 90 %» no es una prescripción exigente, es una imposible.
+- **La potencia máxima no está en el 1RM.** `P = F × v`: con la carga máxima la velocidad se desploma y el producto cae con ella, así que el máximo aparece con cargas medias. Sostiene D3-014 y D3-024, y evita el error de campo de entrenar potencia subiendo el peso.
+- **La fuerza explosiva la define la intención de mover rápido, no lo ligero de la carga.** Es la confusión más extendida en el gimnasio y por eso es distractor en D3-013.
+- **La estimación indirecta del 1RM pierde precisión al subir las repeticiones, no al revés.** Epley y Brzycki coinciden hasta unas 10 repeticiones y divergen por encima (60 kg × 12 → 84 kg contra 86,4 kg). Se enseña el límite explícitamente y se usa como distractor en D3-017 y D3-022, porque «más datos, más precisión» es una intuición razonable y falsa aquí.
+- **El método de intensidades máximas gana fuerza sin ganar mucho tamaño**, por adaptación nerviosa —reclutamiento, sincronización, frecuencia de descarga— y por volumen total bajo. Sostiene D3-008, D3-019 y D3-023.
+- **Resistencia local = menos de un sexto o un séptimo de la masa muscular total**, es decir la musculatura de un solo miembro. Es el criterio defendible; la cifra de «un tercio» que circula convierte en local casi cualquier ejercicio de tren inferior y vacía la distinción.
+- **La resistencia arranca en los 35 segundos**, no en el segundo cero: por debajo el esfuerzo se clasifica como fuerza o velocidad. Sostiene D4-002.
+- **El fartlek es continuo porque no tiene pausa, no porque su intensidad sea estable.** La recuperación se hace en movimiento. Sostiene D4-008, D4-017 y D4-019, donde el distractor tentador es clasificarlo por el cambio de ritmo.
+- **La pausa útil del interválico tiene mecanismo, no solo nombre:** al cortar el esfuerzo la frecuencia cardíaca cae antes que el retorno venoso, el ventrículo se llena mejor y el volumen sistólico alcanza ahí su valor más alto. Sostiene D4-014 y explica por qué esperar la recuperación total tira el estímulo.
+- **Cooper estima, no mide.** Es indirecto y de ritmo libre, así que la estrategia de dosificación forma parte de la prueba: dos deportistas con el mismo VO₂máx real pueden firmar distancias muy distintas. Sostiene D4-015, y D4-025 lo aprovecha para separar «el test más preciso» de «el mejor test aplicable».
+- **Course Navette: 20 m, arranque en 8,5 km/h y +0,5 km/h por palier de un minuto.** El incremento de 1 km/h que a veces se ve acortaría el test a la mitad de paliers; es el distractor de D4-007.
+
+**Dudas de fuente:** una, y esta vez sí conviene resolverla antes de integrar. Numeré `referencia` como **Cartilla 4, Tema 3** para D3 (subtemas 3.1 a 3.4) y **Cartilla 4, Tema 4** para D4 (subtemas 4.1 a 4.4), agrupando cada capacidad física bajo un Tema propio. La entrada de D7/D8 de esta misma sesión usa **Tema 4** para los módulos de planificación, así que el bloque D ha quedado con dos criterios de numeración distintos escritos en paralelo. No afecta a cuotas ni al validador —el regex solo exige `Cartilla [1-4], Tema \d+`— pero conviene unificarlo de una pasada cuando estén los 8 módulos del bloque a la vista. Es un renombrado mecánico de un campo de texto.
+
+**Verificación hecha antes de entregar:**
+- `esqItem.safeParse` sobre los 50 ítems: todos válidos, sin ids duplicados, ninguna explicación por debajo de 200 caracteres (la más corta va en 495).
+- `verificarCuotas(items, CUOTAS)` con las cuotas del bloque D: los dos módulos PASAN sin incumplimientos.
+- `esqTarjeta.safeParse` sobre las 30 tarjetas y `esqEntradaGlosario.safeParse` sobre los 7 términos: todos válidos.
+- Los 6 cálculos recomputados aparte contra el valor declarado y su tolerancia.
+- Los dos MDX compilados con `@mdx-js/mdx` + `remark-gfm`: compilan, no llevan `#` de primer nivel y solo usan `<Dato>`, `<Formula>`, `<TablaClave>` y `<Ojo>`.
+- Recuento de columnas de todas las tablas (A-23): la de %1RM de D3 es la más ancha con 6 columnas y cabeceras de una palabra —Objetivo, % 1RM, Reps, Duración, Descanso, Vía—; el resto va en 2, 3 y 4.
+
+**Pendiente (no es mío, es del `minimal-change-engineer`):**
+- Cablear `d3-fuerza` y `d4-resistencia` en `content/banco/indice.ts` y `content/tarjetas/indice.ts`.
+- Integrar los 7 términos de `/tmp/glosario-d3-d4.ts` en `content/glosario.ts`. Ninguno de los 7 existe todavía en el archivo, así que no hay riesgo de duplicado.
+- Pasar los dos módulos a `estadoContenido: 'completo'` en `content/estructura.ts`.
+- Unificar la numeración de `Tema` en las `referencia` de los 8 módulos del bloque D, si se decide un criterio único.
+- Cerrar la columna **Validado** en `.claude/CONTENIDO.md`.
+
+## [2026-07-31 09:40] · minimal-change-engineer · Paso 15
+
+**Módulos integrados:** d1-conceptualizacion · d2-carga · d3-fuerza · d4-resistencia · d5-velocidad · d6-flexibilidad · d7-modelos-planificacion · d8-estructuras
+
+**Archivos tocados:**
+- `content/banco/indice.ts` — registrar los 8 módulos con `import()` dinámico, patrón idéntico al de C5.
+- `content/tarjetas/indice.ts` — lo mismo para las tarjetas.
+- `content/glosario.ts` — fundir las 27 entradas de los cuatro fragmentos de `/tmp`; sin ellas el validador rompe por `conceptoClave` sin entrada.
+- `content/estructura.ts` — `estadoContenido` de los 8 a `'completo'`. Solo ese campo, 8 líneas.
+- `content/banco/d3-fuerza.ts` y `content/banco/d4-resistencia.ts` — remapeo mecánico del campo `referencia` (ver abajo).
+- `.claude/CONTENIDO.md` — columna Validado de los 8 y pie de totales.
+
+**Diff:** 226 líneas añadidas, 10 eliminadas sobre archivos versionados. Los dos ficheros de banco remapeados son nuevos en esta rama, así que su cambio no aparece en el diff contra HEAD: son 50 campos `referencia` reescritos (25 + 25).
+
+**Correcciones mecánicas aplicadas:**
+- **Colisión de numeración de `referencia`.** Los cuatro escritores asignaron `Tema/Subtema` por separado y chocaban: «Subtema 3.4» apuntaba a fuerza *y* a flexibilidad, «Subtema 4.1» a resistencia *y* a modelos de planificación. Una referencia que apunta a dos sitios no sirve como mapa del temario. Impuesto el esquema que ya cumplían D1, D2, D5, D6, D7 y D8 — Tema 3 = capacidades físicas, Tema 4 = planificación:
+  - `d3-fuerza`: `Tema 3, Subtema 3.1|3.2|3.3|3.4` → `3.1.1|3.1.2|3.1.3|3.1.4`. El Tema no cambia.
+  - `d4-resistencia`: `Tema 4, Subtema 4.1|4.2|4.3|4.4` → `Tema 3, Subtema 3.2.1|3.2.2|3.2.3|3.2.4`. Cambia también el número de Tema.
+  - Hecho por cadena completa (subtema + título), una pasada por cadena, sin encadenar sustituciones. Verificado después: los 8 módulos ocupan subtemas disjuntos.
+  - Los `.mdx` y las tarjetas de esos dos módulos no citan subtemas: comprobado, no había nada que tocar ahí.
+- **Duplicados de glosario:** verificado a mano, no por confianza. `Densidad` y `Escala de Borg (RPE)` ya estaban en el archivo desde el paso 6 con módulo `d2-carga`; el fragmento de D1–D2 los había omitido correctamente. Las 27 entradas nuevas no colisionan con las 22 existentes ni entre sí bajo la normalización del validador (sin tildes, minúsculas, sin paréntesis).
+
+**Contenido que pedí y no escribí yo:** ninguno. Los 24 archivos de contenido y los 4 fragmentos de glosario llegaron completos; este paso fue integración pura más el remapeo mecánico.
+
+**Validador:** ok · 60 avisos · 0 errores. Los 60 avisos son los esperados en este punto del plan: 20 módulos en preparación sin banco y los blueprints que todavía no tienen ítems suficientes en los bloques A, B y C.
+
+**Notado pero NO hecho:**
+- **7 tests fallan, y no los toqué: viven en `src/`.** Para el `code-reviewer` / `frontend-developer`. Antes del diff: 675/675. Después: 668/675. Ninguno es un fallo de motor — son fixtures anclados al estado «solo C5 publicado» del paso 8, que caducan exactamente al publicar contenido nuevo:
+  - `src/lib/__tests__/censo.test.ts` → «incluye los módulos vacíos en vez de omitirlos» espera `MODULOS.length - 1` módulos vacíos (ahora son `- 9`); «el veredicto … con el contenido de hoy» espera `totalDisponible === ELEGIBLES_C5` y `viable === false`, y con el bloque D dentro el diagnóstico ya no es inviable por las mismas cifras.
+  - `src/components/inicio/__tests__/panel-inicio.test.tsx` → 5 casos con los literales `'0/1'` y `/Hay 1 de 29 módulos publicados/`, más los escalones de prioridad que dependen de cuántos módulos hay publicados.
+  - Confirmado con `git stash` que la causa es la publicación de contenido y no la integración. La decisión de si esos tests deben pasar a leer el conteo de `MODULOS` publicados en vez de literales es de diseño de test, no mía.
+- El reparto por nivel de los 8 módulos es **idéntico** (11/8/6) en los cuatro escritores. Cumple cuotas de sobra y no es un defecto, pero conviene que el `technical-writer` sepa que salió un patrón uniforme por si en los pasos 16–17 se busca más variedad.
+- `.claude/COMPONENTES.md` publica como «cifras de hoy» las del paso 6 (`/layout` js 132.0 kB gz, css 12.5). La base real medida hoy antes de este diff es **132.4 js / 14.3 css**: los pasos 7–14 la movieron y la tabla no se actualizó. No la toqué — es de otro dueño; queda para quien mantenga ese documento.
+
+**Peso (métrica oficial: solo `.js`, gzip por archivo y sumado), base medida con `git stash` sobre este mismo build:**
+
+| Ruta | js gz | Δ |
+|---|---|---|
+| `/layout` | 132.7 kB | +0.3 |
+| `/page` | 137.7 kB | +0.3 |
+| `/repaso/page` | 144.3 kB | +0.3 |
+| resto de rutas | — | +0.3 |
+
++0.3 kB uniforme en las 20 rutas, con **200 ítems y 120 tarjetas nuevos** entrando al repositorio. Ese incremento es el índice —16 líneas de `import()`—, no el contenido: la frontera de ADR-010 aguanta el primer bloque completo. `npm run canario` en verde: 33 chunks de carga ansiosa revisados, ninguno lleva contenido.
+
+**Pendiente:**
+- Los 7 tests de `src/` desactualizados (arriba). Es lo único que impide cerrar el paso 15 con las seis compuertas en verde.
+- El paso 16 debe ceñirse al mapa de numeración del bloque D que quedó fijado en `CONTENIDO.md` si cita la Cartilla 4.
+
+---
+
+## Paso 15 — Contenido del bloque D — 2026-07-31
+
+**Estado:** ✅ Completado · **Rama:** `paso-15-bloque-d`
+
+**Los 8 módulos del bloque D, uniformes:** 25 ítems y 15 tarjetas cada uno, reparto 11 recuerdo / 8 comprensión / 6 aplicación (44/32/24 %), ≥3 por cada dificultad y 6–7 tipos distintos sobre el mínimo de 4. Explicación más corta del bloque: **377 caracteres**, casi el doble del mínimo de 200.
+
+**Banco: 28 → 228 ítems. Tarjetas: 15 → 135. Glosario: 22 → 49 términos.**
+
+### Cómo se produjo, y por qué así
+
+Cuatro `technical-writer` **en paralelo, emparejados por afinidad temática** —D1+D2 conceptuales, D3+D4 fuerza y resistencia, D5+D6 velocidad y flexibilidad, D7+D8 planificación— en vez de uno por módulo o uno para los ocho. §14.4 pide un bloque por sesión para que el tono y el criterio de dificultad no deriven; agrupar los que comparten vocabulario protege eso mismo dentro del bloque, y permite que cuatro trabajen a la vez.
+
+Luego un `minimal-change-engineer` para el enganche: índices, glosario, `estadoContenido` y el remapeo de referencias. **Cero líneas en `src/`** por su parte, que era la condición.
+
+### Lo que el paralelismo costó, y hay que saberlo antes de repetirlo en 16 y 17
+
+**Cuatro agentes escribiendo a la vez producen incoherencias que ninguno puede ver solo.** Salieron tres:
+
+1. **Colisión de referencias.** Cada uno numeró sus `Tema/Subtema` por su cuenta y el resultado fue que **«Subtema 3.4» apuntaba a fuerza Y a flexibilidad**, y «Subtema 4.1» a resistencia Y a modelos de planificación. La `referencia` es el mapa con el que el usuario va a verificar el dato en la cartilla: una que apunta a dos sitios no sirve. Lo diagnostiqué comparando los ocho archivos y el integrador lo remapeó — 50 campos, esquema final **Tema 3 = capacidades (3.1 fuerza · 3.2 resistencia · 3.3 velocidad · 3.4 flexibilidad)** y **Tema 4 = planificación (4.1 modelos · 4.2 estructuras)**. Fijado en `CONTENIDO.md` para el paso 16.
+2. **Criterios distintos para el mismo hecho** en `CONTENIDO.md`: dos agentes marcaban la columna Glosario en ⬜ y los otros en ✅ estando exactamente en el mismo estado.
+3. **Reparto por nivel idéntico** en los cuatro (11/8/6). Cumple de sobra y no es defecto, pero es una señal de que todos leyeron la misma sugerencia al pie de la letra.
+
+**Para los pasos 16 y 17: fijar la numeración de `Tema/Subtema` del bloque ANTES de repartir el trabajo.** Es la única de las tres que produce contenido incorrecto y no solo desprolijo.
+
+### Siete tests míos caducaron, y estaban mal escritos
+
+Al publicar el bloque D fallaron 7 tests de `src/` —`censo.test.ts` y `panel-inicio.test.tsx`— porque estaban anclados con **literales al estado «solo C5 publicado»**: `'0/1'`, `/Hay 1 de 29 módulos publicados/`, `MODULOS.length - 1`, y fixtures que marcaban un único módulo como dominado.
+
+El integrador hizo bien en no tocarlos —viven en `src/`— y en escalarlos. **El defecto es de diseño de test:** un test que hay que reescribir cada vez que se publica contenido no está midiendo el código, está midiendo el calendario. Reescritos para **derivar del catálogo** (`MODULOS.filter(m => m.estadoContenido === 'completo')`), así que sobreviven a los pasos 16 y 17 sin tocarse.
+
+### Qué se puede armar ahora
+
+| Examen | Pide | Hay | Estado |
+|---|---|---|---|
+| **Simulacro del bloque D** | 40 | **200** | **ARMABLE** |
+| **Diagnóstico inicial** | 30 | **121 elegibles** | **ARMABLE** |
+| **Simulacro final** | 100 | 228 | **ARMABLE**, con reparto incompleto en 20 módulos |
+| Bloque C | 40 | 28 | faltan 12 |
+| Bloques A y B | 40 | 0 | faltan 40 |
+
+**El diagnóstico deja de ser una promesa**, que es el hito de producto del paso: un usuario nuevo ya puede medirse y recibir un plan real. El simulacro final se declara armable y **avisa de que el reparto no será el del examen real** —ADR-025 y la portada honesta del Paso 11 hacen ese trabajo sin código nuevo—.
+
+### Peso
+
+**+0.3 kB gz en todas las rutas**, uniforme. Con 200 ítems y 120 tarjetas nuevos, ese incremento es el índice (16 líneas de `import()`), no el contenido: la frontera de ADR-010 aguantó su primer bloque completo sin que un solo ítem entre en un chunk de carga ansiosa. El canario, en verde.
+
+**Nota heredada, sin resolver:** los subtemas de `referencia` se asignaron por coherencia temática, no contra la numeración real de la Cartilla 4. Es verificable contra el material oficial y su corrección sería un renombrado mecánico de un campo.

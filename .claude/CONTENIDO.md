@@ -32,19 +32,27 @@ Aplica a los 9 módulos de C, incluido el piloto C5.
 | c7-nutricion-deportiva | C | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 16 |
 | c8-psicologia-deporte | C | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 16 |
 | c9-dopaje | C | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 16 |
-| d1-conceptualizacion | D | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 15 |
-| d2-carga | D | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 15 (primero del bloque) |
-| d3-fuerza | D | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 15 |
-| d4-resistencia | D | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 15 |
-| d5-velocidad | D | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 15 |
-| d6-flexibilidad | D | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 15 |
-| d7-modelos-planificacion | D | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 15 |
-| d8-estructuras | D | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 15 |
+| d1-conceptualizacion | D | ✅ | ✅ 15 | ✅ 25 | ✅ 4 | ✅ | **Paso 15 — integrado.** Cableado en los dos índices, en `'completo'` y con cuotas de `cuotasDelBloque('D')` en verde (11/8/6 · dif 5/13/7 · 6 tipos). Glosario integrado desde `/tmp/glosario-d1-d2.ts` |
+| d2-carga | D | ✅ | ✅ 15 | ✅ 25 | ✅ 4 | ✅ | **Paso 15 — integrado.** Cuotas en verde (11/8/6 · dif 5/14/6 · 7 tipos, con 4 de cálculo de densidad, tonelaje y carga de sesión). Glosario: se integraron `Carga interna` y `Carga externa`; `Densidad` y `Escala de Borg (RPE)` ya estaban sembrados del paso 6 — **verificado, sin duplicado** |
+| d3-fuerza | D | ✅ | ✅ 15 | ✅ 25 | ✅ 3 | ✅ | **Paso 15 — integrado.** Cuotas en verde (11/8/6 · dif 6/13/6 · los 7 tipos). Cubre DD-010, DD-011 y DD-012. **Referencias remapeadas** a `Tema 3, Subtema 3.1.1–3.1.4`: las suyas colisionaban con d6 en `3.4` |
+| d4-resistencia | D | ✅ | ✅ 15 | ✅ 25 | ✅ 4 | ✅ | **Paso 15 — integrado.** Cuotas en verde (11/8/6 · dif 6/13/6 · los 7 tipos). Sin datos duros propios en `datos-duros.ts`. **Referencias remapeadas** de `Tema 4, Subtema 4.1–4.4` a `Tema 3, Subtema 3.2.1–3.2.4`: colisionaban con d7 en `4.1` y el Tema estaba mal |
+| d5-velocidad | D | ✅ | ✅ 15 | ✅ 25 | ✅ 3 | ✅ | **Paso 15 — integrado.** Cuotas en verde (11/8/6 · dif 6/12/7 · los 7 tipos). Glosario integrado desde `/tmp/glosario-d5-d6.ts` |
+| d6-flexibilidad | D | ✅ | ✅ 15 | ✅ 25 | ✅ 4 | ✅ | **Paso 15 — integrado.** Cuotas en verde (11/8/6 · dif 6/12/7 · los 7 tipos). Glosario integrado desde `/tmp/glosario-d5-d6.ts` |
+| d7-modelos-planificacion | D | ✅ | ✅ 15 | ✅ 25 | ✅ 3 | ✅ | **Paso 15 — integrado.** Cuotas en verde con `CUOTAS` (11/8/6 · dif 6/12/7 · 7 tipos). Glosario integrado desde `/tmp/glosario-d7-d8.ts` |
+| d8-estructuras | D | ✅ | ✅ 15 | ✅ 25 | ✅ 4 | ✅ | **Paso 15 — integrado.** Cuotas en verde con `CUOTAS` (11/8/6 · dif 7/12/6 · 7 tipos). Los 2 ordenar cubren la jerarquía de estructuras y las partes de la sesión. Glosario integrado desde `/tmp/glosario-d7-d8.ts` |
 
-**Total:** 1 de 29 módulos completos · 28 ítems · 15 tarjetas · 22 términos de glosario · 70 datos duros.
+**Total:** 9 de 29 módulos completos (C5 + los 8 del bloque D) · 228 ítems · 135 tarjetas ·
+49 términos de glosario · 70 datos duros.
 
-C5 está cableado en `content/banco/indice.ts` y `content/tarjetas/indice.ts`, en `estadoContenido: 'completo'`,
-y el validador le corre las cuotas de `cuotasDelBloque('C')` en verde.
+C5 y los 8 módulos del bloque D están cableados en `content/banco/indice.ts` y
+`content/tarjetas/indice.ts`, en `estadoContenido: 'completo'`, y el validador les corre las cuotas
+de `cuotasDelBloque(...)` en verde: 28 ítems para C5 (bloque C) y 25 para cada módulo de D.
+
+**Numeración de referencias del bloque D** (fijada al integrar el paso 15, porque los cuatro
+escritores la habían asignado por separado y colisionaba): Tema 1 → d1 · Tema 2 → d2 ·
+**Tema 3 = capacidades físicas** (3.1 fuerza · 3.2 resistencia · 3.3 velocidad · 3.4 flexibilidad) ·
+**Tema 4 = planificación** (4.1 modelos · 4.2 estructuras). Quien escriba un módulo nuevo que cite
+la Cartilla 4 se ciñe a este mapa.
 
 ## EL CRITERIO — ADR-014 · léelo antes de escribir una sola línea
 
@@ -78,10 +86,16 @@ reintroduce el error.
 | Mediana con n par | Promedio de las posiciones **N/2** y **(N/2)+1** de la lista **ordenada**. Ordenar primero es el paso que más se olvida | `a6-estadistica` |
 | Adaptaciones cardiovasculares al entrenamiento de resistencia | ↓FC en reposo · ↑volemia · ↑volumen sistólico · ↑gasto cardíaco máximo. **La FCmáx NO cambia**: depende de la edad, no del estado de forma | `c2-cardiovascular`, `c3-respiratorio-vo2` |
 | Ley 2210 | **23 de mayo de 2022**. Ninguna otra fecha | `d1-conceptualizacion`, `b1-fundamentos-pedagogia` |
+| Test de Cooper | 12 min · **VO₂máx = (metros − 504,9) / 44,73**. Las dos constantes van juntas y la distancia entra **en metros**: en kilómetros el resultado sale negativo. Es estimación indirecta de ritmo libre, así que la dosificación del evaluado forma parte de la prueba | `c3-respiratorio-vo2`, escrito ya en `d4-resistencia` |
+| Course Navette | 20 m entre líneas · arranca en **8,5 km/h** y sube **0,5 km/h** por palier de 1 min → velocidad = 8,5 + 0,5 × (palier − 1). El incremento de 1 km/h que a veces se ve acortaría el test a la mitad de paliers | `c3-respiratorio-vo2`, escrito ya en `d4-resistencia` |
+| Potencia máxima y carga | **P = F × v**, así que el máximo de potencia cae con **cargas medias**, no con el 1RM: con la carga máxima la velocidad se desploma y el producto con ella. Por eso el trabajo explosivo se prescribe por velocidad de ejecución, no por peso | `c6-biomecanica`, escrito ya en `d3-fuerza` y `d5-velocidad` |
+| Estimación indirecta del 1RM | Epley `peso × (1 + reps/30)` y Brzycki `peso / (1,0278 − 0,0278 × reps)` coinciden hasta unas **10 repeticiones** y se separan por encima (60 kg × 12 → 84 vs 86,4 kg). Más repeticiones dan **menos** precisión, no más | escrito ya en `d3-fuerza` |
 
 El glosario y los datos duros se sembraron en el paso 6 desde §9.4–§9.5 (transcripción del
-blueprint, no contenido de autor). Solo **c5** queda con sus `conceptosClave` cubiertos al 100 %; el resto de
-módulos tiene cobertura parcial y su columna Glosario se cierra al escribir el módulo.
+blueprint, no contenido de autor). **Tras el paso 15, los 9 módulos completos —c5 y los ocho del
+bloque D— tienen sus `conceptosClave` cubiertos al 100 %**, que es lo que el validador exige para
+marcarlos `'completo'`. Los 20 en preparación tienen cobertura parcial y su columna Glosario se
+cierra al escribir el módulo.
 
 Orden de producción (por densidad de retorno, no alfabético):
 C5 (paso 8) → bloque D (paso 15) → resto del bloque C (paso 16) → bloque B y bloque A (paso 17).
