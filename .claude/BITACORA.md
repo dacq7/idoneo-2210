@@ -2262,3 +2262,27 @@ Cerrados con `censo.test.ts` (8) y `controlador-simulacro.test.tsx` (5). Los tre
 **Peso tras la revisión:** `/plan` 135.3 kB gz de JS y **4 657 B gz** de carga útil RSC. `/diagnostico` 150.3, igual que los simulacros porque es el mismo controlador.
 
 Suite **651** (636 → 651).
+
+---
+
+## Paso 14 — Punto de corte usable — 2026-07-31
+
+**Estado:** ✅ Completado · **Rama:** `paso-14-esqueleto`
+
+**Es el paso que hace la app compartible.** Después de él se le puede mandar el enlace a alguien que no sepa nada del proyecto y que la app le explique sola qué es, qué hay y qué falta.
+
+**Archivos creados:** `src/components/inicio/{panel-inicio,tarjeta-continuar,racha,resumen-inicio}.tsx`, `src/components/modulo/orden-publicacion.tsx`, `src/components/inicio/__tests__/panel-inicio.test.tsx` (12 tests).
+**Reemplazado:** `src/app/page.tsx` (la portada provisional del Paso 5).
+**Borrados:** los 5 SVG de create-next-app. `public/` queda **vacío** hasta el 18.1.
+
+**Compuertas:** typecheck · lint · **663 tests** (651 → 663) · build 136 páginas · canario · validar.
+
+**La decisión del paso (ADR-027): `/plan` y `/diagnostico` entran por la portada.** Añadirlos a la barra habría reabierto **A-01**, un fallo AA serio que costó una desviación de maquetación cerrar: a 200 % de zoom las cinco celdas ya están en 38 px, y una sexta las deja en ~31. La portada es el destino «Inicio» de esa misma barra, así que no se pierde nada — y de paso deja de ser una pantalla de bienvenida para ser el **hub** que decide qué toca ahora.
+
+**Un defecto que encontró su propio test.** La prioridad de «continuar donde ibas» tiene seis escalones, y los escalones 4 y 6 eran **inalcanzables**: el escalón 3 ofrece el módulo del plan de hoy, y el plan sigue incluyendo los módulos dominados —decisión deliberada del Paso 13, porque repasarlos vale algo—. Así que con C5 dominado la portada mandaba a reestudiarlo en vez de ofrecer la cola de repaso vencida. Corregido: el escalón 3 se salta el módulo del día si ya está dominado. **Lo que está a punto de olvidarse gana a lo que ya se sabe.**
+
+**El «cuándo llega» de los estados vacíos.** Faltaba la tercera pregunta del estado vacío honesto —qué falta, **cuándo llega**, qué se puede hacer hoy—. No hay fecha comprometida y inventarla sería mentir justo en la pantalla que existe para no hacerlo, así que se da lo que sí está decidido: el **orden de producción** de §14.4 (C5 → D → resto de C → B → A). Quien mira un módulo del bloque D sabe que el suyo es lo siguiente; quien mira uno del A sabe que va al final y puede planificar. Más útil que un «pronto» y más honesto que una fecha.
+
+**Peso — js gz por ruta.** `/page` sube de **102.8 a 136.5 kB gz**, y es esperado: la portada pasó de HTML estático a Client Component con estado, plan y SRS. Queda por debajo de las rutas de sesión (144–150) y del layout más su propio código. El resto no se movió.
+
+**Lo que queda para el 18:** `public/` vacío espera los iconos de la PWA, y `/ajustes` sigue en 404 — la portada, a diferencia del pie y de `DESTINOS`, **no** enlaza ahí.
