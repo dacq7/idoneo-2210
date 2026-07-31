@@ -1,0 +1,560 @@
+// content/banco/a4-nutrientes.ts
+// Bloque A · Módulo 4 — Macronutrientes y micronutrientes.
+//
+// 25 ítems. Reparto exigido por verificarCuotas con n = 25:
+//   nivel      → 11 recuerdo (44 %) · 8 comprensión (32 %) · 6 aplicación (24 %)
+//   dificultad → 6 de nivel 1 · 13 de nivel 2 · 6 de nivel 3
+//   tipos      → 11 única · 4 emparejar · 3 múltiple · 3 caso · 2 cálculo · 2 V/F
+//
+// Los dos ítems de cálculo salen del único dato cuantitativo del módulo, que sí
+// es una fórmula real: 4 kcal/g para carbohidratos y proteínas y 9 kcal/g para
+// las grasas.
+//
+// ADR-014 · el punto verificado: «vegetales de hoja verde» es el descriptor del
+// folato (B9), no de la riboflavina (B2), cuyo sello exclusivo es inactivarse
+// con la luz.
+//
+// Los ítems son datos literales: nunca se generan con map(), plantillas ni
+// funciones auxiliares.
+import type { Item } from '@/lib/tipos';
+
+export const ITEMS: Item[] = [
+  {
+    id: 'A4-001',
+    modulo: 'a4-nutrientes',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: '¿Cuánta energía aporta un gramo de grasa?',
+    opciones: [
+      '9 kcal',
+      '4 kcal, la misma cantidad que aporta un gramo de proteína',
+      '7 kcal, un valor intermedio entre el resto de macronutrientes',
+      '12 kcal, por ser el sustrato energético más denso del organismo',
+    ],
+    correcta: 0,
+    explicacion:
+      'La grasa aporta 9 kcal por gramo, más del doble que los carbohidratos y las proteínas, que aportan 4. El distractor más tentador es el segundo, porque el 4 es la cifra que se repite en dos de los tres macronutrientes y acaba pegándose al tercero. Esa diferencia explica por qué la grasa es el sustrato de reserva: almacenar energía como grasa ocupa menos que como glucógeno. Dato para recordar: 4, 4 y 9.',
+    referencia: 'Cartilla 1, Tema 3, Subtema 3.3 — Lípidos',
+    etiquetas: ['grasas', 'energía', 'macronutrientes'],
+  },
+  {
+    id: 'A4-002',
+    modulo: 'a4-nutrientes',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: '¿Qué es un monosacárido?',
+    opciones: [
+      'Un carbohidrato formado por una sola unidad, como la glucosa',
+      'Un carbohidrato formado por dos unidades unidas entre sí',
+      'Un carbohidrato de cadena larga que sirve como reserva energética',
+      'Un carbohidrato estructural que el ser humano no puede digerir',
+    ],
+    correcta: 0,
+    explicacion:
+      'El monosacárido es la unidad más simple del carbohidrato: glucosa, fructosa y galactosa. Los tres distractores describen disacárido, polisacárido de reserva y fibra respectivamente. El más tentador es el segundo, porque los prefijos mono y di se confunden al leer deprisa y ambos designan carbohidratos simples. Dato para recordar: mono es uno, di es dos y poli son muchos.',
+    referencia: 'Cartilla 1, Tema 3, Subtema 3.1 — Carbohidratos',
+    etiquetas: ['monosacárido', 'carbohidratos', 'definición'],
+  },
+  {
+    id: 'A4-003',
+    modulo: 'a4-nutrientes',
+    bloque: 'A',
+    tipo: 'emparejar',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: 'Relacione cada disacárido con los monosacáridos que lo forman.',
+    izquierda: ['Sacarosa', 'Lactosa', 'Maltosa', 'Glucógeno'],
+    derecha: [
+      'Glucosa + fructosa',
+      'Glucosa + galactosa',
+      'Glucosa + glucosa',
+      'Muchas unidades de glucosa: no es un disacárido, es un polisacárido',
+    ],
+    pares: [
+      [0, 0],
+      [1, 1],
+      [2, 2],
+      [3, 3],
+    ],
+    explicacion:
+      'Los tres disacáridos comparten la glucosa y se distinguen por el segundo componente: fructosa en la sacarosa, galactosa en la lactosa y otra glucosa en la maltosa. El glucógeno aparece en la lista como control, porque también está hecho de glucosa y no es un disacárido sino la reserva animal. Dato para recordar: la lactosa es el azúcar de la leche y la sacarosa el de mesa.',
+    referencia: 'Cartilla 1, Tema 3, Subtema 3.1 — Carbohidratos',
+    etiquetas: ['disacáridos', 'sacarosa', 'lactosa', 'clasificación'],
+  },
+  {
+    id: 'A4-004',
+    modulo: 'a4-nutrientes',
+    bloque: 'A',
+    tipo: 'vf',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: 'El glucógeno es el polisacárido de reserva de las plantas.',
+    correcta: false,
+    explicacion:
+      'Falso: está cambiado. El glucógeno es la reserva de los animales y se almacena en el hígado y en el músculo, mientras que la reserva de las plantas es el almidón. Los dos están hechos de glucosa, y esa es la razón de que se confundan. La celulosa también es de glucosa, pero no es reserva sino estructura, y el ser humano no puede digerirla. Dato para recordar: almidón vegetal, glucógeno animal.',
+    referencia: 'Cartilla 1, Tema 3, Subtema 3.1 — Carbohidratos',
+    etiquetas: ['glucógeno', 'almidón', 'polisacáridos'],
+  },
+  {
+    id: 'A4-005',
+    modulo: 'a4-nutrientes',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: '¿Cuántos aminoácidos esenciales existen?',
+    opciones: [
+      'Nueve',
+      'Veinte, que son todos los que forman parte de las proteínas',
+      'Once, los que el organismo sí puede sintetizar por su cuenta',
+      'Cuatro, uno por cada tipo de estructura proteica conocida',
+    ],
+    correcta: 0,
+    explicacion:
+      'De los veinte aminoácidos que forman las proteínas, nueve son esenciales, es decir que el organismo no puede fabricarlos y deben llegar con la dieta. El distractor más tentador es el segundo, porque veinte es la otra cifra del tema y se sustituye con facilidad; y el tercero da la cifra complementaria, los once no esenciales. Dato para recordar: esencial significa que hay que comerlo, no que sea más importante.',
+    referencia: 'Cartilla 1, Tema 3, Subtema 3.2 — Proteínas',
+    etiquetas: ['aminoácidos esenciales', 'proteínas', 'definición'],
+  },
+  {
+    id: 'A4-006',
+    modulo: 'a4-nutrientes',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: '¿Cuáles son las cuatro vitaminas liposolubles?',
+    opciones: [
+      'A, D, E y K',
+      'B1, B2, B9 y B12, todas del complejo B',
+      'A, C, D y K, por su intervención en el hueso',
+      'C, E, B6 y B12, por su función antioxidante',
+    ],
+    correcta: 0,
+    explicacion:
+      'Las liposolubles son A, D, E y K, y su rasgo decisivo es que se acumulan en el organismo, de modo que un exceso puede resultar tóxico. Todas las demás —el complejo B y la vitamina C— son hidrosolubles y se eliminan por la orina. Los distractores mezclan vitaminas de los dos grupos, y el más tentador es el tercero, porque incluye tres liposolubles reales y cuela la C. Dato para recordar: A, D, E, K y nada más.',
+    referencia: 'Cartilla 1, Tema 3, Subtema 3.4 — Vitaminas',
+    etiquetas: ['vitaminas liposolubles', 'vitaminas', 'clasificación'],
+  },
+  {
+    id: 'A4-007',
+    modulo: 'a4-nutrientes',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: '¿Qué mide el valor biológico de una proteína?',
+    opciones: [
+      'Su calidad: qué aminoácidos esenciales aporta, en qué proporción y con qué digestibilidad',
+      'La cantidad total de proteína que contiene el alimento por cada cien gramos',
+      'La energía que aporta esa proteína al ser oxidada por el organismo',
+      'La velocidad con la que el organismo absorbe esa proteína tras la ingesta',
+    ],
+    correcta: 0,
+    explicacion:
+      'El valor biológico es una medida de calidad, no de cantidad: valora el perfil de aminoácidos esenciales y la digestibilidad. El distractor más tentador es el segundo, porque en el habla corriente «proteína de calidad» se confunde con «alimento rico en proteína», y son cosas distintas: una legumbre puede tener mucha proteína de bajo valor biológico. Dato para recordar: valor biológico es qué aporta, no cuánto.',
+    referencia: 'Cartilla 1, Tema 3, Subtema 3.2 — Proteínas',
+    etiquetas: ['valor biológico', 'proteínas', 'calidad proteica'],
+  },
+  {
+    id: 'A4-008',
+    modulo: 'a4-nutrientes',
+    bloque: 'A',
+    tipo: 'emparejar',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: 'Relacione cada tipo de grasa con su rasgo característico.',
+    izquierda: ['Saturada', 'Monoinsaturada', 'Poliinsaturada', 'Trans'],
+    derecha: [
+      'Sin dobles enlaces; sólida a temperatura ambiente',
+      'Un solo doble enlace; abunda en el aceite de oliva',
+      'Dos o más dobles enlaces; incluye omega-3 y omega-6',
+      'Configuración trans, sobre todo industrial: sube el LDL y baja el HDL',
+    ],
+    pares: [
+      [0, 0],
+      [1, 1],
+      [2, 2],
+      [3, 3],
+    ],
+    explicacion:
+      'La clasificación se apoya en el número de dobles enlaces, y la trans se separa por la configuración espacial de esos enlaces más que por su cantidad. El par que más se falla es saturada con trans, porque las dos se asocian a un efecto desfavorable: las saturadas se moderan y las trans se evitan, porque estas hacen las dos cosas malas a la vez. Dato para recordar: sin dobles enlaces es saturada; con dobles enlaces retorcidos, trans.',
+    referencia: 'Cartilla 1, Tema 3, Subtema 3.3 — Lípidos',
+    etiquetas: ['grasas', 'grasa trans', 'clasificación'],
+  },
+  {
+    id: 'A4-009',
+    modulo: 'a4-nutrientes',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: '¿Qué vitamina se inactiva con la luz?',
+    opciones: [
+      'La B2 o riboflavina, y por eso la leche se envasa en recipientes opacos',
+      'La B9 o folato, característica de los vegetales de hoja verde',
+      'La D, que en cambio se sintetiza en la piel gracias a la luz solar',
+      'La C, que se pierde por completo al exponer el alimento al aire',
+    ],
+    correcta: 0,
+    explicacion:
+      'La riboflavina se degrada con la luz, y ese es su sello inconfundible: el envase opaco de la leche existe por ella. El distractor más tentador es el tercero, porque también relaciona una vitamina con la luz, pero en sentido contrario: la D se sintetiza gracias a la radiación solar. Y la B9 se identifica por su fuente, no por su sensibilidad. Dato para recordar: la B2 la destruye la luz y la D la crea.',
+    referencia: 'Cartilla 1, Tema 3, Subtema 3.4 — Vitaminas',
+    etiquetas: ['riboflavina', 'vitamina B2', 'vitaminas'],
+  },
+  {
+    id: 'A4-010',
+    modulo: 'a4-nutrientes',
+    bloque: 'A',
+    tipo: 'multiple',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: 'Seleccione los TRES alimentos de proteína de alto valor biológico.',
+    opciones: [
+      'Huevo',
+      'Leche y sus derivados',
+      'Pescado',
+      'Lentejas y otras legumbres',
+      'Arroz y otros cereales',
+    ],
+    correctas: [0, 1, 2],
+    explicacion:
+      'Huevo, leche y pescado aportan todos los aminoácidos esenciales en proporción adecuada, igual que la carne. Legumbres y cereales son de bajo valor biológico porque a las primeras les escasea la metionina y a los segundos la lisina. Eso no las convierte en malas proteínas: combinadas entre sí dan una proteína completa. Dato para recordar: bajo valor biológico significa incompleta por sí sola, no de mala calidad.',
+    referencia: 'Cartilla 1, Tema 3, Subtema 3.2 — Proteínas',
+    etiquetas: ['valor biológico', 'proteínas', 'alimentos'],
+  },
+  {
+    id: 'A4-011',
+    modulo: 'a4-nutrientes',
+    bloque: 'A',
+    tipo: 'emparejar',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: 'Relacione cada mineral con su función principal.',
+    izquierda: ['Calcio', 'Hierro', 'Potasio', 'Zinc'],
+    derecha: [
+      'Mineralización del hueso y contracción muscular',
+      'Forma parte de la hemoglobina y transporta oxígeno',
+      'Equilibrio hidroelectrolítico y potencial de membrana',
+      'Inmunidad y síntesis proteica',
+    ],
+    pares: [
+      [0, 0],
+      [1, 1],
+      [2, 2],
+      [3, 3],
+    ],
+    explicacion:
+      'Los cuatro se distinguen bien salvo el calcio, al que suele atribuirse solo la función ósea: también interviene en la contracción muscular, y ese es el papel que reaparece en el bloque C con el retículo sarcoplásmico. El potasio se empareja habitualmente con el sodio, porque los dos gobiernan el equilibrio hidroelectrolítico y el potencial de membrana. Dato para recordar: el calcio no solo construye hueso, también contrae músculo.',
+    referencia: 'Cartilla 1, Tema 3, Subtema 3.5 — Minerales',
+    etiquetas: ['minerales', 'calcio', 'hierro', 'clasificación'],
+  },
+  {
+    id: 'A4-012',
+    modulo: 'a4-nutrientes',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado:
+      '¿Por qué la combinación de legumbre y cereal produce una proteína de calidad completa?',
+    opciones: [
+      'Porque a la legumbre le escasea la metionina y al cereal la lisina, y cada uno aporta lo que al otro le falta',
+      'Porque la suma de las dos alcanza la cantidad total de proteína que exige la dieta diaria',
+      'Porque el cereal mejora la digestibilidad de la legumbre y reduce su contenido en fibra',
+      'Porque la legumbre aporta los nueve aminoácidos esenciales y el cereal aporta la energía',
+    ],
+    correcta: 0,
+    explicacion:
+      'La complementación funciona porque los perfiles de aminoácidos son distintos y se compensan: la legumbre es pobre en metionina y el cereal en lisina, así que juntos completan el perfil. El distractor más tentador es el segundo, porque confunde calidad con cantidad, que es exactamente la distinción que mide el valor biológico. Dato para recordar: arroz con lentejas y frijoles con maíz no son costumbres caprichosas.',
+    referencia: 'Cartilla 1, Tema 3, Subtema 3.2 — Proteínas',
+    etiquetas: ['complementación', 'valor biológico', 'proteínas'],
+  },
+  {
+    id: 'A4-013',
+    modulo: 'a4-nutrientes',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado:
+      '¿Por qué el exceso de vitaminas liposolubles puede resultar tóxico y el de hidrosolubles no suele serlo?',
+    opciones: [
+      'Porque las liposolubles se acumulan en el organismo y las hidrosolubles se eliminan por la orina',
+      'Porque las liposolubles se absorben más rápido y alcanzan concentraciones altas en sangre',
+      'Porque las hidrosolubles se destruyen durante la digestión antes de llegar a la sangre',
+      'Porque las liposolubles requieren dosis mayores para cumplir su función biológica',
+    ],
+    correcta: 0,
+    explicacion:
+      'La diferencia está en el destino del exceso: lo liposoluble se almacena en los depósitos grasos y lo hidrosoluble se excreta con la orina. De ahí la consecuencia práctica de que suplementar A, D, E o K sin control pueda hacer daño, mientras que un exceso de vitamina C se pierde. El distractor más tentador es el segundo, porque también habla de concentración; la velocidad de absorción no explica la acumulación. Dato para recordar: lo que se acumula es lo que puede intoxicar.',
+    referencia: 'Cartilla 1, Tema 3, Subtema 3.4 — Vitaminas',
+    etiquetas: ['vitaminas liposolubles', 'toxicidad', 'suplementación'],
+  },
+  {
+    id: 'A4-014',
+    modulo: 'a4-nutrientes',
+    bloque: 'A',
+    tipo: 'calculo',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado:
+      'Una ración contiene 60 g de carbohidratos, 20 g de proteína y 10 g de grasa. Calcule su aporte energético total.',
+    respuesta: 410,
+    tolerancia: 2,
+    unidad: 'kcal',
+    pasos: [
+      'Carbohidratos: 60 g × 4 kcal/g = 240 kcal',
+      'Proteína: 20 g × 4 kcal/g = 80 kcal',
+      'Grasa: 10 g × 9 kcal/g = 90 kcal',
+      'Total = 240 + 80 + 90 = 410 kcal',
+    ],
+    explicacion:
+      'El cálculo exige aplicar el factor correcto a cada macronutriente, y el error habitual es usar 4 kcal/g también para la grasa, lo que daría 360 kcal y subestimaría la ración en 50. Conviene fijarse en que los 10 g de grasa aportan más energía que los 20 g de proteína, precisamente por su densidad. Dato para recordar: la grasa aporta más del doble por gramo, así que pesa mucho aunque su cifra en gramos sea pequeña.',
+    referencia: 'Cartilla 1, Tema 3, Subtema 3.3 — Lípidos',
+    etiquetas: ['energía', 'macronutrientes', 'cálculo'],
+  },
+  {
+    id: 'A4-015',
+    modulo: 'a4-nutrientes',
+    bloque: 'A',
+    tipo: 'vf',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado:
+      'Las grasas saturadas y las grasas trans merecen la misma recomendación de consumo.',
+    correcta: false,
+    explicacion:
+      'Falso. Las saturadas se moderan, porque su exceso eleva el colesterol LDL; las trans se evitan en la medida de lo posible, porque hacen las dos cosas desfavorables a la vez: suben el LDL y además bajan el HDL. Tratarlas igual borra la distinción que el examen pregunta. Dato para recordar: la trans es la única grasa cuya recomendación es «lo más bajo posible», no «con moderación».',
+    referencia: 'Cartilla 1, Tema 3, Subtema 3.3 — Lípidos',
+    etiquetas: ['grasa trans', 'grasas saturadas', 'colesterol'],
+  },
+  {
+    id: 'A4-016',
+    modulo: 'a4-nutrientes',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado:
+      'Un enunciado ofrece «vegetales de hoja verde» como fuente característica de una vitamina. ¿A cuál apunta?',
+    opciones: [
+      'Al folato o vitamina B9, cuyo nombre viene precisamente del latín folium, hoja',
+      'A la riboflavina o vitamina B2, presente sobre todo en verduras de color intenso',
+      'A la vitamina B12, que abunda en las hojas verdes y en las legumbres frescas',
+      'A la vitamina D, que las hojas verdes sintetizan al recibir la luz solar directa',
+    ],
+    correcta: 0,
+    explicacion:
+      'Los vegetales de hoja verde son el descriptor icónico del folato, y su propio nombre lo delata. El distractor más tentador es el segundo, porque la riboflavina se estudia junto al folato dentro del complejo B: sus fuentes son lácteos, huevos, carne magra, almendras e hígado, y su sello es inactivarse con la luz. La B12 solo está en alimentos de origen animal, y la D no procede de vegetales. Dato para recordar: folium es hoja.',
+    referencia: 'Cartilla 1, Tema 3, Subtema 3.4 — Vitaminas',
+    etiquetas: ['folato', 'riboflavina', 'vitaminas'],
+  },
+  {
+    id: 'A4-017',
+    modulo: 'a4-nutrientes',
+    bloque: 'A',
+    tipo: 'multiple',
+    nivel: 'comprension',
+    dificultad: 3,
+    enunciado: 'Seleccione las DOS afirmaciones correctas sobre la celulosa.',
+    opciones: [
+      'Es un polisacárido de función estructural en las plantas',
+      'El ser humano no puede digerirla y constituye fibra alimentaria',
+      'Es el polisacárido de reserva de las plantas, equivalente al glucógeno animal',
+      'Está formada por unidades de fructosa unidas en cadena larga',
+      'Aporta 9 kcal por gramo al no poder ser degradada en el intestino',
+    ],
+    correctas: [0, 1],
+    explicacion:
+      'La celulosa es estructural y no digerible por el ser humano, y ese es justamente su valor: llega intacta al intestino y actúa como fibra. La tercera opción la confunde con el almidón, que sí es la reserva vegetal. La cuarta se equivoca de monosacárido, porque la celulosa es de glucosa igual que el almidón y el glucógeno. Y la quinta le atribuye el aporte de la grasa. Dato para recordar: los tres son de glucosa y solo dos son reserva.',
+    referencia: 'Cartilla 1, Tema 3, Subtema 3.1 — Carbohidratos',
+    etiquetas: ['celulosa', 'fibra', 'polisacáridos'],
+  },
+  {
+    id: 'A4-018',
+    modulo: 'a4-nutrientes',
+    bloque: 'A',
+    tipo: 'caso',
+    nivel: 'comprension',
+    dificultad: 3,
+    viñeta:
+      'Una deportista sigue una dieta vegana estricta desde hace dos años. Su analítica muestra hemoglobina en el límite bajo y un déficit claro de una vitamina que su médico atribuye directamente al patrón alimentario, sin relación con la absorción intestinal.',
+    enunciado: '¿De qué vitamina se trata y por qué?',
+    opciones: [
+      'De la B12, porque solo está presente en alimentos de origen animal',
+      'De la B9 o folato, porque su fuente principal son los alimentos de origen animal',
+      'De la vitamina C, porque las dietas vegetales aportan cantidades insuficientes',
+      'De la vitamina K, porque su síntesis depende del consumo de carne y pescado',
+    ],
+    correcta: 0,
+    explicacion:
+      'La B12 solo se encuentra en alimentos de origen animal, así que una dieta vegana estricta necesita suplementarla; su déficit afecta además a la formación de glóbulos rojos, lo que encaja con la hemoglobina baja. El distractor más tentador es el segundo, porque también es del complejo B: el folato abunda precisamente en vegetales de hoja verde, así que una dieta vegetal lo cubre de sobra. Dato para recordar: la B12 es la excepción animal del complejo B.',
+    referencia: 'Cartilla 1, Tema 3, Subtema 3.4 — Vitaminas',
+    etiquetas: ['vitamina B12', 'dieta vegana', 'folato'],
+  },
+  {
+    id: 'A4-019',
+    modulo: 'a4-nutrientes',
+    bloque: 'A',
+    tipo: 'emparejar',
+    nivel: 'comprension',
+    dificultad: 3,
+    enunciado: 'Relacione cada vitamina con su función.',
+    izquierda: ['Vitamina D', 'Vitamina K', 'Vitamina C', 'Vitamina B1 (tiamina)'],
+    derecha: [
+      'Absorción de calcio y salud ósea; se sintetiza en la piel con la luz solar',
+      'Coagulación de la sangre',
+      'Síntesis de colágeno y función antioxidante',
+      'Metabolismo de los carbohidratos',
+    ],
+    pares: [
+      [0, 0],
+      [1, 1],
+      [2, 2],
+      [3, 3],
+    ],
+    explicacion:
+      'Las dos primeras son liposolubles y las dos últimas hidrosolubles, lo que ya ordena la mitad del emparejamiento. El error más frecuente es atribuir a la vitamina D la función antioxidante, que corresponde a la E y a la C, y olvidar que la K se identifica sin ambigüedad por la coagulación. La C tiene además un papel indirecto que conviene retener: mejora la absorción del hierro no hemo.',
+    referencia: 'Cartilla 1, Tema 3, Subtema 3.4 — Vitaminas',
+    etiquetas: ['vitaminas', 'vitamina D', 'vitamina K', 'clasificación'],
+  },
+  {
+    id: 'A4-020',
+    modulo: 'a4-nutrientes',
+    bloque: 'A',
+    tipo: 'calculo',
+    nivel: 'aplicacion',
+    dificultad: 2,
+    enunciado:
+      'Un deportista de 70 kg debe consumir 6 g de carbohidratos por kilogramo de peso al día. ¿Cuántas kilocalorías aportará ese carbohidrato?',
+    respuesta: 1680,
+    tolerancia: 10,
+    unidad: 'kcal',
+    pasos: [
+      'Carbohidrato diario = 6 g/kg × 70 kg = 420 g',
+      'Cada gramo de carbohidrato aporta 4 kcal',
+      'Energía = 420 g × 4 kcal/g = 1680 kcal',
+    ],
+    explicacion:
+      'El cálculo tiene dos pasos y el error habitual es quedarse en el primero, dando 420 como respuesta: eso son gramos, no kilocalorías. El otro fallo frecuente es aplicar 9 kcal/g por arrastre del factor de la grasa. Conviene además leer el resultado con criterio: 1680 kcal solo de carbohidrato indican que la ingesta total será bastante mayor. Dato para recordar: gramos por kilo primero, factor energético después.',
+    referencia: 'Cartilla 1, Tema 3, Subtema 3.1 — Carbohidratos',
+    etiquetas: ['carbohidratos', 'cálculo', 'energía', 'aplicación'],
+  },
+  {
+    id: 'A4-021',
+    modulo: 'a4-nutrientes',
+    bloque: 'A',
+    tipo: 'caso',
+    nivel: 'aplicacion',
+    dificultad: 2,
+    viñeta:
+      'Un entrenador revisa la comida de un jugador vegetariano: lentejas con verduras salteadas y una infusión. El jugador viene arrastrando valores de ferritina bajos y quiere mejorar el aprovechamiento del hierro de esa comida sin cambiar el plato principal.',
+    enunciado: '¿Qué ajuste sencillo corresponde proponer?',
+    opciones: [
+      'Añadir una fuente de vitamina C a la misma comida, como pimiento o un cítrico de postre',
+      'Aumentar la ración de lentejas para compensar la menor absorción del hierro vegetal',
+      'Sustituir la infusión por un lácteo, que aporta el calcio necesario para fijar el hierro',
+      'Repartir las lentejas en dos comidas del día para no saturar la capacidad de absorción',
+    ],
+    correcta: 0,
+    explicacion:
+      'El hierro de las lentejas es no hemo y se absorbe peor que el de origen animal, pero la vitamina C consumida en la misma comida mejora notablemente esa absorción: es el ajuste más barato y no toca el plato. El distractor más tentador es el segundo, porque aumentar la cantidad parece la solución directa; comer más de un hierro mal absorbido rinde poco. Dato para recordar: lentejas con pimiento no es una combinación caprichosa.',
+    referencia: 'Cartilla 1, Tema 3, Subtema 3.5 — Minerales',
+    etiquetas: ['hierro', 'vitamina C', 'absorción', 'aplicación'],
+  },
+  {
+    id: 'A4-022',
+    modulo: 'a4-nutrientes',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'aplicacion',
+    dificultad: 3,
+    enunciado:
+      'Un deportista quiere reducir la grasa de peor perfil de su dieta. ¿Qué alimento debería retirar primero?',
+    opciones: [
+      'La bollería elaborada con grasas parcialmente hidrogenadas',
+      'El aceite de oliva que emplea para aliñar y para cocinar a diario',
+      'El pescado azul que consume dos veces por semana en la cena',
+      'Los frutos secos que toma como recurso a media mañana',
+    ],
+    correcta: 0,
+    explicacion:
+      'La hidrogenación parcial es el origen industrial de las grasas trans, que son las de peor perfil porque suben el LDL y bajan el HDL a la vez. Los tres distractores aportan grasas favorables: el aceite de oliva es monoinsaturado, y pescado azul y frutos secos aportan poliinsaturados, entre ellos los esenciales. El más tentador es el último, porque los frutos secos tienen mucha grasa y se confunde cantidad con calidad. Dato para recordar: si el etiquetado dice parcialmente hidrogenado, es trans.',
+    referencia: 'Cartilla 1, Tema 3, Subtema 3.3 — Lípidos',
+    etiquetas: ['grasa trans', 'grasas insaturadas', 'aplicación'],
+  },
+  {
+    id: 'A4-023',
+    modulo: 'a4-nutrientes',
+    bloque: 'A',
+    tipo: 'caso',
+    nivel: 'aplicacion',
+    dificultad: 3,
+    viñeta:
+      'Un jugador vegetariano quiere asegurar la calidad de la proteína de sus comidas sin recurrir a suplementos. Hoy almuerza únicamente un plato grande de garbanzos con verduras, y por la noche solo arroz con verduras.',
+    enunciado: '¿Qué corrección de reparto corresponde sugerirle?',
+    opciones: [
+      'Combinar legumbre y cereal en la misma comida, porque sus perfiles de aminoácidos se complementan',
+      'Aumentar la ración de garbanzos del almuerzo, porque la legumbre ya aporta todos los esenciales',
+      'Sustituir el arroz por más verdura, porque el cereal no aporta proteína aprovechable',
+      'Consumir la proteína solo en el almuerzo, porque el organismo no la aprovecha por la noche',
+    ],
+    correcta: 0,
+    explicacion:
+      'A la legumbre le escasea la metionina y al cereal la lisina, así que juntarlos en la misma comida da una proteína de perfil completo: garbanzos con arroz resuelve lo que ninguno de los dos resuelve por separado. El distractor más tentador es el segundo, porque parte de una idea extendida y falsa, ya que la legumbre no aporta todos los esenciales en proporción adecuada. Dato para recordar: la complementación es de perfiles, no de cantidades.',
+    referencia: 'Cartilla 1, Tema 3, Subtema 3.2 — Proteínas',
+    etiquetas: ['complementación', 'valor biológico', 'dieta vegetariana', 'aplicación'],
+  },
+  {
+    id: 'A4-024',
+    modulo: 'a4-nutrientes',
+    bloque: 'A',
+    tipo: 'multiple',
+    nivel: 'aplicacion',
+    dificultad: 3,
+    enunciado:
+      'Un entrenador revisa la suplementación de su grupo. Seleccione las DOS vitaminas cuyo exceso exige más precaución.',
+    opciones: [
+      'La vitamina A',
+      'La vitamina D',
+      'La vitamina C',
+      'La vitamina B1 o tiamina',
+      'La vitamina B9 o folato',
+    ],
+    correctas: [0, 1],
+    explicacion:
+      'A y D son liposolubles, se acumulan en el organismo y por eso su exceso puede resultar tóxico; suplementarlas sin control tiene riesgo real. Las otras tres son hidrosolubles y el excedente se elimina por la orina, lo que no las hace inocuas en cualquier dosis pero sí mucho menos problemáticas. El distractor más tentador es la C, porque es la más suplementada de todas. Dato para recordar: el riesgo lo marca la solubilidad, no la popularidad del suplemento.',
+    referencia: 'Cartilla 1, Tema 3, Subtema 3.4 — Vitaminas',
+    etiquetas: ['vitaminas liposolubles', 'suplementación', 'toxicidad', 'aplicación'],
+  },
+  {
+    id: 'A4-025',
+    modulo: 'a4-nutrientes',
+    bloque: 'A',
+    tipo: 'emparejar',
+    nivel: 'aplicacion',
+    dificultad: 2,
+    enunciado: 'Relacione cada alimento con el nutriente del que es fuente característica.',
+    izquierda: ['Leche en envase opaco', 'Espinaca y acelga', 'Aceite de oliva', 'Pescado azul'],
+    derecha: [
+      'Riboflavina (B2), que se inactiva con la luz',
+      'Folato (B9), la vitamina de la hoja verde',
+      'Grasa monoinsaturada',
+      'Ácidos grasos omega-3',
+    ],
+    pares: [
+      [0, 0],
+      [1, 1],
+      [2, 2],
+      [3, 3],
+    ],
+    explicacion:
+      'Los dos primeros pares son los que el examen cruza: la hoja verde apunta al folato y la leche a la riboflavina, cuyo envase opaco existe precisamente porque la luz la destruye. Los dos últimos separan las grasas por tipo, con el aceite de oliva como monoinsaturado de referencia y el pescado azul como fuente de omega-3, que es poliinsaturado y esencial. Dato para recordar: cada alimento de la lista lleva una pista escrita en su propia descripción.',
+    referencia: 'Cartilla 1, Tema 3, Subtema 3.4 — Vitaminas',
+    etiquetas: ['riboflavina', 'folato', 'omega-3', 'clasificación'],
+  },
+];

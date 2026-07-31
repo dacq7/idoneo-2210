@@ -98,7 +98,7 @@ export const MODULOS: Modulo[] = [
     ],
     conceptosClave: ['Célula procariota', 'Célula eucariota', 'Mitosis', 'Meiosis', 'Orgánulo'],
     prerequisitos: [],
-    estadoContenido: 'en-preparacion',
+    estadoContenido: 'completo',
   },
   {
     slug: 'a2-terminologia-anatomica',
@@ -114,7 +114,7 @@ export const MODULOS: Modulo[] = [
     ],
     conceptosClave: ['Posición anatómica', 'Plano sagital', 'Plano frontal', 'Plano transversal', 'Abducción'],
     prerequisitos: [],
-    estadoContenido: 'en-preparacion',
+    estadoContenido: 'completo',
   },
   {
     slug: 'a3-tejidos-organos-sistemas',
@@ -131,7 +131,7 @@ export const MODULOS: Modulo[] = [
     ],
     conceptosClave: ['Tejido óseo', 'Osteoblasto', 'Hueso esponjoso', 'Articulación sinovial', 'Hematopoyesis'],
     prerequisitos: ['a1-celula'],
-    estadoContenido: 'en-preparacion',
+    estadoContenido: 'completo',
   },
   {
     slug: 'a4-nutrientes',
@@ -148,7 +148,7 @@ export const MODULOS: Modulo[] = [
     ],
     conceptosClave: ['Monosacárido', 'Valor biológico', 'Grasa trans', 'Micronutriente'],
     prerequisitos: [],
-    estadoContenido: 'en-preparacion',
+    estadoContenido: 'completo',
   },
   {
     slug: 'a5-sistemas-energeticos-biomarcadores',
@@ -165,7 +165,7 @@ export const MODULOS: Modulo[] = [
     ],
     conceptosClave: ['Sistema aláctico', 'Sistema láctico', 'Biomarcador', 'Relación testosterona/cortisol'],
     prerequisitos: ['a1-celula'],
-    estadoContenido: 'en-preparacion',
+    estadoContenido: 'completo',
   },
   {
     slug: 'a6-estadistica',
@@ -182,7 +182,7 @@ export const MODULOS: Modulo[] = [
     ],
     conceptosClave: ['Media aritmética', 'Mediana', 'Desviación estándar', 'Validez', 'Fiabilidad', 'Objetividad'],
     prerequisitos: [],
-    estadoContenido: 'en-preparacion',
+    estadoContenido: 'completo',
   },
 
   /* ══════════ BLOQUE B — Pedagogía y Didáctica ══════════ */

@@ -685,6 +685,183 @@ export const GLOSARIO: EntradaGlosario[] = [
       'Segundo estadio del aprendizaje motor, en el que el deportista encadena las partes del movimiento y depura el error. Corresponde a la coordinación fina. Va precedida de la fase cognitiva, en la que piensa cada parte, y seguida de la autónoma, cuyo indicador práctico es poder atender a otra cosa mientras se ejecuta.',
     modulo: 'b6-aprendizaje-sesion',
   },
+
+  /* ── A1 · Célula (paso 17) ── */
+  {
+    termino: 'Célula procariota',
+    definicion:
+      'Célula sin núcleo definido: su ADN, circular y sin histonas, está libre en el citoplasma, y carece de orgánulos delimitados por membrana. Mide entre 1 y 5 µm. Los únicos organismos procariotas son las bacterias y las arqueas; las cianobacterias, antes llamadas algas verdeazuladas, pertenecen al primer grupo.',
+    modulo: 'a1-celula',
+  },
+  {
+    termino: 'Célula eucariota',
+    definicion:
+      'Célula con núcleo delimitado por envoltura nuclear y con orgánulos membranosos —mitocondrias, retículo, aparato de Golgi, lisosomas—. Su ADN es lineal y se organiza en cromosomas con histonas. Son eucariotas los protozoos, los hongos, las plantas y los animales.',
+    modulo: 'a1-celula',
+  },
+  {
+    termino: 'Orgánulo',
+    definicion:
+      'Estructura especializada del interior celular que cumple una función concreta. Casi todos están delimitados por membrana; el ribosoma es la excepción notable, porque no la tiene y es el encargado de sintetizar las proteínas.',
+    modulo: 'a1-celula',
+    sinonimos: ['Organelo', 'Orgánulos'],
+  },
+  {
+    termino: 'Mitosis',
+    definicion:
+      'División celular que produce dos células hijas con la misma dotación cromosómica que la madre. Consta de profase, metafase, anafase y telofase, seguidas de la citocinesis. Ocurre en las células somáticas y es la que permite el crecimiento y la reparación de los tejidos, incluida la del músculo dañado por el trabajo excéntrico.',
+    modulo: 'a1-celula',
+  },
+  {
+    termino: 'Meiosis',
+    definicion:
+      'División celular con dos divisiones sucesivas que produce cuatro células hijas con la mitad de los cromosomas, es decir haploides. Ocurre en las células germinales, genera variabilidad genética por entrecruzamiento y reparto al azar, y sirve para formar los gametos.',
+    modulo: 'a1-celula',
+  },
+
+  /* ── A2 · Terminología anatómica (paso 17) ── */
+  {
+    termino: 'Posición anatómica',
+    definicion:
+      'Postura de referencia desde la que se definen todos los términos anatómicos: de pie y erguido, mirada al frente, brazos extendidos a los lados y palmas hacia adelante, con los pies juntos y paralelos. La palma hacia adelante no es un detalle menor: con la palma hacia el muslo el radio y el cúbito quedan cruzados y las referencias del antebrazo se invierten.',
+    modulo: 'a2-terminologia-anatomica',
+  },
+  {
+    termino: 'Plano sagital',
+    definicion:
+      'Plano que divide el cuerpo en mitad derecha y mitad izquierda. En él ocurren la flexión y la extensión, que giran sobre un eje transversal o latero-lateral. El eje es siempre perpendicular al plano, nunca homónimo.',
+    modulo: 'a2-terminologia-anatomica',
+  },
+  {
+    termino: 'Plano frontal',
+    definicion:
+      'Plano que divide el cuerpo en parte anterior y parte posterior, también llamado coronal. En él ocurren la abducción, la aducción y la flexión lateral, que giran sobre un eje sagital o anteroposterior.',
+    modulo: 'a2-terminologia-anatomica',
+    sinonimos: ['Plano coronal'],
+  },
+  {
+    termino: 'Plano transversal',
+    definicion:
+      'Plano que divide el cuerpo en parte superior y parte inferior, también llamado horizontal o axial. En él ocurren las rotaciones interna y externa, que giran sobre el eje longitudinal o vertical.',
+    modulo: 'a2-terminologia-anatomica',
+    sinonimos: ['Plano horizontal', 'Plano axial'],
+  },
+  {
+    termino: 'Abducción',
+    definicion:
+      'Movimiento que aleja un segmento de la línea media del cuerpo, en el plano frontal. Su opuesto es la aducción, que lo acerca; la d de aducción ayuda a recordarlo, porque adiciona. Separar los brazos en cruz es abducción de hombro.',
+    modulo: 'a2-terminologia-anatomica',
+  },
+
+  /* ── A3 · Tejidos, órganos y sistemas (paso 17) ── */
+  {
+    termino: 'Tejido óseo',
+    definicion:
+      'Tejido conjuntivo con matriz mineralizada, vivo y en remodelación permanente. Lo forman tres células: el osteoblasto, que sintetiza matriz nueva; el osteocito, que mantiene el tejido y detecta la carga mecánica; y el osteoclasto, multinucleado, que reabsorbe la matriz.',
+    modulo: 'a3-tejidos-organos-sistemas',
+  },
+  {
+    termino: 'Osteoblasto',
+    definicion:
+      'Célula del tejido óseo que forma hueso nuevo sintetizando la matriz que después se mineraliza. Cuando queda atrapado dentro de la matriz que él mismo fabricó, pasa a ser osteocito. No debe confundirse con el osteoclasto, que hace lo contrario: reabsorber.',
+    modulo: 'a3-tejidos-organos-sistemas',
+  },
+  {
+    termino: 'Hueso esponjoso',
+    definicion:
+      'Organización del tejido óseo en red de trabéculas con huecos, presente en las epífisis de los huesos largos y en los huesos cortos y planos. Aloja la médula ósea roja, donde ocurre la hematopoyesis. Sus trabéculas se orientan siguiendo las líneas de fuerza que atraviesan el hueso.',
+    modulo: 'a3-tejidos-organos-sistemas',
+    sinonimos: ['Hueso trabecular'],
+  },
+  {
+    termino: 'Articulación sinovial',
+    definicion:
+      'Articulación móvil, o diartrosis, formada por superficies óseas recubiertas de cartílago, cápsula fibrosa, membrana sinovial que produce el líquido, ligamentos y, en algunas, meniscos y bursas. El líquido sinovial lubrica y nutre el cartílago, que carece de vasos propios.',
+    modulo: 'a3-tejidos-organos-sistemas',
+    sinonimos: ['Diartrosis'],
+  },
+  {
+    termino: 'Hematopoyesis',
+    definicion:
+      'Formación de las células de la sangre —glóbulos rojos, glóbulos blancos y plaquetas—. Ocurre en la médula ósea roja, alojada en el hueso esponjoso, y es una de las funciones del hueso junto con el sostén, la protección y el almacenamiento de calcio y fósforo.',
+    modulo: 'a3-tejidos-organos-sistemas',
+  },
+
+  /* ── A4 · Nutrientes (paso 17) ── */
+  {
+    termino: 'Monosacárido',
+    definicion:
+      'Carbohidrato formado por una sola unidad, la forma más simple: glucosa, fructosa y galactosa. Dos unidades unidas forman un disacárido —sacarosa, lactosa, maltosa— y muchas encadenadas un polisacárido —almidón, glucógeno, celulosa—.',
+    modulo: 'a4-nutrientes',
+  },
+  {
+    termino: 'Valor biológico',
+    definicion:
+      'Medida de la calidad de una proteína: qué aminoácidos esenciales aporta, en qué proporción y con qué digestibilidad. Alto en huevo, leche, carne y pescado; bajo en legumbres y cereales, a los que les escasean la metionina y la lisina respectivamente. Bajo valor biológico significa incompleta por sí sola, no de mala calidad: legumbre más cereal da una proteína completa.',
+    modulo: 'a4-nutrientes',
+  },
+  {
+    termino: 'Grasa trans',
+    definicion:
+      'Grasa con dobles enlaces en configuración trans, de origen mayoritariamente industrial por hidrogenación parcial. Es la de peor perfil porque hace las dos cosas desfavorables a la vez: eleva el colesterol LDL y reduce el HDL. Es la única grasa cuya recomendación es un consumo lo más bajo posible, no la moderación.',
+    modulo: 'a4-nutrientes',
+  },
+  {
+    termino: 'Micronutriente',
+    definicion:
+      'Nutriente que no aporta energía y se necesita en cantidades pequeñas, medidas en miligramos o microgramos: vitaminas y minerales. Se distingue del macronutriente, que aporta energía y se mide en gramos. Que no aporte calorías no lo hace prescindible.',
+    modulo: 'a4-nutrientes',
+  },
+
+  /* ── A5 · Sistemas energéticos y biomarcadores (paso 17) ── */
+  {
+    termino: 'Sistema aláctico',
+    definicion:
+      'Sistema energético anaeróbico que emplea el ATP libre y la fosfocreatina, y sostiene entre 5 y 15 segundos de esfuerzo máximo. Su nombre significa literalmente sin lactato: sus subproductos son creatina y fosfato inorgánico. La enzima de su reacción es la creatina quinasa.',
+    modulo: 'a5-sistemas-energeticos-biomarcadores',
+    sinonimos: ['Sistema de los fosfágenos', 'Sistema anaeróbico aláctico'],
+  },
+  {
+    termino: 'Sistema láctico',
+    definicion:
+      'Sistema energético anaeróbico que degrada glucosa y glucógeno sin oxígeno, con lactato como subproducto característico. Sostiene el esfuerzo entre los 30 segundos y los 2 minutos y rinde 2 ATP netos por molécula de glucosa, frente a los 30 de la vía aeróbica en músculo esquelético.',
+    modulo: 'a5-sistemas-energeticos-biomarcadores',
+    sinonimos: ['Glucólisis anaeróbica', 'Sistema anaeróbico láctico'],
+  },
+  {
+    termino: 'Biomarcador',
+    definicion:
+      'Variable biológica medible que informa del estado del organismo. En el deporte se agrupan en cuatro familias: de rendimiento y daño muscular (lactato, creatina quinasa, mioglobina), de salud (glucosa, hemoglobina, hematocrito, ferritina), de estrés oxidativo (malondialdehído, relación GSH/GSSG) y hormonales (testosterona, cortisol, IGF-1).',
+    modulo: 'a5-sistemas-energeticos-biomarcadores',
+  },
+  {
+    termino: 'Relación testosterona/cortisol',
+    definicion:
+      'Cociente entre la hormona anabólica de referencia y la catabólica, usado para vigilar la sobrecarga. Se interpreta por su caída respecto al valor basal del propio deportista: un descenso del 30 % o más señala sobrecarga. No existe un umbral absoluto universal, porque el valor depende de las unidades de medida y de la persona, así que un análisis aislado sin medición previa no informa.',
+    modulo: 'a5-sistemas-energeticos-biomarcadores',
+    sinonimos: ['Cociente testosterona/cortisol', 'Índice T/C'],
+  },
+
+  /* ── A6 · Estadística (paso 17) ── */
+  {
+    termino: 'Media aritmética',
+    definicion:
+      'Suma de todos los valores dividida entre el número de datos. Su ventaja es que utiliza toda la información disponible; su desventaja, que un solo valor extremo la desplaza. Cuando hay un dato muy alejado del resto, la mediana describe mejor al grupo.',
+    modulo: 'a6-estadistica',
+    sinonimos: ['Promedio'],
+  },
+  {
+    termino: 'Mediana',
+    definicion:
+      'Valor central de la lista una vez ordenada. Con un número impar de datos ocupa la posición (N+1)/2; con un número par es el promedio de las posiciones N/2 y (N/2)+1. Ordenar primero es el paso que más se olvida, y sin él el resultado no significa nada.',
+    modulo: 'a6-estadistica',
+  },
+  {
+    termino: 'Desviación estándar',
+    definicion:
+      'Raíz cuadrada de la varianza. Mide cuánto se separan los datos entre sí y, a diferencia de la varianza, se expresa en las mismas unidades que los datos originales, lo que la hace interpretable. Dos grupos con la misma media pueden tener desviaciones muy distintas y no parecerse en nada.',
+    modulo: 'a6-estadistica',
+  },
 ];
 
 /** Filtro del glosario en cliente. <400 entradas: no necesita índice. */

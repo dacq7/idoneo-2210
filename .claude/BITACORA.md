@@ -2736,3 +2736,81 @@ sigue encendido y **debe seguirlo**: hasta el paso 17 el reparto por tema no es 
 
 **Pendiente:** ADR-029 deja abierta la revisión de los datos duros de A y B, y en particular la
 serie de biomarcadores DD-060 a DD-074. Ver `PENDIENTES.md` § Paso 16.
+
+---
+
+## Paso 17 — Contenido de los bloques A y B — 2026-07-31
+
+**Estado:** ✅ Completado
+**Archivos:** 12 × `content/teoria/*.mdx` · 12 × `content/tarjetas/*.ts` · 12 × `content/banco/*.ts`
+(a1–a6 y b1–b6) · `content/glosario.ts` (+47 términos) · `content/datos-duros.ts` (5 correcciones) ·
+`content/banco/indice.ts` · `content/tarjetas/indice.ts` · `content/estructura.ts` (12 slugs a
+`'completo'`) · `src/components/inicio/__tests__/panel-inicio.test.tsx` · `.claude/CONTENIDO.md`
+**Verificación:** `npm run validar` (0 errores, **0 avisos**) · `npm run typecheck` · `npm run lint` ·
+`npm test` (687/687) · `npm run build` · `npm run canario`. Las seis en verde, por código de salida.
+**Pendiente:** nada de este paso. El catálogo de contenido queda cerrado.
+
+**Cifras.** Banco 452 → **752 ítems**. Tarjetas 255 → **435**. Glosario 76 → **123 términos**.
+Módulos completos 17 → **29 de 29**. Los doce módulos con **25 ítems y 15 tarjetas** cada uno,
+reparto 11 recuerdo / 8 comprensión / 6 aplicación y dificultad 6/13/6 en los doce.
+
+**Lo primero que se hizo fue fijar la numeración de `Tema/Subtema` de las Cartillas 1 y 2**, que era
+la obligación heredada del paso 15. Un Tema por módulo en el bloque B; en el A, A2 y A3 comparten
+el Tema 2 y se reparten sus subtemas sin solaparse. Ninguna referencia previa se tocó y no hubo que
+remapear nada. El mapa está en `CONTENIDO.md`.
+
+**Sesgo de longitud, módulo a módulo:** a1 28 % · a2 28 % · a3 29 % · a4 31 % · a5 29 % · a6 29 % ·
+b1 28 % · b2 33 % · b3 29 % · b4 31 % · b5 29 % · b6 29 %. Azar 28 %. **Cinco módulos salieron
+fuera de rango en la primera pasada y en las dos direcciones**, que es lo que ADR-028 anticipaba:
+b5 al **47 %** y a6 al **50 %** por arriba; b1 al **6 %**, b4 al **13 %** y a5 al **12 %** por
+abajo. Los de arriba se corrigieron engordando distractores; los de abajo, alargando la correcta
+hasta que volviera a competir. Ninguna explicación perdió un carácter.
+
+Que tres de los cinco fueran **sesgo invertido** es el hallazgo del paso, y tiene explicación: con
+la compuerta puesta se escribe con miedo a que la correcta destaque, y el resultado es un banco
+donde «descarta la más larga» acierta el 88 % de las veces. El aviso por debajo del 12 % que
+ADR-028 dejó como red **hizo su trabajo tres veces**.
+
+**Las tres trampas anotadas en `PENDIENTES.md`, y qué pasó con cada una:**
+
+1. **`emparejar` con menos de 4 elementos: apareció tres veces** —b1, b5 y b6, este último con dos
+   ítems— y las tres las atrapó un medidor de escritorio que **ahora sí corre Zod ítem a ítem**
+   antes de cablear nada. El paso 16 la descubrió con `npm run validar` cuando el módulo ya estaba
+   integrado y aparecía con 26 ítems; aquí saltó al escribir. Los cinco casos se arreglaron
+   añadiendo un cuarto par con valor pedagógico —la frontera «asignación de tareas» entre los
+   estilos de participación, la «autorreflexión rota» en el ciclo autorregulado— y no rellenando.
+2. **`<` pegado a un dígito en MDX: cero incidencias.** Se escribió con espacio desde el primer
+   archivo y el `build` pasó a la primera. Verificado además con un barrido de `<[0-9]` sobre los
+   doce `.mdx`.
+3. **Tests que caducan con el catálogo: apareció el segundo, y no era un slug.** `panel-inicio`
+   afirmaba que la nota «Hay N de 29 módulos publicados» está siempre presente, y al completarse
+   el catálogo el componente dejó de mostrarla —con razón, porque «29 de 29» no informa de nada—.
+   Se partió en dos casos y el nuevo condiciona la aserción a `PUBLICADOS.length < MODULOS.length`,
+   de modo que vale en los dos estados. **La lección se amplía:** no es solo que un test no deba
+   fijar un slug del catálogo; es que no debe dar por permanente **ningún estado transitorio** de
+   la producción de contenido.
+
+**ADR-029 cerrado.** La revisión pendiente de los datos duros de A y B se hizo, y produjo cinco
+correcciones, todas en `a5` y `a6`: **DD-067** pasa de «PCR menos de 3 mg/L» a hs-PCR con sus tres
+cortes de riesgo (menos de 1 bajo · 1–3 moderado · más de 3 alto), que es lo que ese umbral mide;
+**DD-070** deja de enunciar un umbral absoluto —«mayor que 30»— y pasa a lo verificable, que es la
+**caída del 30 % o más sobre el basal del propio deportista**, porque el cociente depende de las
+unidades y sin medición previa no informa; **DD-071** añade que el rango es de adulto joven y cae
+con la edad; **DD-072** se separa por sexo; **DD-083** recoge las dos varianzas, poblacional y
+muestral. La serie de biomarcadores queda revisada.
+
+**ADR-014 aplicado sin anunciar discrepancia**, con los puntos que la ficha de `CONTENIDO.md` tenía
+esperando desde C5: procariotas solo bacterias y arqueas —protozoos y hongos son eucariotas, y
+«alga» no es un taxón porque las cianobacterias son bacterias—; sarcómero y alvéolo son estructuras
+y no células; el cartílago articular reparte carga pero no es el amortiguador principal; la
+riboflavina no es la vitamina de la hoja verde, lo es el folato; 30 ATP por glucosa en músculo
+esquelético; el porcentaje de aumento de 50 a 75 es del **50 %**; la Ley 2210 es del 23 de mayo de
+2022. Se añade uno nuevo, en b6: una **fase sensible es una ventana de mayor rentabilidad, no la
+única oportunidad** — la versión dramática desanima a adultos que sí van a mejorar.
+
+**Simulacro final: ya reparte como el examen real.** Con 752 ítems, `armarSimulacro` sirve las
+**100 cuotas por módulo desde su propio módulo**, sin tocar el relleno, y además cierra exactas
+las tres cuotas de nivel (40/35/25) y **las siete de tipo** (65 única · 10 caso · 8 cálculo ·
+7 múltiple · 5 emparejar · 3 ordenar · 2 V/F), que §7.3 solo prometía por aproximación. Sin ítems
+repetidos. Lo mismo para el diagnóstico y para los cuatro simulacros de bloque. **El aviso de
+`repartoIncumplido` de la portada se apaga**, que era su estado previsto desde el paso 11.

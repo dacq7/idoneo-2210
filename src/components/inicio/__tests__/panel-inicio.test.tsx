@@ -184,11 +184,23 @@ describe('PanelInicio — el resto de la pantalla', () => {
     montar();
     await waitFor(() => expect(screen.getByText('Dónde estás')).toBeDefined());
     expect(screen.getByText(`0/${PUBLICADOS.length}`)).toBeDefined();
-    expect(
-      screen.getByText(
-        new RegExp(`Hay ${PUBLICADOS.length} de ${MODULOS.length} módulos publicados`),
-      ),
-    ).toBeDefined();
+  });
+
+  it('la nota «hay N de 29 publicados» aparece solo si queda catálogo por publicar', async () => {
+    // Segunda caducidad de este archivo, y de la misma familia que la primera:
+    // el test daba por hecho que SIEMPRE faltarían módulos. Al cerrar el paso
+    // 17 el catálogo se completó y la nota desapareció — con razón, porque
+    // decirle a alguien «hay 29 de 29 publicados» no informa de nada.
+    //
+    // La forma duradera es condicionar la aserción al estado real del
+    // catálogo, no al que había el día en que se escribió el test.
+    const faltanPorPublicar = PUBLICADOS.length < MODULOS.length;
+    montar();
+    await waitFor(() => expect(screen.getByText('Dónde estás')).toBeDefined());
+    const nota = screen.queryByText(
+      new RegExp(`Hay ${PUBLICADOS.length} de ${MODULOS.length} módulos publicados`),
+    );
+    expect(nota !== null).toBe(faltanPorPublicar);
   });
 
   it('da acceso a /plan, que no cabe en la barra (A-01)', async () => {

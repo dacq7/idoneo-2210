@@ -1,0 +1,98 @@
+Este es el módulo más largo del bloque A y el que más se falla, porque exige **calcular**, no solo reconocer. La buena noticia es que las fórmulas son cinco y no cambian; la mala es que el examen las mezcla con problemas de porcentaje, que es donde se pierde más gente.
+
+## Medidas de tendencia central
+
+<TablaClave titulo="Las tres, con su ventaja y su desventaja">
+
+| Medida | Cómo se calcula | Ventaja | Desventaja |
+|---|---|---|---|
+| **Media aritmética** | Suma de todos los valores dividida entre cuántos son | Usa toda la información disponible | Muy sensible a los valores extremos |
+| **Mediana** | Valor central de la lista **ordenada** | No la alteran los valores extremos | Ignora la magnitud del resto de datos |
+| **Moda** | El valor que más se repite | Es la única que sirve para variables cualitativas | Puede no existir, o haber varias |
+
+</TablaClave>
+
+<Formula nota="Σx es la suma de todos los valores y n el número de datos.">
+media = Σx / n
+</Formula>
+
+Para la **mediana** hay dos casos, y el que se falla es el segundo:
+
+- Con **n impar**, la mediana ocupa la posición **(N + 1) / 2** de la lista ordenada.
+- Con **n par**, es el **promedio de las posiciones N/2 y (N/2) + 1**.
+
+<Ojo>
+El paso que más se olvida no es la fórmula: es **ordenar la lista primero**. La mediana de 12, 30, 15, 9 no es 15 ni 30: se ordena a 9, 12, 15, 30, y como hay cuatro datos se promedian las posiciones 2 y 3, es decir 12 y 15, lo que da **13,5**. Quien no ordena obtiene un número que no significa nada.
+</Ojo>
+
+Y una distinción que el examen busca: si en un grupo de diez corredores nueve hacen 40 minutos y uno hace 90, la **media** se dispara y la **mediana** no se mueve. Por eso, cuando hay un valor muy alejado del resto, la mediana describe mejor al grupo que la media.
+
+## Medidas de dispersión
+
+La tendencia central dice **por dónde** están los datos; la dispersión dice **cuánto se separan** entre sí. Dos grupos pueden tener la misma media y no parecerse en nada.
+
+<TablaClave titulo="Las tres medidas de dispersión">
+
+| Medida | Fórmula | Nota |
+|---|---|---|
+| **Rango** | máximo − mínimo | Rapidísimo de calcular, pero solo usa dos datos de todo el conjunto |
+| **Varianza** | Σ(x − x̄)² / n · o bien Σ(x − x̄)² / (n − 1) | Queda en **unidades al cuadrado**, así que es difícil de interpretar |
+| **Desviación estándar** | Raíz cuadrada de la varianza | Vuelve a las unidades originales: por eso es la que se usa |
+
+</TablaClave>
+
+<Ojo>
+La varianza tiene **dos versiones** y conviene saber cuál se está usando. Si los datos son **toda la población** que interesa —los doce jugadores de la plantilla—, se divide entre **n**. Si son una **muestra** con la que se quiere estimar algo de un grupo mayor, se divide entre **n − 1**. Con muestras grandes la diferencia es despreciable; con seis datos, no.
+</Ojo>
+
+El procedimiento de la varianza siempre es el mismo, y conviene hacerlo por pasos: se calcula la media, se resta la media a cada dato, se elevan al cuadrado esas diferencias, se suman y se divide. El cuadrado está ahí para que las diferencias negativas no cancelen a las positivas.
+
+<Formula nota="Ejemplo con 4, 6, 8, 10: media 7; diferencias −3, −1, 1, 3; cuadrados 9, 1, 1, 9; suma 20; varianza poblacional 20/4 = 5; desviación estándar √5 ≈ 2,24.">
+desviación estándar = √varianza
+</Formula>
+
+## Validez, fiabilidad y objetividad
+
+Son las tres propiedades que hacen que una prueba sirva para algo, y el examen las pregunta con ejemplos de campo.
+
+<TablaClave titulo="Las tres propiedades">
+
+| Propiedad | Qué garantiza | Cómo se rompe |
+|---|---|---|
+| **Validez** | Que la prueba mide lo que dice medir | Medir salto vertical para estimar resistencia aeróbica |
+| **Fiabilidad** | Que repetida en las mismas condiciones da resultados equivalentes | Un test que da 30 cm hoy y 42 cm mañana sin que nada haya cambiado |
+| **Objetividad** | Que el resultado no depende de quién evalúa | Dos evaluadores que puntúan distinto la misma ejecución |
+
+</TablaClave>
+
+<Ojo>
+La relación entre las tres es el punto fino, y va en una sola dirección: **una prueba puede ser fiable sin ser válida, pero no puede ser válida sin ser fiable**. Una báscula descalibrada que siempre marca tres kilos de más es perfectamente fiable —repite el mismo resultado— y no es válida, porque no mide el peso real. Al revés no funciona: si el resultado baila cada vez, no puede estar midiendo bien nada.
+</Ojo>
+
+La **objetividad** se garantiza con procedimientos e instrumentos estandarizados: mismo protocolo, mismo material, mismas instrucciones, y a poder ser medición instrumental en vez de apreciación visual.
+
+## Proporcionalidad y porcentajes
+
+<Formula nota="Ejemplo: un jugador pasa de 50 a 75 kg en press de banca. Aumento = ((75 − 50) / 50) × 100 = 50 %.">
+porcentaje de aumento = ((nuevo − viejo) / viejo) × 100
+</Formula>
+
+<Ojo>
+Aquí está el error que más se cobra del módulo entero. Al pasar de **50 a 75**, el valor nuevo **es el 150 % del viejo** y el **aumento es del 50 %**. Son dos preguntas distintas con dos respuestas distintas, y responder 150 % a «cuánto aumentó» es el fallo típico. La palabra que decide es **aumento**: lo que se calcula es la diferencia respecto al punto de partida, no la proporción entre los dos valores.
+</Ojo>
+
+El **denominador siempre es el valor de partida**. Si se divide entre el valor nuevo, el resultado sale distinto y está mal: de 50 a 75 dividiendo entre 75 daría 33 %, que no es ninguna de las dos cosas.
+
+Y la **regla de tres**, que resuelve la mayoría de los problemas de proporcionalidad del examen: si 4 series ocupan 20 minutos, 7 series ocupan (7 × 20) / 4 = 35 minutos. Se multiplica en cruz y se divide por el que queda.
+
+## Lo mínimo que tienes que llevarte
+
+- **Media = Σx / n**, y que es sensible a los valores extremos.
+- Que la **mediana** exige **ordenar la lista primero**: posición (N+1)/2 si n es impar, promedio de N/2 y (N/2)+1 si es par.
+- Que la **moda** es la única medida aplicable a variables cualitativas.
+- Que con un dato muy alejado del resto, la **mediana describe mejor** al grupo que la media.
+- Que el **rango** solo usa dos datos y que la **varianza** queda en unidades al cuadrado.
+- Que la **desviación estándar es la raíz de la varianza** y por eso vuelve a las unidades originales.
+- Que la varianza se divide entre **n** si son toda la población y entre **n − 1** si son una muestra.
+- Que **fiable sin válida sí, válida sin fiable no**, y el ejemplo de la báscula descalibrada.
+- Que el **porcentaje de aumento** divide entre el **valor viejo**, y que de 50 a 75 el aumento es del **50 %**.
