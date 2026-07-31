@@ -1157,3 +1157,87 @@ describe('Viabilidad.exacto — contrato para el Paso 13', () => {
     expect(diagnosticarViabilidad(BLUEPRINTS['bloque-C'], CENSO).exacto).toBe(true);
   });
 });
+
+/* ══════════════════════════════════════════════════════════════════
+   ADR-025 — `exacto` con censo filtrado
+
+   El diagnóstico es el primer blueprint que filtra por tipo Y por
+   dificultad. Con el censo de ítems *publicados*, su veredicto era una
+   cota superior: podía decir «viable» y no serlo.
+   ══════════════════════════════════════════════════════════════════ */
+
+describe('diagnosticarViabilidad — censo filtrado (ADR-025)', () => {
+  const publicados: CensoModulo[] = MODULOS.map((m) => ({
+    slug: m.slug,
+    bloque: m.bloque,
+    disponibles: 30,
+  }));
+
+  const filtradoParaDiagnostico: CensoModulo[] = MODULOS.map((m) => ({
+    slug: m.slug,
+    bloque: m.bloque,
+    disponibles: 30,
+    filtradoPara: BLUEPRINTS.diagnostico.id,
+  }));
+
+  it('sigue siendo NO exacto con un censo de publicados', () => {
+    expect(diagnosticarViabilidad(BLUEPRINTS.diagnostico, publicados).exacto).toBe(false);
+  });
+
+  it('es EXACTO cuando el censo se contó para ese mismo blueprint', () => {
+    expect(diagnosticarViabilidad(BLUEPRINTS.diagnostico, filtradoParaDiagnostico).exacto).toBe(
+      true,
+    );
+  });
+
+  it('un censo filtrado para OTRO blueprint no vale', () => {
+    // Sus cuentas son de otros tipos y otras dificultades: fiarse sería el
+    // mismo error con más pasos.
+    const paraElFinal = MODULOS.map((m) => ({
+      slug: m.slug,
+      bloque: m.bloque,
+      disponibles: 30,
+      filtradoPara: BLUEPRINTS.final.id,
+    }));
+    expect(diagnosticarViabilidad(BLUEPRINTS.diagnostico, paraElFinal).exacto).toBe(false);
+  });
+
+  it('basta con que UNA entrada no esté filtrada para perder la exactitud', () => {
+    const mezclado = [...filtradoParaDiagnostico];
+    mezclado[3] = { ...mezclado[3], filtradoPara: undefined };
+    expect(diagnosticarViabilidad(BLUEPRINTS.diagnostico, mezclado).exacto).toBe(false);
+  });
+
+  it('un censo vacío no se declara exacto por vacuidad', () => {
+    // `[].every(...)` es `true`, así que sin la guarda de longitud un censo sin
+    // entradas afirmaría exactitud sobre cero evidencia.
+    expect(diagnosticarViabilidad(BLUEPRINTS.diagnostico, []).exacto).toBe(false);
+  });
+
+  it('los blueprints SIN filtro siguen siendo exactos con el censo normal', () => {
+    expect(diagnosticarViabilidad(BLUEPRINTS.final, publicados).exacto).toBe(true);
+    expect(diagnosticarViabilidad(BLUEPRINTS['bloque-C'], publicados).exacto).toBe(true);
+  });
+
+  it('el diagnóstico con el contenido de HOY es inviable, y por partida doble', () => {
+    // C5 tiene 28 ítems publicados, pero el diagnóstico solo admite `unica`,
+    // `emparejar` y `caso` de dificultad 1 o 2: la cuenta real es menor.
+    const elegiblesC5 = ITEMS.filter(
+      (it) =>
+        BLUEPRINTS.diagnostico.tiposPermitidos!.includes(it.tipo) &&
+        BLUEPRINTS.diagnostico.dificultadesPermitidas!.includes(it.dificultad),
+    ).length;
+    expect(elegiblesC5).toBeLessThan(ITEMS.length);
+
+    const censoHoy: CensoModulo[] = MODULOS.map((m) => ({
+      slug: m.slug,
+      bloque: m.bloque,
+      disponibles: m.slug === 'c5-umbrales-zonas' ? elegiblesC5 : 0,
+      filtradoPara: BLUEPRINTS.diagnostico.id,
+    }));
+    const v = diagnosticarViabilidad(BLUEPRINTS.diagnostico, censoHoy);
+    expect(v.viable).toBe(false);
+    expect(v.exacto).toBe(true);
+    expect(v.totalDisponible).toBe(elegiblesC5);
+  });
+});

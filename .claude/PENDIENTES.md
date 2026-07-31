@@ -95,6 +95,16 @@ Las cuatro obligaciones heredadas del Paso 11, cerradas:
 - **Paso 18 — reconsiderar recharts si sigue siendo la única gráfica.** Cuatro barras horizontales son ~40 líneas de SVG a mano y ahorrarían la dependencia entera; hoy se conserva porque §2 la fija y el 18 puede querer más visualizaciones. Ver **ADR-024**.
 - **Pasos 15–17 — el informe mejora solo con el contenido.** Hoy un simulacro solo puede tocar C5, así que `temasPrioritarios` devuelve un tema y `dominioPorBloque` una barra. Nada que arreglar: la pantalla ya dice la verdad sobre lo que midió.
 
+## Paso 13 — Diagnóstico y plan · ✅ CERRADO el 2026-07-31
+
+Las dos obligaciones heredadas, cerradas: el diagnóstico persiste su `IntentoSimulacro` como los simulacros, y **`diagnosticarViabilidad` ya es exacta con filtros** (ADR-025) — `censarModulosPara` cuenta en el servidor aplicando el filtro del blueprint.
+
+**Obligaciones nuevas que este paso genera:**
+
+- **Paso 14.4 — el punto 13.4 del blueprint queda diferido, y se declara.** «Conectar `tareasDeHoy` con la tarjeta *Continuar donde ibas* de la portada» no se hizo: la portada sigue siendo la provisional del Paso 5 y su reemplazo es del 14.4, que ya está en esta lista. `tareasDeHoy` y `diaVigente` existen, tienen test y **no tienen consumidor** fuera de ellos hasta entonces. Lo levantó el `code-reviewer`: no bastaba con que la obligación de la portada estuviera anotada, faltaba decir que este punto del paso 13 se apoyaba en ella.
+- **Paso 14.4 — `/plan` y `/diagnostico` no son alcanzables desde el armazón.** No están en `DESTINOS` (§11.5 fija cinco: Inicio, Módulos, Repaso, Simulacros, Ajustes) ni en la portada provisional. Hoy solo se llega escribiendo la URL, o desde el enlace a `/diagnostico` que vive dentro de `/plan`. La portada real del 14.4 es su sitio natural.
+- **Paso 18.5 — `/ajustes` sigue devolviendo 404 y ya hay tres sitios que enlazan ahí**: el pie (desde el Paso 5), `DESTINOS` y ahora la nav. **`/plan` ya NO**: su campo de fecha de examen se construyó en este paso precisamente porque el remedio del requisito «sin fecha el plan sigue siendo útil» no podía ser un enlace roto. Cuando `/ajustes` exista tendrá su propio campo de fecha; los dos escriben por `guardarDatosPersonales`.
+
 ## Paso 14.4 — Punto de corte usable
 
 - Reemplazar la portada **provisional** que dejó el Paso 5 en `src/app/page.tsx` por la real (continuar donde ibas, racha, resumen, cola de repaso, acceso al diagnóstico).

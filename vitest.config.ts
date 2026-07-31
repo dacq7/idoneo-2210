@@ -12,6 +12,16 @@ export default defineConfig({
     alias: [
       { find: /^@\/content\//, replacement: path.resolve(__dirname, 'content') + '/' },
       { find: /^@\//, replacement: path.resolve(__dirname, 'src') + '/' },
+      // `server-only` lo resuelve el compilador de Next, no npm: no existe en
+      // `node_modules`, así que fuera de Next el import falla. Aquí se
+      // neutraliza con un módulo vacío.
+      //
+      // Neutralizarlo NO desactiva la barrera donde importa: `server-only`
+      // existe para que el BUILD falle si un Client Component importa un
+      // módulo de servidor, y ese build sigue corriendo igual. Los tests son
+      // código de servidor por definición —Node, sin DOM ni bundle—, así que
+      // aplicarles la barrera solo impediría probar `censo.ts` y `contenido.ts`.
+      { find: /^server-only$/, replacement: path.resolve(__dirname, 'vitest.server-only.ts') },
     ],
   },
   test: {

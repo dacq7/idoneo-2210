@@ -91,6 +91,21 @@ interface Props {
   bloque: BloqueId | null;
   alternativa: { slug: string; titulo: string } | null;
   volver: { href: string; texto: string };
+  /**
+   * A dónde lleva la acción principal del cierre. Por defecto, al informe del
+   * intento. El **diagnóstico** lo cambia por `/plan`: ahí el informe existe y
+   * es accesible, pero lo que el usuario acaba de ganar es un plan de estudio,
+   * y mandarlo primero a los porcentajes sería enterrar el resultado útil bajo
+   * el diagnóstico.
+   *
+   * Es un OBJETO y no una función a propósito: lo pasa una página, que es
+   * Server Component, y **las funciones no cruzan la frontera** — Next lo
+   * rechaza al prerenderizar («Functions cannot be passed directly to Client
+   * Components»). El destino por defecto necesita el `intentoId`, que solo se
+   * conoce en cliente, así que ese caso se resuelve aquí dentro en vez de
+   * pedirle al servidor una función que lo construya.
+   */
+  destinoCierre?: { href: string; texto: string };
 }
 
 type Vista =
@@ -118,6 +133,7 @@ export function ControladorSimulacro({
   bloque,
   alternativa,
   volver,
+  destinoCierre,
 }: Props) {
   const [vista, setVista] = useState<Vista>({ fase: 'comprobando' });
   const viabilidad = diagnosticarViabilidad(blueprint, censo);
@@ -311,7 +327,12 @@ export function ControladorSimulacro({
     return (
       <CierreSimulacro
         resumen={vista.resumen}
-        intentoId={vista.intentoId}
+        siguiente={
+          destinoCierre ?? {
+            href: `/resultados/${vista.intentoId}`,
+            texto: 'Ver el informe completo',
+          }
+        }
         volver={volver}
         onRepetir={() => setVista({ fase: 'portada' })}
       />
@@ -397,12 +418,12 @@ function ReanudarConBanco({
 
 function CierreSimulacro({
   resumen,
-  intentoId,
+  siguiente,
   volver,
   onRepetir,
 }: {
   resumen: DatosResumen;
-  intentoId: string;
+  siguiente: { href: string; texto: string };
   volver: { href: string; texto: string };
   onRepetir: () => void;
 }) {
@@ -422,8 +443,9 @@ function CierreSimulacro({
       volver={volver}
       // El informe completo —desglose, temas prioritarios, patrones y revisión
       // ítem por ítem— vive en su propia ruta y es lo primero que se ofrece:
-      // esta pantalla da el titular, el informe da el diagnóstico.
-      siguiente={{ href: `/resultados/${intentoId}`, texto: 'Ver el informe completo' }}
+      // esta pantalla da el titular, el informe da el diagnóstico. El
+      // diagnóstico inicial lo redirige a `/plan`, que es lo que él produce.
+      siguiente={siguiente}
       onRepetir={onRepetir}
     />
   );

@@ -203,8 +203,23 @@ export function medirCobertura(bp: BlueprintExamen, items: readonly Item[]): Cob
 export interface CensoModulo {
   slug: string;
   bloque: BloqueId;
-  /** Ítems publicados. 0 en un módulo `'en-preparacion'`. */
+  /**
+   * Ítems **elegibles** para el blueprint que pidió este censo. Cuando el
+   * blueprint no filtra, coincide con los publicados; cuando filtra por tipo o
+   * dificultad, ya viene contado con el filtro aplicado.
+   */
   disponibles: number;
+  /**
+   * Id del blueprint para el que se contó, cuando el censo se pidió filtrado.
+   *
+   * [ADR-025] Es lo que permite que `diagnosticarViabilidad` sepa si su
+   * veredicto es **exacto** o una cota superior. Sin este campo, un censo de
+   * ítems publicados frente a un blueprint que filtra podía decir «viable» y no
+   * serlo: el diagnóstico pide 30 ítems de tipos `unica`, `emparejar` y `caso`
+   * con dificultad 1 o 2, y contar los 28 de C5 sin mirar sus tipos daba una
+   * cuenta que no existía.
+   */
+  filtradoPara?: string;
 }
 
 export interface DeficitUnidad {
@@ -297,7 +312,13 @@ export function diagnosticarViabilidad(
     faltan: Math.max(0, totalRequerido - totalDisponible),
     deficits,
     repartoIncumplido: totalDisponible >= totalRequerido && deficits.length > 0,
-    exacto: bp.tiposPermitidos === undefined && bp.dificultadesPermitidas === undefined,
+    // [ADR-025] Exacto si el blueprint no filtra —el censo de publicados ya
+    // responde— o si el censo se contó **para este blueprint** aplicando su
+    // filtro. Un censo filtrado para otro blueprint no vale: sus cuentas son
+    // de otros tipos y otras dificultades.
+    exacto:
+      (bp.tiposPermitidos === undefined && bp.dificultadesPermitidas === undefined) ||
+      (censo.length > 0 && censo.every((m) => m.filtradoPara === bp.id)),
   };
 }
 
