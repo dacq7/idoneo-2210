@@ -201,7 +201,7 @@ export const MODULOS: Modulo[] = [
     ],
     conceptosClave: ['Entrenabilidad', 'Forma deportiva', 'Capacidad motriz', 'Adaptación'],
     prerequisitos: [],
-    estadoContenido: 'en-preparacion',
+    estadoContenido: 'completo',
   },
   {
     slug: 'b2-principios',
@@ -218,7 +218,7 @@ export const MODULOS: Modulo[] = [
     ],
     conceptosClave: ['Multilateralidad', 'Especificidad', 'Sobrecarga', 'Supercompensación', 'Retornos en disminución'],
     prerequisitos: ['b1-fundamentos-pedagogia'],
-    estadoContenido: 'en-preparacion',
+    estadoContenido: 'completo',
   },
   {
     slug: 'b3-modelos-pedagogicos',
@@ -234,7 +234,7 @@ export const MODULOS: Modulo[] = [
     ],
     conceptosClave: ['Modelo comprensivo', 'Modelo constructivista', 'Modelo integrado técnico-táctico'],
     prerequisitos: ['b1-fundamentos-pedagogia'],
-    estadoContenido: 'en-preparacion',
+    estadoContenido: 'completo',
   },
   {
     slug: 'b4-componentes-didacticos',
@@ -251,7 +251,7 @@ export const MODULOS: Modulo[] = [
     ],
     conceptosClave: ['Didáctica', 'Método', 'Tarea deportiva', 'Programación'],
     prerequisitos: ['b1-fundamentos-pedagogia'],
-    estadoContenido: 'en-preparacion',
+    estadoContenido: 'completo',
   },
   {
     slug: 'b5-estilos-ensenanza',
@@ -267,7 +267,7 @@ export const MODULOS: Modulo[] = [
     ],
     conceptosClave: ['Mando directo', 'Microenseñanza', 'Descubrimiento guiado', 'Enseñanza modular'],
     prerequisitos: ['b4-componentes-didacticos'],
-    estadoContenido: 'en-preparacion',
+    estadoContenido: 'completo',
   },
   {
     slug: 'b6-aprendizaje-sesion',
@@ -284,7 +284,7 @@ export const MODULOS: Modulo[] = [
     ],
     conceptosClave: ['Coordinación gruesa', 'Coordinación fina', 'Fase sensible', 'Fase asociativa'],
     prerequisitos: ['b4-componentes-didacticos'],
-    estadoContenido: 'en-preparacion',
+    estadoContenido: 'completo',
   },
 
   /* ══════════ BLOQUE C — Ciencias Aplicadas ══════════ */

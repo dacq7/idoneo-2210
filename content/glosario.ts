@@ -541,6 +541,150 @@ export const GLOSARIO: EntradaGlosario[] = [
       'Infracción 2.10 del Código Mundial Antidopaje: colaborar en el ámbito deportivo con personal de apoyo que cumple sanción por dopaje. Alcanza a entrenadores, médicos y preparadores, y no depende de que la relación sea remunerada.',
     modulo: 'c9-dopaje',
   },
+
+  /* ── B1 · Fundamentos de la pedagogía del deporte (paso 17) ── */
+  {
+    termino: 'Entrenabilidad',
+    definicion:
+      'Grado en que un deportista responde a un estímulo de entrenamiento. No es su nivel actual: el principiante tiene poca capacidad y mucha entrenabilidad, y el deportista de élite mucha capacidad y muy poca. Depende de la edad y el momento madurativo, del nivel de partida, de la carga genética y del estado de salud y descanso.',
+    modulo: 'b1-fundamentos-pedagogia',
+  },
+  {
+    termino: 'Forma deportiva',
+    definicion:
+      'Estado de disposición óptima para rendir. Es temporal por definición: se construye, se alcanza y se pierde, y ninguna planificación la vuelve permanente. Esa caducidad es la razón de que exista la planificación, que decide cuándo debe aparecer el pico.',
+    modulo: 'b1-fundamentos-pedagogia',
+  },
+  {
+    termino: 'Capacidad motriz',
+    definicion:
+      'Conjunto de cualidades que permiten al deportista realizar y controlar el movimiento. Se divide en condicionales —fuerza, resistencia, velocidad y flexibilidad, dependientes del músculo y del metabolismo— y coordinativas —equilibrio, ritmo, orientación, reacción, diferenciación, acoplamiento y adaptación, dependientes del sistema nervioso.',
+    modulo: 'b1-fundamentos-pedagogia',
+    sinonimos: ['Capacidades motrices', 'Cualidades motrices'],
+  },
+  {
+    termino: 'Adaptación',
+    definicion:
+      'Cambio estable del organismo en respuesta a cargas repetidas, específico del estímulo aplicado. Ocurre durante la recuperación y no durante la sesión: entrenar es aplicar el estímulo, adaptarse es descansar. Se distingue de la forma deportiva en que la adaptación es estable y la forma, temporal.',
+    modulo: 'b1-fundamentos-pedagogia',
+  },
+
+  /* ── B2 · Principios (paso 17) ── */
+  {
+    termino: 'Sobrecarga',
+    definicion:
+      'Principio biológico según el cual el estímulo debe superar el nivel al que el organismo ya está habituado para provocar adaptación. Es una condición puntual —cuánto hoy— y se complementa con la progresión, que es temporal: cuánto más y cuándo. Sobrecarga sin progresión estanca; progresión sin sobrecarga es aumentar la nada.',
+    modulo: 'b2-principios',
+  },
+  {
+    termino: 'Retornos en disminución',
+    definicion:
+      'Principio biológico según el cual, a medida que sube el nivel del deportista, la misma carga produce cada vez menos mejora. Es la entrenabilidad vista desde el otro lado, y su respuesta operativa es el principio de variabilidad: cambiar el estímulo, no solo su magnitud. No debe confundirse con la reversibilidad, que describe la pérdida de lo ganado al cesar el entrenamiento.',
+    modulo: 'b2-principios',
+    sinonimos: ['Rendimientos decrecientes', 'Retornos decrecientes'],
+  },
+
+  /* ── B3 · Modelos pedagógicos (paso 17) ── */
+  {
+    termino: 'Modelo comprensivo',
+    definicion:
+      'Modelo pedagógico de Bunker y Thorpe, conocido por sus siglas inglesas TGfU (Teaching Games for Understanding). Sostiene que la carencia principal del principiante no es técnica sino de comprensión táctica, y por eso va del juego a la técnica mediante juegos modificados que rebajan la exigencia de ejecución sin tocar el problema táctico.',
+    modulo: 'b3-modelos-pedagogicos',
+    sinonimos: ['TGfU', 'Teaching Games for Understanding', 'Enseñanza comprensiva'],
+  },
+  {
+    termino: 'Modelo constructivista',
+    definicion:
+      'Modelo pedagógico que parte de que el conocimiento no se transmite sino que se construye: el entrenador plantea el problema y organiza la tarea en lugar de dar la solución. El error deja de ser un fallo que corregir y pasa a ser información sobre qué hipótesis del deportista no funcionó.',
+    modulo: 'b3-modelos-pedagogicos',
+  },
+  {
+    termino: 'Modelo integrado técnico-táctico',
+    definicion:
+      'Modelo pedagógico que rechaza la disyuntiva entre empezar por la técnica o por la táctica y trabaja las dos a la vez dentro de situaciones de juego con sentido. Cada tarea lleva un objetivo táctico y un contenido técnico asociados, y ninguno se trabaja al margen del otro.',
+    modulo: 'b3-modelos-pedagogicos',
+    sinonimos: ['Modelo integrado'],
+  },
+
+  /* ── B4 · Componentes didácticos (paso 17) ── */
+  {
+    termino: 'Didáctica',
+    definicion:
+      'Rama de la pedagogía que estudia el proceso de enseñanza y aprendizaje. No es un método ni un conjunto de métodos: la metodología reúne los métodos y el criterio para elegir entre ellos, y el método es el camino concreto que se acaba recorriendo.',
+    modulo: 'b4-componentes-didacticos',
+  },
+  {
+    termino: 'Método',
+    definicion:
+      'Camino concreto y ordenado que se recorre para alcanzar un objetivo. Ocupa el tercer escalón de la escala didáctica, entre la metodología —que es el conjunto de métodos disponibles con su criterio de elección— y la tarea, que es lo que el deportista ejecuta.',
+    modulo: 'b4-componentes-didacticos',
+  },
+  {
+    termino: 'Tarea deportiva',
+    definicion:
+      'Unidad mínima de trabajo con la que se construye una sesión. Para estar bien planteada necesita cuatro cosas: un objetivo claro, un contenido, una organización —espacio, material, agrupamiento y tiempo— y unos criterios de éxito. Se clasifica en cerrada o abierta según la incertidumbre del entorno.',
+    modulo: 'b4-componentes-didacticos',
+    sinonimos: ['Tarea'],
+  },
+  {
+    termino: 'Programación',
+    definicion:
+      'Segunda fase del proceso de entrenamiento: concreta la planificación en contenidos, sesiones y cargas. La planificación decide el destino —qué objetivos y en qué orden— y la programación traza la ruta. Le siguen la ejecución, el control y la evaluación.',
+    modulo: 'b4-componentes-didacticos',
+  },
+
+  /* ── B5 · Estilos de enseñanza (paso 17) ── */
+  {
+    termino: 'Mando directo',
+    definicion:
+      'Estilo de enseñanza tradicional en el que el entrenador decide todo —qué, cómo, cuándo se empieza y cuándo se para— y la ejecución es simultánea a su señal. Es el indicado cuando un error de ejecución termina en lesión y cuando el grupo es muy numeroso y el tiempo escaso.',
+    modulo: 'b5-estilos-ensenanza',
+  },
+  {
+    termino: 'Microenseñanza',
+    definicion:
+      'Estilo de participación en el que el entrenador informa a un pequeño grupo de alumnos-monitores y cada uno de ellos enseña a su propio subgrupo. Es el estilo que más decisiones cede: no delega solo la corrección, como la enseñanza recíproca, sino la enseñanza misma.',
+    modulo: 'b5-estilos-ensenanza',
+  },
+  {
+    termino: 'Descubrimiento guiado',
+    definicion:
+      'Estilo de implicación cognitiva en el que el entrenador no da la respuesta pero la conoce de antemano, y formula preguntas encadenadas que conducen al deportista hasta ella, reorientando cuando la búsqueda se desvía. Se distingue de la resolución de problemas en que allí varias soluciones son válidas y no hay destino previsto.',
+    modulo: 'b5-estilos-ensenanza',
+  },
+  {
+    termino: 'Enseñanza modular',
+    definicion:
+      'Estilo de organización que divide el contenido en módulos con sus criterios de superación y permite que cada deportista avance según su nivel y su ritmo, en vez de según el calendario del grupo. Es la respuesta a un grupo heterogéneo: ajusta el itinerario a la persona y no la persona al itinerario.',
+    modulo: 'b5-estilos-ensenanza',
+  },
+
+  /* ── B6 · Aprendizaje y sesión (paso 17) ── */
+  {
+    termino: 'Coordinación gruesa',
+    definicion:
+      'Segunda fase del aprendizaje de la técnica, en la que el deportista consigue el gesto de forma aproximada: movimiento tosco, gasto de energía alto, ritmo irregular y acciones que sobran. El gesto ya existe, pero es caro y poco fiable.',
+    modulo: 'b6-aprendizaje-sesion',
+  },
+  {
+    termino: 'Coordinación fina',
+    definicion:
+      'Tercera fase del aprendizaje de la técnica, en la que el gesto gana economía, ritmo y precisión. Su límite es que solo se sostiene en condiciones estables: con fatiga, oposición o presión todavía se rompe, y salir de ahí exige repeticiones con perturbación y no más repeticiones limpias.',
+    modulo: 'b6-aprendizaje-sesion',
+  },
+  {
+    termino: 'Fase sensible',
+    definicion:
+      'Período del desarrollo en el que una capacidad responde de forma especialmente favorable al estímulo de entrenamiento. Es una ventana de mayor rentabilidad, no la única oportunidad: fuera de ella la capacidad sigue mejorando, con más tiempo y más esfuerzo. Las coordinativas se sitúan entre los 6 y los 12 años y la fuerza máxima después del pico de crecimiento.',
+    modulo: 'b6-aprendizaje-sesion',
+    sinonimos: ['Fases sensibles', 'Período sensible'],
+  },
+  {
+    termino: 'Fase asociativa',
+    definicion:
+      'Segundo estadio del aprendizaje motor, en el que el deportista encadena las partes del movimiento y depura el error. Corresponde a la coordinación fina. Va precedida de la fase cognitiva, en la que piensa cada parte, y seguida de la autónoma, cuyo indicador práctico es poder atender a otra cosa mientras se ejecuta.',
+    modulo: 'b6-aprendizaje-sesion',
+  },
 ];
 
 /** Filtro del glosario en cliente. <400 entradas: no necesita índice. */

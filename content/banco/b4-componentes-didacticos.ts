@@ -1,0 +1,553 @@
+// content/banco/b4-componentes-didacticos.ts
+// Bloque B · Módulo 4 — Componentes didácticos y principios de enseñanza.
+//
+// 25 ítems. Reparto exigido por verificarCuotas con n = 25:
+//   nivel      → 11 recuerdo (44 %) · 8 comprensión (32 %) · 6 aplicación (24 %)
+//   dificultad → 6 de nivel 1 · 13 de nivel 2 · 6 de nivel 3
+//   tipos      → 11 única · 3 emparejar · 3 caso · 2 múltiple · 2 ordenar ·
+//                2 V/F · 2 cálculo
+//
+// Es el único módulo del bloque B con ítems de cálculo, y no es forzado: los
+// elementos de la acción motora incluyen la densidad, que sí tiene fórmula.
+//
+// Los ítems son datos literales: nunca se generan con map(), plantillas ni
+// funciones auxiliares.
+import type { Item } from '@/lib/tipos';
+
+export const ITEMS: Item[] = [
+  {
+    id: 'B4-001',
+    modulo: 'b4-componentes-didacticos',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: '¿Qué es la didáctica?',
+    opciones: [
+      'La rama de la pedagogía que estudia el proceso de enseñanza y aprendizaje',
+      'El conjunto ordenado de métodos disponibles y el criterio para elegir entre ellos',
+      'El procedimiento concreto que se aplica para alcanzar un objetivo determinado',
+      'La unidad mínima de trabajo con la que se construye una sesión de entrenamiento',
+    ],
+    correcta: 0,
+    explicacion:
+      'La didáctica es la disciplina que estudia cómo se enseña; no es un método ni un conjunto de métodos. Los tres distractores definen, en orden, la metodología, el método y la tarea, que son los otros tres niveles de la misma escala. El distractor más tentador es el segundo, porque didáctica y metodología se usan como sinónimos en la conversación de vestuario. Dato para recordar: la didáctica estudia, la metodología selecciona, el método se aplica.',
+    referencia: 'Cartilla 2, Tema 4, Subtema 4.1 — Didáctica, metodología, método y objetivo',
+    etiquetas: ['didáctica', 'definición', 'componentes didácticos'],
+  },
+  {
+    id: 'B4-002',
+    modulo: 'b4-componentes-didacticos',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: '¿Qué designa el término «método» dentro de los componentes didácticos?',
+    opciones: [
+      'El camino concreto y ordenado que se recorre para alcanzar el objetivo',
+      'Lo que se pretende conseguir al término de la unidad de trabajo',
+      'La disciplina encargada de estudiar los procesos de enseñanza',
+      'El conjunto de reglas que organizan el espacio y el material de la sesión',
+    ],
+    correcta: 0,
+    explicacion:
+      'El método es el camino: el procedimiento ordenado que se sigue —global, analítico, mixto— para llegar al objetivo. El distractor más tentador es el segundo, porque en el habla corriente se dice «mi método es mejorar la resistencia», que en realidad enuncia un objetivo. La regla es que el objetivo dice para qué y el método dice por dónde. Dato para recordar: primero el objetivo, después el método, y al final la tarea.',
+    referencia: 'Cartilla 2, Tema 4, Subtema 4.1 — Didáctica, metodología, método y objetivo',
+    etiquetas: ['método', 'objetivo', 'componentes didácticos'],
+  },
+  {
+    id: 'B4-003',
+    modulo: 'b4-componentes-didacticos',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: '¿Qué expresa el volumen como elemento de la acción motora?',
+    opciones: [
+      'La cantidad total de trabajo realizado, sumando series, repeticiones o distancia',
+      'El grado de esfuerzo aplicado por unidad de tiempo',
+      'El número de sesiones que se realizan a lo largo de la semana',
+      'La relación entre el tiempo de trabajo y el tiempo total de la serie',
+    ],
+    correcta: 0,
+    explicacion:
+      'El volumen es la cantidad total de trabajo y se expresa en minutos, kilómetros, kilos, repeticiones o número de series. Los tres distractores definen intensidad, frecuencia y densidad, que son los otros elementos de la lista. El más tentador es el segundo, porque en el lenguaje diario «mucho volumen» se confunde con «mucho esfuerzo». Dato para recordar: volumen es cuánto y intensidad es cuán fuerte, y son inversamente proporcionales.',
+    referencia: 'Cartilla 2, Tema 4, Subtema 4.3 — Elementos de la acción motora',
+    etiquetas: ['volumen', 'elementos de la acción motora', 'definición'],
+  },
+  {
+    id: 'B4-004',
+    modulo: 'b4-componentes-didacticos',
+    bloque: 'B',
+    tipo: 'emparejar',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: 'Relacione cada elemento de la acción motora con lo que mide.',
+    izquierda: ['Volumen', 'Intensidad', 'Frecuencia', 'Densidad'],
+    derecha: [
+      'La cantidad total de trabajo realizado',
+      'El grado de esfuerzo por unidad de tiempo',
+      'Cuántas veces se repite el estímulo en la semana',
+      'La relación entre el tiempo de trabajo y el tiempo total',
+    ],
+    pares: [
+      [0, 0],
+      [1, 1],
+      [2, 2],
+      [3, 3],
+    ],
+    explicacion:
+      'El par que más se falla es frecuencia con densidad, porque los dos hablan de repetición y de tiempo: la frecuencia cuenta cuántas veces por semana se aplica el estímulo, y la densidad describe cómo se reparten trabajo y pausa dentro de una misma serie o sesión. La duración, que completa la lista, mide cuánto se prolonga un estímulo concreto. Dato para recordar: frecuencia mira el calendario, densidad mira el cronómetro.',
+    referencia: 'Cartilla 2, Tema 4, Subtema 4.3 — Elementos de la acción motora',
+    etiquetas: ['elementos de la acción motora', 'densidad', 'clasificación'],
+  },
+  {
+    id: 'B4-005',
+    modulo: 'b4-componentes-didacticos',
+    bloque: 'B',
+    tipo: 'vf',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado:
+      'Controlar y evaluar son dos nombres para la misma fase del proceso de entrenamiento.',
+    correcta: false,
+    explicacion:
+      'Falso. El control recoge el dato mientras el proceso corre —tiempos, pulso, tonelaje, sensación del deportista— y la evaluación compara ese dato con el objetivo para decidir si sirvió. Controlar es medir; evaluar es juzgar. Un entrenador puede tener las planillas llenas y no haber evaluado nada, porque nunca contrastó los datos con nada. Dato para recordar: datos sin contrastar son registro, no información.',
+    referencia: 'Cartilla 2, Tema 4, Subtema 4.2 — Fases del entrenamiento',
+    etiquetas: ['control', 'evaluación', 'fases del entrenamiento'],
+  },
+  {
+    id: 'B4-006',
+    modulo: 'b4-componentes-didacticos',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: '¿Qué cuatro componentes necesita una tarea deportiva bien planteada?',
+    opciones: [
+      'Objetivo, contenido, organización y criterios de éxito',
+      'Calentamiento, parte principal, vuelta a la calma y estiramiento final',
+      'Volumen, intensidad, densidad y frecuencia semanal de aplicación',
+      'Material, espacio disponible, número de participantes y tiempo asignado',
+    ],
+    correcta: 0,
+    explicacion:
+      'La tarea necesita saber para qué se hace, qué contenido trabaja, cómo se organiza y cuándo puede darse por bien hecha. El distractor más tentador es el cuarto, porque enumera cuatro elementos reales: todos ellos forman parte de la organización, que es solo uno de los cuatro componentes. Sin criterios de éxito, nadie sabe si la tarea funcionó. Dato para recordar: si la tarea no se puede justificar por el objetivo, sobra.',
+    referencia: 'Cartilla 2, Tema 4, Subtema 4.3 — Elementos de la acción motora',
+    etiquetas: ['tarea deportiva', 'diseño de tareas', 'objetivo'],
+  },
+  {
+    id: 'B4-007',
+    modulo: 'b4-componentes-didacticos',
+    bloque: 'B',
+    tipo: 'ordenar',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: 'Ordene las cinco fases del proceso de entrenamiento.',
+    elementos: [
+      'Planificación: se deciden los objetivos y el orden en que se buscan',
+      'Programación: se concretan contenidos, sesiones y cargas',
+      'Ejecución: se dirige la sesión con el grupo',
+      'Control: se recogen los datos mientras el proceso corre',
+      'Evaluación: se comparan los datos con el objetivo y se decide si sirvió',
+    ],
+    ordenCorrecto: [0, 1, 2, 3, 4],
+    explicacion:
+      'Cada fase produce el material con el que trabaja la siguiente: sin objetivos no hay contenidos que programar, y sin datos de control no hay nada que evaluar. Los dos errores más frecuentes son intercambiar planificación con programación —la primera decide el destino y la segunda traza la ruta— y colocar la evaluación antes que el control. Dato para recordar: se mide primero y se juzga después, nunca al revés.',
+    referencia: 'Cartilla 2, Tema 4, Subtema 4.2 — Fases del entrenamiento',
+    etiquetas: ['fases del entrenamiento', 'planificación', 'secuencia'],
+  },
+  {
+    id: 'B4-008',
+    modulo: 'b4-componentes-didacticos',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: '¿Cómo se define la densidad de una serie o de una sesión?',
+    opciones: [
+      'Como la relación entre el tiempo de trabajo y el tiempo total, contando la pausa',
+      'Como el número de repeticiones realizadas por cada minuto de trabajo efectivo',
+      'Como la carga total movilizada dividida entre el número de series realizadas',
+      'Como la proporción de la sesión dedicada a la parte principal del entrenamiento',
+    ],
+    correcta: 0,
+    explicacion:
+      'La densidad es el cociente entre el tiempo de trabajo y el tiempo total, es decir trabajo más pausa. El distractor más tentador es el último, porque también es una proporción de tiempo dentro de la sesión y suena razonable; lo que la densidad describe es la relación entre esfuerzo y descanso, no el reparto entre partes de la sesión. Dato para recordar: recortar la pausa sube la densidad sin tocar el peso ni las repeticiones.',
+    referencia: 'Cartilla 2, Tema 4, Subtema 4.3 — Elementos de la acción motora',
+    etiquetas: ['densidad', 'elementos de la acción motora', 'definición'],
+  },
+  {
+    id: 'B4-009',
+    modulo: 'b4-componentes-didacticos',
+    bloque: 'B',
+    tipo: 'multiple',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: 'Seleccione los TRES enunciados que son principios de enseñanza.',
+    opciones: [
+      'De lo conocido a lo desconocido',
+      'De lo global a lo analítico y de nuevo a lo global',
+      'De lo lento a lo rápido',
+      'De la competición al entrenamiento, para dar sentido a la sesión',
+      'De la intensidad al volumen, priorizando siempre la calidad del estímulo',
+    ],
+    correctas: [0, 1, 2],
+    explicacion:
+      'Los tres primeros pertenecen a la lista de nueve, junto a lo fácil a lo difícil, lo simple a lo complejo, lo general a lo específico, lo poco a lo mucho, la individualización y la retroalimentación. Los dos distractores invierten progresiones reales: el trabajo va del entrenamiento a la competición, y el volumen crece antes que la intensidad, no al revés. Dato para recordar: todos los principios dicen lo mismo, añade una dificultad cada vez.',
+    referencia: 'Cartilla 2, Tema 4, Subtema 4.4 — Principios de enseñanza',
+    etiquetas: ['principios de enseñanza', 'progresión', 'didáctica'],
+  },
+  {
+    id: 'B4-010',
+    modulo: 'b4-componentes-didacticos',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: '¿Qué caracteriza a una tarea abierta?',
+    opciones: [
+      'Que el entorno cambia y obliga al deportista a decidir mientras ejecuta',
+      'Que puede resolverse de varias formas igualmente eficientes desde el punto de vista mecánico',
+      'Que no tiene criterios de éxito definidos de antemano por el entrenador',
+      'Que se realiza al aire libre, en un espacio sin delimitación reglamentaria',
+    ],
+    correcta: 0,
+    explicacion:
+      'La clasificación se apoya en la incertidumbre del entorno: en la tarea abierta el contexto cambia y hay que decidir, como en un regate o una recepción de saque. El distractor más tentador es el segundo, porque también habla de varias soluciones; la variabilidad mecánica no es lo que define la apertura, sino la necesidad de leer un entorno que se mueve. Dato para recordar: el principiante necesita más tareas cerradas y el formado tiene que convivir con la incertidumbre.',
+    referencia: 'Cartilla 2, Tema 4, Subtema 4.3 — Elementos de la acción motora',
+    etiquetas: ['tarea abierta', 'tarea cerrada', 'clasificación'],
+  },
+  {
+    id: 'B4-011',
+    modulo: 'b4-componentes-didacticos',
+    bloque: 'B',
+    tipo: 'emparejar',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: 'Relacione cada fase del proceso con el verbo que la identifica.',
+    izquierda: ['Planificación', 'Programación', 'Control', 'Evaluación'],
+    derecha: [
+      'Decidir los objetivos y su orden',
+      'Dosificar y distribuir los contenidos',
+      'Medir y registrar durante el proceso',
+      'Comparar contra el objetivo y ajustar',
+    ],
+    pares: [
+      [0, 0],
+      [1, 1],
+      [2, 2],
+      [3, 3],
+    ],
+    explicacion:
+      'Buscar el verbo es el atajo más fiable para identificar la fase cuando el examen describe una situación. Los dos pares que se cruzan son planificación con programación y control con evaluación: la primera pareja se separa por decidir frente a dosificar, y la segunda por medir frente a comparar. La ejecución, que completa la lista, se reconoce por dirigir la sesión. Dato para recordar: cuatro verbos y cuatro fases, sin solape.',
+    referencia: 'Cartilla 2, Tema 4, Subtema 4.2 — Fases del entrenamiento',
+    etiquetas: ['fases del entrenamiento', 'control', 'evaluación', 'clasificación'],
+  },
+  {
+    id: 'B4-012',
+    modulo: 'b4-componentes-didacticos',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado:
+      'Un entrenador elige primero el ejercicio que quiere hacer y después busca qué objetivo podría justificarlo. ¿Qué está invirtiendo?',
+    opciones: [
+      'La escala didáctica, que va del objetivo al método y solo después a la tarea',
+      'El principio de individualización, que exige partir del nivel de cada deportista',
+      'Las fases del proceso, porque programa antes de haber ejecutado la sesión',
+      'La clasificación de tareas, porque plantea tareas abiertas antes que cerradas',
+    ],
+    correcta: 0,
+    explicacion:
+      'La escala va de lo abstracto a lo concreto: objetivo, metodología, método y tarea. Elegir la tarea primero y buscarle un objetivo después la recorre al revés, y el resultado son sesiones llenas de ejercicios que no se pueden justificar. El distractor más tentador es el tercero, porque también habla de orden de fases; el problema aquí no está en el calendario del proceso, sino en el orden de la decisión. Dato para recordar: si la tarea no se justifica por el objetivo, sobra.',
+    referencia: 'Cartilla 2, Tema 4, Subtema 4.1 — Didáctica, metodología, método y objetivo',
+    etiquetas: ['objetivo', 'tarea deportiva', 'escala didáctica'],
+  },
+  {
+    id: 'B4-013',
+    modulo: 'b4-componentes-didacticos',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado:
+      'Diez series de un minuto y una sola serie de diez minutos, ¿en qué coinciden y en qué se diferencian?',
+    opciones: [
+      'Coinciden en el volumen total de trabajo y se diferencian en la duración del estímulo',
+      'Coinciden en la duración y se diferencian en el volumen total de trabajo',
+      'Coinciden en la densidad y se diferencian en la frecuencia del estímulo',
+      'Coinciden en la intensidad y se diferencian en la frecuencia semanal',
+    ],
+    correcta: 0,
+    explicacion:
+      'El volumen es la cantidad total de trabajo, y en los dos casos son diez minutos; la duración es cuánto se prolonga un estímulo, y ahí van de uno a diez minutos. El distractor más tentador es el segundo, que invierte exactamente los dos términos, porque los dos se miden en minutos y eso invita a confundirlos. Dato para recordar: mismo volumen y distinta duración no producen la misma adaptación.',
+    referencia: 'Cartilla 2, Tema 4, Subtema 4.3 — Elementos de la acción motora',
+    etiquetas: ['volumen', 'duración', 'elementos de la acción motora'],
+  },
+  {
+    id: 'B4-014',
+    modulo: 'b4-componentes-didacticos',
+    bloque: 'B',
+    tipo: 'calculo',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado:
+      'Una serie consta de 40 segundos de trabajo seguidos de 20 segundos de pausa. Calcule la densidad expresada en porcentaje.',
+    respuesta: 66.7,
+    tolerancia: 0.5,
+    unidad: '%',
+    pasos: [
+      'Densidad = tiempo de trabajo / tiempo total, y el tiempo total incluye la pausa',
+      'Tiempo total = 40 s de trabajo + 20 s de pausa = 60 s',
+      'Densidad = 40 / 60 = 0,667',
+      'Expresada en porcentaje: 0,667 × 100 = 66,7 %',
+    ],
+    explicacion:
+      'El error más frecuente es dividir el trabajo entre la pausa en lugar de entre el total, lo que daría 40/20 = 2 y un valor sin sentido como densidad, porque el cociente nunca puede pasar de 1. El denominador es siempre trabajo más pausa. Y conviene fijarse en qué se pide: en porcentaje o en cociente, porque 0,667 y 66,7 % son la misma cifra escrita de dos formas. Dato para recordar: la densidad va siempre entre 0 y 1, o entre 0 y 100 %.',
+    referencia: 'Cartilla 2, Tema 4, Subtema 4.3 — Elementos de la acción motora',
+    etiquetas: ['densidad', 'cálculo', 'elementos de la acción motora'],
+  },
+  {
+    id: 'B4-015',
+    modulo: 'b4-componentes-didacticos',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado:
+      'Un entrenador quiere subir la exigencia de una sesión sin aumentar el peso ni el número de repeticiones. ¿Qué elemento puede modificar?',
+    opciones: [
+      'La densidad, recortando el tiempo de pausa que separa una serie de la siguiente',
+      'El volumen, añadiendo una serie más al final de cada bloque',
+      'La intensidad, subiendo el porcentaje de la carga máxima utilizada',
+      'La frecuencia, incorporando una sesión adicional a la semana',
+    ],
+    correcta: 0,
+    explicacion:
+      'Recortar la pausa sube la densidad y con ella la exigencia, sin tocar la carga ni la cantidad de trabajo: es la tercera vía, la que queda cuando volumen e intensidad ya están fijados. Los tres distractores modifican precisamente lo que el enunciado prohíbe cambiar, o añaden trabajo nuevo. El más tentador es el segundo, porque una serie más parece un ajuste menor y en realidad es más volumen. Dato para recordar: volumen e intensidad son inversos, la densidad es independiente de los dos.',
+    referencia: 'Cartilla 2, Tema 4, Subtema 4.3 — Elementos de la acción motora',
+    etiquetas: ['densidad', 'volumen', 'intensidad', 'prescripción'],
+  },
+  {
+    id: 'B4-016',
+    modulo: 'b4-componentes-didacticos',
+    bloque: 'B',
+    tipo: 'vf',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado:
+      'El principio «de lo global a lo analítico» se completa cuando el entrenador ha aislado y corregido la parte del gesto que fallaba.',
+    correcta: false,
+    explicacion:
+      'Falso, y es el error de aplicación más frecuente del módulo. El principio completo es de lo global a lo analítico y de nuevo a lo global: si el gesto se corrige aislado y nunca se reintegra al conjunto, el deportista termina ejecutando bien en el ejercicio y mal en el partido. La vuelta no es un extra, es la mitad del principio. Dato para recordar: el ciclo tiene tres pasos, no dos.',
+    referencia: 'Cartilla 2, Tema 4, Subtema 4.4 — Principios de enseñanza',
+    etiquetas: ['principios de enseñanza', 'global', 'analítico'],
+  },
+  {
+    id: 'B4-017',
+    modulo: 'b4-componentes-didacticos',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'comprension',
+    dificultad: 3,
+    enunciado:
+      'Un documento describe «el conjunto de métodos disponibles y los criterios para escoger entre ellos según el objetivo». ¿Qué nivel de la escala didáctica está describiendo?',
+    opciones: [
+      'La metodología',
+      'El método, entendido como el camino concreto que se recorre',
+      'La didáctica, en su vertiente aplicada al entrenamiento deportivo',
+      'La programación, que concreta la planificación en contenidos y cargas',
+    ],
+    correcta: 0,
+    explicacion:
+      'Lo que reúne varios métodos y añade el criterio para elegir es la metodología; el método es uno solo, el que se acaba escogiendo. El distractor más tentador es el segundo, porque la frontera entre los dos términos es fina y en el habla se usan indistintamente. La didáctica, por su parte, es más amplia: estudia el proceso de enseñanza y aprendizaje entero. Dato para recordar: metodología es el catálogo con su criterio, método es la elección.',
+    referencia: 'Cartilla 2, Tema 4, Subtema 4.1 — Didáctica, metodología, método y objetivo',
+    etiquetas: ['metodología', 'método', 'escala didáctica'],
+  },
+  {
+    id: 'B4-018',
+    modulo: 'b4-componentes-didacticos',
+    bloque: 'B',
+    tipo: 'caso',
+    nivel: 'comprension',
+    dificultad: 3,
+    viñeta:
+      'Un entrenador registra cada sesión: tiempos de cada serie, frecuencia cardíaca de cada jugador y percepción de esfuerzo. Lleva ocho meses de planillas impecables. Al preguntarle si el mesociclo de fuerza cumplió su objetivo, responde que no lo sabe, que habría que mirarlo con calma.',
+    enunciado: '¿Qué fase del proceso está faltando?',
+    opciones: [
+      'La evaluación, porque nadie ha comparado los datos recogidos con el objetivo',
+      'El control, porque los datos registrados no son los adecuados para ese objetivo',
+      'La programación, porque el mesociclo no llegó a concretarse en cargas semanales',
+      'La planificación, porque el mesociclo de fuerza no tenía un objetivo definido',
+    ],
+    correcta: 0,
+    explicacion:
+      'El control está impecable: hay datos, están tomados y están registrados. Lo que no ha ocurrido es la evaluación, que es comparar esos datos con el objetivo y emitir un juicio. El distractor más tentador es el segundo, porque culpa a la calidad del dato; el enunciado no da ningún motivo para dudar de los registros, solo de que se hayan usado. Dato para recordar: controlar es medir, evaluar es juzgar, y una cosa no lleva a la otra sola.',
+    referencia: 'Cartilla 2, Tema 4, Subtema 4.2 — Fases del entrenamiento',
+    etiquetas: ['evaluación', 'control', 'fases del entrenamiento'],
+  },
+  {
+    id: 'B4-019',
+    modulo: 'b4-componentes-didacticos',
+    bloque: 'B',
+    tipo: 'emparejar',
+    nivel: 'comprension',
+    dificultad: 3,
+    enunciado: 'Relacione cada decisión de la sesión con el principio de enseñanza que la sostiene.',
+    izquierda: [
+      'El gesto se ejecuta primero despacio y se acelera cuando ya es correcto',
+      'Se parte de una habilidad que el grupo ya domina para introducir la nueva',
+      'Se aumentan los kilómetros semanales antes de subir el ritmo de carrera',
+      'Cada deportista recibe la misma tarea con un punto de partida distinto',
+    ],
+    derecha: [
+      'De lo lento a lo rápido',
+      'De lo conocido a lo desconocido',
+      'De lo poco a lo mucho',
+      'Individualización de la enseñanza',
+    ],
+    pares: [
+      [0, 0],
+      [1, 1],
+      [2, 2],
+      [3, 3],
+    ],
+    explicacion:
+      'El par que más se falla es «de lo poco a lo mucho» con «de lo lento a lo rápido», porque los dos hablan de subir algo poco a poco: uno se refiere al volumen y el otro a la velocidad de ejecución, y el orden entre ambos importa, ya que primero crece la cantidad y después la calidad del estímulo. La individualización se reconoce porque el contenido es común y lo que cambia es el punto de partida.',
+    referencia: 'Cartilla 2, Tema 4, Subtema 4.4 — Principios de enseñanza',
+    etiquetas: ['principios de enseñanza', 'progresión', 'clasificación'],
+  },
+  {
+    id: 'B4-020',
+    modulo: 'b4-componentes-didacticos',
+    bloque: 'B',
+    tipo: 'calculo',
+    nivel: 'aplicacion',
+    dificultad: 2,
+    enunciado:
+      'Una serie de 30 segundos de trabajo con 45 segundos de pausa se modifica recortando la pausa a 20 segundos. ¿Cuántos puntos porcentuales sube la densidad?',
+    respuesta: 20,
+    tolerancia: 1,
+    unidad: 'puntos porcentuales',
+    pasos: [
+      'Densidad inicial = 30 / (30 + 45) = 30 / 75 = 0,40, es decir 40 %',
+      'Densidad final = 30 / (30 + 20) = 30 / 50 = 0,60, es decir 60 %',
+      'Diferencia = 60 % − 40 % = 20 puntos porcentuales',
+    ],
+    explicacion:
+      'El ítem exige calcular dos densidades y restarlas, y ahí aparece el error habitual: confundir puntos porcentuales con porcentaje de aumento. La densidad sube 20 puntos porcentuales, pero el aumento relativo es del 50 %, porque 60 es un 50 % más que 40. Son dos cifras correctas que responden a preguntas distintas, y el enunciado pide la primera. Dato para recordar: recortar 25 segundos de pausa exige más sin haber tocado el peso ni las repeticiones.',
+    referencia: 'Cartilla 2, Tema 4, Subtema 4.3 — Elementos de la acción motora',
+    etiquetas: ['densidad', 'cálculo', 'puntos porcentuales'],
+  },
+  {
+    id: 'B4-021',
+    modulo: 'b4-componentes-didacticos',
+    bloque: 'B',
+    tipo: 'caso',
+    nivel: 'aplicacion',
+    dificultad: 2,
+    viñeta:
+      'Un grupo de iniciación al voleibol no consigue encadenar tres toques. El entrenador duda entre plantear recepciones de un balón lanzado por él siempre igual, o recepciones dentro de un juego real con saque de un compañero.',
+    enunciado: '¿Qué corresponde plantear primero y por qué?',
+    opciones: [
+      'La tarea cerrada, porque el entorno estable permite fijar el gesto antes de añadir incertidumbre',
+      'La tarea abierta, porque solo el juego real da sentido a la recepción que se quiere aprender',
+      'Las dos a la vez en estaciones, para que cada deportista elija dónde se siente más cómodo',
+      'Ninguna de las dos: primero conviene trabajar la condición física del grupo de iniciación',
+    ],
+    correcta: 0,
+    explicacion:
+      'En iniciación la progresión va de la tarea cerrada a la abierta: el entorno estable permite fijar el gesto y solo después se añade la incertidumbre que el juego real exige. El distractor más tentador es el segundo, porque invoca correctamente el valor del contexto; con un grupo que no encadena tres toques, la incertidumbre impide que el gesto llegue a estabilizarse. Dato para recordar: cerrada primero, abierta después, y el formado tiene que acabar en la abierta.',
+    referencia: 'Cartilla 2, Tema 4, Subtema 4.3 — Elementos de la acción motora',
+    etiquetas: ['tarea cerrada', 'tarea abierta', 'progresión', 'iniciación'],
+  },
+  {
+    id: 'B4-022',
+    modulo: 'b4-componentes-didacticos',
+    bloque: 'B',
+    tipo: 'caso',
+    nivel: 'aplicacion',
+    dificultad: 3,
+    viñeta:
+      'Una entrenadora dispone de 45 minutos por sesión y no puede alargarlos. Sus jugadoras ya trabajan al 80 % de su carga máxima y el volumen semanal está en el techo que tolera el calendario escolar. Aun así necesita aumentar el estímulo del bloque de fuerza-resistencia.',
+    enunciado: '¿Qué ajuste tiene disponible?',
+    opciones: [
+      'Reducir el tiempo de pausa entre series, lo que eleva la densidad de la sesión',
+      'Añadir una serie más por ejercicio, lo que eleva el volumen dentro de los 45 minutos',
+      'Subir la carga al 90 % del máximo, lo que eleva la intensidad sin alargar la sesión',
+      'Repartir el mismo trabajo en dos sesiones más cortas dentro de la misma semana',
+    ],
+    correcta: 0,
+    explicacion:
+      'Con el volumen en su techo, la intensidad ya alta y el tiempo cerrado, el único parámetro libre es la densidad: recortar la pausa aumenta la exigencia sin añadir trabajo ni carga. El distractor más tentador es el tercero, porque subir al 90 % cabe en el tiempo disponible; lo que hace es cambiar el objetivo del bloque, porque a esa intensidad ya no se entrena fuerza-resistencia. Dato para recordar: cuando volumen e intensidad están fijados, queda la densidad.',
+    referencia: 'Cartilla 2, Tema 4, Subtema 4.3 — Elementos de la acción motora',
+    etiquetas: ['densidad', 'carga', 'prescripción', 'aplicación'],
+  },
+  {
+    id: 'B4-023',
+    modulo: 'b4-componentes-didacticos',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'aplicacion',
+    dificultad: 3,
+    enunciado:
+      'Un lanzador ejecuta el gesto completo con buena mecánica a velocidad reducida, pero al acelerar pierde la posición del codo. ¿Qué principio de enseñanza indica qué hacer?',
+    opciones: [
+      'De lo lento a lo rápido: se vuelve a la velocidad en que el gesto era correcto y se avanza desde ahí',
+      'De lo simple a lo complejo: se descompone el lanzamiento en fases y se trabaja cada una por separado',
+      'De lo general a lo específico: se refuerza la preparación general antes de retomar el gesto',
+      'De lo poco a lo mucho: se aumenta el número de lanzamientos por sesión hasta automatizarlo',
+    ],
+    correcta: 0,
+    explicacion:
+      'El principio dice que la velocidad se añade cuando el gesto ya es correcto, así que si al acelerar se rompe la mecánica hay que retroceder al punto donde era buena y progresar desde ahí. El distractor más tentador es el último, porque repetir más suena a la solución obvia; repetir a una velocidad en la que el gesto es incorrecto automatiza precisamente el error. Dato para recordar: nunca se acumulan repeticiones de un gesto que ya se rompió.',
+    referencia: 'Cartilla 2, Tema 4, Subtema 4.4 — Principios de enseñanza',
+    etiquetas: ['principios de enseñanza', 'técnica', 'corrección'],
+  },
+  {
+    id: 'B4-024',
+    modulo: 'b4-componentes-didacticos',
+    bloque: 'B',
+    tipo: 'ordenar',
+    nivel: 'aplicacion',
+    dificultad: 3,
+    enunciado:
+      'Ordene los pasos de una corrección técnica que aplique el principio de lo global a lo analítico y de nuevo a lo global.',
+    elementos: [
+      'Observación del gesto completo en su contexto habitual de ejecución',
+      'Identificación de la fase concreta del gesto en la que aparece el error',
+      'Trabajo aislado de esa fase, con tareas específicas y sin exigencia de velocidad',
+      'Reintegración de la fase corregida dentro del gesto completo, aún sin oposición',
+      'Ejecución del gesto completo en situación real, con la exigencia de competición',
+    ],
+    ordenCorrecto: [0, 1, 2, 3, 4],
+    explicacion:
+      'El principio tiene tres tramos y el examen se ceba en el tercero: global para ver el problema, analítico para aislarlo y global otra vez para devolverlo al conjunto, primero sin oposición y después en situación real. El error más frecuente es terminar en el trabajo aislado, con lo que el deportista ejecuta bien en el ejercicio y mal en el partido. Dato para recordar: la reintegración no es un extra, es la mitad del principio.',
+    referencia: 'Cartilla 2, Tema 4, Subtema 4.4 — Principios de enseñanza',
+    etiquetas: ['principios de enseñanza', 'global', 'analítico', 'corrección'],
+  },
+  {
+    id: 'B4-025',
+    modulo: 'b4-componentes-didacticos',
+    bloque: 'B',
+    tipo: 'multiple',
+    nivel: 'aplicacion',
+    dificultad: 2,
+    enunciado:
+      'Una tarea está descrita así: «cuatro contra cuatro en medio campo, doce minutos, dos balones». Seleccione los DOS componentes que le faltan para estar bien planteada.',
+    opciones: [
+      'El objetivo: qué se pretende conseguir con esa tarea concreta',
+      'Los criterios de éxito: cuándo puede darse la tarea por bien resuelta',
+      'La organización: el espacio, el material y el agrupamiento de los deportistas',
+      'La duración: el tiempo total que la tarea ocupará dentro de la sesión',
+      'La frecuencia: cuántas veces por semana se repetirá esta misma tarea',
+    ],
+    correctas: [0, 1],
+    explicacion:
+      'La descripción resuelve la organización —espacio, agrupamiento y material— y la duración, pero no dice para qué se hace ni cómo se sabrá si funcionó, que son los otros dos componentes de una tarea bien planteada. El distractor más tentador es el tercero, porque la organización parece incompleta al no mencionar la disposición del material; con campo, jugadores, balones y tiempo, está resuelta. Dato para recordar: sin criterios de éxito, la tarea no se puede evaluar.',
+    referencia: 'Cartilla 2, Tema 4, Subtema 4.3 — Elementos de la acción motora',
+    etiquetas: ['tarea deportiva', 'criterios de éxito', 'diseño de tareas'],
+  },
+];

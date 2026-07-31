@@ -64,6 +64,30 @@ tabla de FCmáx y `2.6.x` para las zonas—, así que ninguna referencia previa 
 Que C5 cite `2.1` —un subtema que desarrolla C2— es correcto y no es colisión: la `referencia`
 mapea el **temario de la cartilla**, no el módulo de la app.
 
+**Numeración de referencias del bloque A · Cartilla 1** (fijada ANTES de escribir el paso 17, que
+es la obligación heredada del 15). Ningún módulo comparte subtema con otro: A2 y A3 comparten el
+Tema 2 pero se reparten sus subtemas sin solaparse.
+
+| Tema | Contenido | Subtemas |
+|---|---|---|
+| **Tema 1** | Biología celular | 1.1 teoría celular y tipos · 1.2 orgánulos y sus funciones · 1.3 célula animal y vegetal · 1.4 ciclo celular y mitosis · 1.5 meiosis → **a1** |
+| **Tema 2** | Anatomía humana | 2.1 posición anatómica y términos de posición · 2.2 planos y ejes · 2.3 movimientos articulares → **a2** · 2.4 los cuatro tejidos · 2.5 sistema óseo y células del hueso · 2.6 articulaciones · 2.7 sistema muscular · 2.8 los once sistemas → **a3** |
+| **Tema 3** | Nutrición | 3.1 carbohidratos · 3.2 proteínas · 3.3 lípidos · 3.4 vitaminas · 3.5 minerales · 3.6 agua e hidratación → **a4** |
+| **Tema 4** | Sistemas energéticos y biomarcadores | 4.1 ATP y visión general · 4.2 anaeróbico aláctico · 4.3 anaeróbico láctico · 4.4 aeróbico · 4.5 biomarcadores de rendimiento · 4.6 de salud · 4.7 de estrés oxidativo · 4.8 hormonales → **a5** |
+| **Tema 5** | Estadística aplicada | 5.1 variables y muestra · 5.2 tendencia central · 5.3 dispersión · 5.4 validez, fiabilidad y objetividad · 5.5 proporcionalidad y porcentajes → **a6** |
+
+**Numeración de referencias del bloque B · Cartilla 2** (fijada ANTES de escribir). Un Tema por
+módulo, sin solapes:
+
+| Tema | Contenido | Subtemas |
+|---|---|---|
+| **Tema 1** | Fundamentos de la pedagogía del deporte | 1.1 deporte y pedagogía · 1.2 entrenamiento y entrenabilidad · 1.3 manifestaciones del deporte · 1.4 clases de entrenador · 1.5 fundamentos específicos → **b1** |
+| **Tema 2** | Principios | 2.1 pedagógicos · 2.2 infanto-juveniles · 2.3 biológicos → **b2** |
+| **Tema 3** | Modelos pedagógicos | 3.1 básicos y emergentes · 3.2 modelos de intervención · 3.3 modelos por autor → **b3** |
+| **Tema 4** | Componentes didácticos | 4.1 didáctica, metodología, método y objetivo · 4.2 fases del entrenamiento · 4.3 elementos de la acción motora · 4.4 principios de enseñanza → **b4** |
+| **Tema 5** | Estilos de enseñanza | 5.1 tradicionales · 5.2 de participación · 5.3 de implicación cognitiva · 5.4 de organización → **b5** |
+| **Tema 6** | Aprendizaje y sesión | 6.1 fases del aprendizaje de la técnica · 6.2 aprendizaje autorregulado · 6.3 fases sensibles · 6.4 la sesión por nivel → **b6** |
+
 **Numeración de referencias del bloque D** (fijada al integrar el paso 15, porque los cuatro
 escritores la habían asignado por separado y colisionaba): Tema 1 → d1 · Tema 2 → d2 ·
 **Tema 3 = capacidades físicas** (3.1 fuerza · 3.2 resistencia · 3.3 velocidad · 3.4 flexibilidad) ·

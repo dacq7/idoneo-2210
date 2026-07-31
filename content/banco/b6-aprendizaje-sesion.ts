@@ -1,0 +1,558 @@
+// content/banco/b6-aprendizaje-sesion.ts
+// Bloque B · Módulo 6 — Fases del aprendizaje y sesión de entrenamiento.
+//
+// 25 ítems. Reparto exigido por verificarCuotas con n = 25:
+//   nivel      → 11 recuerdo (44 %) · 8 comprensión (32 %) · 6 aplicación (24 %)
+//   dificultad → 6 de nivel 1 · 13 de nivel 2 · 6 de nivel 3
+//   tipos      → 11 única · 3 ordenar · 3 emparejar · 3 caso · 3 múltiple · 2 V/F
+//
+// Sin ítems de cálculo: las duraciones de sesión son rangos de referencia, no
+// magnitudes que se calculen. Tres ítems de ordenar porque el módulo tiene tres
+// secuencias distintas: las fases técnicas, el ciclo autorregulado y la sesión.
+//
+// Los ítems son datos literales: nunca se generan con map(), plantillas ni
+// funciones auxiliares.
+import type { Item } from '@/lib/tipos';
+
+export const ITEMS: Item[] = [
+  {
+    id: 'B6-001',
+    modulo: 'b6-aprendizaje-sesion',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: '¿Cómo se reconoce la fase de coordinación gruesa?',
+    opciones: [
+      'El gesto sale de forma aproximada, con movimiento tosco y ritmo irregular',
+      'El gesto es económico y preciso, aunque solo en condiciones estables',
+      'El gesto se sostiene con fatiga, con oposición y bajo presión de marcador',
+      'El deportista todavía no ejecuta: observa el modelo y se hace una idea',
+    ],
+    correcta: 0,
+    explicacion:
+      'En la coordinación gruesa el gesto ya existe pero es caro: sobran acciones, el gasto de energía es alto y el ritmo no es regular. Los tres distractores describen las otras tres fases, y el más tentador es el segundo, la coordinación fina, porque en las dos el deportista ya ejecuta. Lo que las separa es la economía y la precisión. Dato para recordar: gruesa es que sale, fina es que sale bien.',
+    referencia: 'Cartilla 2, Tema 6, Subtema 6.1 — Fases del aprendizaje de la técnica',
+    etiquetas: ['coordinación gruesa', 'fases del aprendizaje', 'técnica'],
+  },
+  {
+    id: 'B6-002',
+    modulo: 'b6-aprendizaje-sesion',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: '¿Qué es una fase sensible?',
+    opciones: [
+      'Un período del desarrollo en que una capacidad responde de forma especialmente favorable al estímulo',
+      'La única etapa de la vida en que una capacidad determinada puede llegar a desarrollarse',
+      'El intervalo de recuperación en que el organismo asimila la carga de la sesión anterior',
+      'La edad mínima a partir de la cual se autoriza a competir en una categoría oficial',
+    ],
+    correcta: 0,
+    explicacion:
+      'La fase sensible es una ventana de mayor rentabilidad: entrenar la capacidad dentro de ella rinde más que fuera. El distractor más tentador es el segundo, porque circula mucho en su versión dramática; quien no trabajó coordinación a los nueve años puede aprender a coordinarse a los veinte, con más tiempo y más esfuerzo. Dato para recordar: mayor rentabilidad, no única oportunidad.',
+    referencia: 'Cartilla 2, Tema 6, Subtema 6.3 — Fases sensibles',
+    etiquetas: ['fases sensibles', 'desarrollo', 'definición'],
+  },
+  {
+    id: 'B6-003',
+    modulo: 'b6-aprendizaje-sesion',
+    bloque: 'B',
+    tipo: 'ordenar',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: 'Ordene las cuatro fases del aprendizaje de la técnica.',
+    elementos: [
+      'Idea del movimiento: el deportista se representa lo que hay que hacer',
+      'Coordinación gruesa: consigue el gesto de forma aproximada y tosca',
+      'Coordinación fina: el gesto gana economía, ritmo y precisión',
+      'Estabilización y disponibilidad variable: el gesto resiste el contexto real',
+    ],
+    ordenCorrecto: [0, 1, 2, 3],
+    explicacion:
+      'La secuencia va de la representación al automatismo, y cada fase necesita la anterior: no se afina un gesto que todavía no sale, ni se estabiliza uno que aún no es preciso. El error más frecuente es saltarse la primera fase, porque no produce ejecución visible y parece tiempo perdido; sin idea del movimiento, los primeros ensayos son ciegos. Dato para recordar: la fase 1 es observar y representarse, no ejecutar.',
+    referencia: 'Cartilla 2, Tema 6, Subtema 6.1 — Fases del aprendizaje de la técnica',
+    etiquetas: ['fases del aprendizaje', 'técnica', 'secuencia'],
+  },
+  {
+    id: 'B6-004',
+    modulo: 'b6-aprendizaje-sesion',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: '¿Cuáles son las tres partes de una sesión de entrenamiento?',
+    opciones: [
+      'Parte inicial o calentamiento, parte principal y parte final o vuelta a la calma',
+      'Activación general, trabajo de fuerza y trabajo específico de la modalidad',
+      'Información inicial, ejecución de las tareas y evaluación de los resultados',
+      'Movilidad articular, parte técnica y competición reducida de cierre',
+    ],
+    correcta: 0,
+    explicacion:
+      'Las tres partes son siempre las mismas en cualquier nivel: preparar, trabajar el objetivo y devolver al organismo a su estado de reposo. Lo que cambia con el nivel es cuánto dura cada una y qué se mete dentro. El distractor más tentador es el cuarto, porque nombra contenidos que sí aparecen en una sesión concreta, pero son ejemplos de contenido y no la estructura. Dato para recordar: la estructura no cambia, el contenido sí.',
+    referencia: 'Cartilla 2, Tema 6, Subtema 6.4 — La sesión por nivel',
+    etiquetas: ['sesión', 'estructura', 'calentamiento'],
+  },
+  {
+    id: 'B6-005',
+    modulo: 'b6-aprendizaje-sesion',
+    bloque: 'B',
+    tipo: 'vf',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado:
+      'Las tres fases del aprendizaje autorregulado forman una secuencia lineal que termina en la autorreflexión.',
+    correcta: false,
+    explicacion:
+      'Falso: es un ciclo, no una línea. La autorreflexión no cierra el proceso, lo realimenta, porque de la autoevaluación y de la atribución causal sale el material con el que se planifica el intento siguiente. Presentarlo como secuencia terminada elimina justo lo que lo hace útil. Dato para recordar: planificación, ejecución y control, autorreflexión, y vuelta a empezar.',
+    referencia: 'Cartilla 2, Tema 6, Subtema 6.2 — Aprendizaje autorregulado',
+    etiquetas: ['aprendizaje autorregulado', 'ciclo', 'autorreflexión'],
+  },
+  {
+    id: 'B6-006',
+    modulo: 'b6-aprendizaje-sesion',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: '¿Cuál es la fase sensible de las capacidades coordinativas?',
+    opciones: [
+      'Entre los 6 y los 12 años, antes del estirón puberal',
+      'Entre los 13 y los 17 años, durante la adolescencia',
+      'Después del pico de crecimiento, ya en la edad adulta temprana',
+      'A lo largo de toda la vida, sin un período de mayor rendimiento',
+    ],
+    correcta: 0,
+    explicacion:
+      'Las coordinativas dependen del sistema nervioso, que madura antes que la estructura muscular, y por eso su ventana está entre los 6 y los 12 años. El distractor más tentador es el segundo, porque la adolescencia sí es la fase sensible de la fuerza máxima: son dos ventanas distintas y consecutivas. Dato para recordar: a los nueve años se compra coordinación barata, a los diecisiete se compra fuerza.',
+    referencia: 'Cartilla 2, Tema 6, Subtema 6.3 — Fases sensibles',
+    etiquetas: ['fases sensibles', 'capacidades coordinativas', 'infancia'],
+  },
+  {
+    id: 'B6-007',
+    modulo: 'b6-aprendizaje-sesion',
+    bloque: 'B',
+    tipo: 'ordenar',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: 'Ordene las tres fases del aprendizaje autorregulado.',
+    elementos: [
+      'Planificación: analizar la tarea, fijar el objetivo y elegir la estrategia',
+      'Ejecución y control voluntario: trabajar mientras se autoobserva',
+      'Autorreflexión: autoevaluarse, atribuir el resultado y decidir el ajuste',
+    ],
+    ordenCorrecto: [0, 1, 2],
+    explicacion:
+      'La secuencia va de lo que ocurre antes del intento, a lo que ocurre durante y a lo que ocurre después. El error más frecuente es colocar la autoobservación en la primera fase, porque suena a preparación: observarse solo es posible mientras se ejecuta. Y conviene recordar que la tercera devuelve a la primera, porque el proceso es cíclico. Dato para recordar: antes, durante y después, y otra vez antes.',
+    referencia: 'Cartilla 2, Tema 6, Subtema 6.2 — Aprendizaje autorregulado',
+    etiquetas: ['aprendizaje autorregulado', 'secuencia', 'autorreflexión'],
+  },
+  {
+    id: 'B6-008',
+    modulo: 'b6-aprendizaje-sesion',
+    bloque: 'B',
+    tipo: 'emparejar',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: 'Relacione cada capacidad con su período de mayor rendimiento.',
+    izquierda: [
+      'Capacidades coordinativas',
+      'Velocidad de reacción y de frecuencia',
+      'Flexibilidad',
+      'Fuerza máxima',
+    ],
+    derecha: [
+      'Entre los 6 y los 12 años',
+      'Entre los 7 y los 12 años',
+      'Infancia: es la única capacidad que empieza a involucionar tan pronto',
+      'Después del pico de crecimiento, en la adolescencia',
+    ],
+    pares: [
+      [0, 0],
+      [1, 1],
+      [2, 2],
+      [3, 3],
+    ],
+    explicacion:
+      'Las tres primeras se solapan en la infancia y la cuarta llega después, que es el orden que explica cómo se planifica una carrera deportiva. El par que más se falla es el de la flexibilidad, porque se asume que como capacidad condicional acompañará a la fuerza; es al revés, y es la única que empieza a perderse en la infancia si no se mantiene. Dato para recordar: primero coordinación y flexibilidad, después fuerza.',
+    referencia: 'Cartilla 2, Tema 6, Subtema 6.3 — Fases sensibles',
+    etiquetas: ['fases sensibles', 'flexibilidad', 'fuerza máxima', 'clasificación'],
+  },
+  {
+    id: 'B6-009',
+    modulo: 'b6-aprendizaje-sesion',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: '¿Qué caracteriza la parte principal de una sesión en la etapa de formación?',
+    opciones: [
+      'Mucha variedad, trabajo técnico y coordinativo, con una carga baja',
+      'Alta especificidad e intensidad, con control estricto de la carga aplicada',
+      'Contenidos técnico-tácticos específicos y un volumen de trabajo elevado',
+      'Trabajo de fuerza máxima con cargas próximas al máximo individual',
+    ],
+    correcta: 0,
+    explicacion:
+      'En formación la parte principal no es una versión reducida de la del adulto: cambia de contenido, porque lo que se compra a esa edad es repertorio motor y coordinación, no condición física. Los distractores describen las partes principales de altos logros y de perfeccionamiento, que es la confusión que el ítem busca. Dato para recordar: en formación el juego es el medio de la sesión entera, no el adorno del calentamiento.',
+    referencia: 'Cartilla 2, Tema 6, Subtema 6.4 — La sesión por nivel',
+    etiquetas: ['sesión', 'formación', 'estructura'],
+  },
+  {
+    id: 'B6-010',
+    modulo: 'b6-aprendizaje-sesion',
+    bloque: 'B',
+    tipo: 'multiple',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: 'Seleccione las DOS afirmaciones correctas sobre la fase autónoma del aprendizaje motor.',
+    opciones: [
+      'El deportista ejecuta sin necesidad de atender conscientemente al gesto',
+      'Puede atender a otra cosa mientras ejecuta: hablar, mirar, leer la defensa',
+      'Corresponde a la fase de coordinación gruesa dentro de la otra clasificación',
+      'Se alcanza cuando el gesto sale bien de forma repetida en condiciones estables',
+      'Es la primera fase por la que pasa cualquier aprendizaje de una técnica nueva',
+    ],
+    correctas: [0, 1],
+    explicacion:
+      'La fase autónoma se define por la liberación de la atención, y su indicador práctico es poder atender a otra cosa mientras se ejecuta. La tercera opción la empareja con la fase equivocada, ya que corresponde a la estabilización con disponibilidad variable. La cuarta describe la coordinación fina, que todavía necesita condiciones estables. Y la quinta invierte el orden: la primera es la cognitiva. Dato para recordar: si toda la atención está en el gesto, sigue en la asociativa.',
+    referencia: 'Cartilla 2, Tema 6, Subtema 6.1 — Fases del aprendizaje de la técnica',
+    etiquetas: ['fase autónoma', 'fase asociativa', 'aprendizaje motor'],
+  },
+  {
+    id: 'B6-011',
+    modulo: 'b6-aprendizaje-sesion',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: '¿Qué contenido aparece programado en la sesión de altos logros y no en los otros niveles?',
+    opciones: [
+      'La recuperación, con sus medios incorporados al plan de la sesión',
+      'El calentamiento específico previo a la parte principal del trabajo',
+      'La vuelta a la calma al término de cada sesión de entrenamiento',
+      'El control de la frecuencia cardíaca durante las tareas principales',
+    ],
+    correcta: 0,
+    explicacion:
+      'Con varias sesiones al día, lo que decide si la siguiente rinde es lo que ocurre entre una y otra, así que los medios de recuperación entran en el plan con el mismo rango que un ejercicio. Los tres distractores existen también en los otros niveles: el calentamiento y la vuelta a la calma están siempre, y el control de la carga se hace desde perfeccionamiento. Dato para recordar: en altos logros la recuperación es contenido, no descanso.',
+    referencia: 'Cartilla 2, Tema 6, Subtema 6.4 — La sesión por nivel',
+    etiquetas: ['altos logros', 'recuperación', 'sesión'],
+  },
+  {
+    id: 'B6-012',
+    modulo: 'b6-aprendizaje-sesion',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado:
+      'Un jugador ejecuta el gesto de forma impecable en el ejercicio aislado y lo pierde en cuanto hay oposición. ¿En qué fase está?',
+    opciones: [
+      'En coordinación fina, porque el gesto solo se sostiene en condiciones estables',
+      'En coordinación gruesa, porque el movimiento aún no es económico ni preciso',
+      'En estabilización con disponibilidad variable, ya que la ejecución es correcta',
+      'En la fase de idea del movimiento, porque todavía no comprende qué debe hacer',
+    ],
+    correcta: 0,
+    explicacion:
+      'La coordinación fina se reconoce por ejecutar con economía y precisión mientras el entorno no perturba; en cuanto aparece la oposición, el gesto se rompe, y eso descarta la fase 4. El distractor más tentador es el tercero, porque la ejecución impecable invita a darlo por automatizado. Lo que falta no son más repeticiones limpias sino repeticiones con perturbación. Dato para recordar: más series perfectas no sacan de la fase 3.',
+    referencia: 'Cartilla 2, Tema 6, Subtema 6.1 — Fases del aprendizaje de la técnica',
+    etiquetas: ['coordinación fina', 'fases del aprendizaje', 'disponibilidad variable'],
+  },
+  {
+    id: 'B6-013',
+    modulo: 'b6-aprendizaje-sesion',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado:
+      '¿Por qué se dice que las fases sensibles son una ventana de rentabilidad y no una única oportunidad?',
+    opciones: [
+      'Porque fuera de ellas la capacidad sigue mejorando, con más tiempo y más esfuerzo',
+      'Porque su duración varía tanto entre personas que no pueden establecerse edades',
+      'Porque solo se aplican a las capacidades coordinativas y no a las condicionales',
+      'Porque las capacidades entrenadas dentro de la ventana no llegan a estabilizarse',
+    ],
+    correcta: 0,
+    explicacion:
+      'Dentro de la fase sensible el mismo estímulo rinde más, pero fuera de ella la capacidad no queda cerrada: quien no trabajó coordinación a los nueve años puede aprender a coordinarse a los veinte, aunque le cueste más y probablemente no alcance el mismo techo. El distractor más tentador es el segundo, porque la variabilidad entre personas es real y no anula la existencia de períodos de referencia. Dato para recordar: decirlo así importa, porque la versión dramática desanima a adultos que sí van a mejorar.',
+    referencia: 'Cartilla 2, Tema 6, Subtema 6.3 — Fases sensibles',
+    etiquetas: ['fases sensibles', 'entrenabilidad', 'desarrollo'],
+  },
+  {
+    id: 'B6-014',
+    modulo: 'b6-aprendizaje-sesion',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado:
+      'Tras fallar una serie, un deportista concluye «es que yo no valgo para esto». ¿Qué está comprometiendo dentro del ciclo autorregulado?',
+    opciones: [
+      'La atribución causal, porque achaca el resultado a algo que no puede modificar',
+      'La planificación, porque no había fijado un objetivo antes de empezar la serie',
+      'El control voluntario, porque no se autoobservó durante la propia ejecución',
+      'La motivación inicial, porque afrontó la tarea sin disposición para el esfuerzo',
+    ],
+    correcta: 0,
+    explicacion:
+      'La atribución causal es la parte de la autorreflexión donde se decide a qué se achaca el resultado, y atribuirlo a algo incontrolable deja al deportista sin nada que ajustar: el ciclo se detiene ahí. El distractor más tentador es el último, porque la frase suena desmotivada; la motivación es consecuencia de esa atribución, no su causa. Dato para recordar: «llegué tarde al apoyo» da material para planificar, «no valgo» no da ninguno.',
+    referencia: 'Cartilla 2, Tema 6, Subtema 6.2 — Aprendizaje autorregulado',
+    etiquetas: ['atribución causal', 'autorreflexión', 'aprendizaje autorregulado'],
+  },
+  {
+    id: 'B6-015',
+    modulo: 'b6-aprendizaje-sesion',
+    bloque: 'B',
+    tipo: 'emparejar',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado:
+      'Relacione cada estadio del aprendizaje motor con la fase técnica que le corresponde.',
+    izquierda: [
+      'Idea del movimiento',
+      'Coordinación gruesa',
+      'Coordinación fina',
+      'Estabilización y disponibilidad variable',
+    ],
+    derecha: [
+      'Fase cognitiva: observa el modelo y se representa el gesto',
+      'Fase cognitiva: ejecuta de forma tosca y con exceso de energía',
+      'Fase asociativa: ejecuta con economía en condiciones estables',
+      'Fase autónoma: ejecuta sin atender y resiste la perturbación',
+    ],
+    pares: [
+      [0, 0],
+      [1, 1],
+      [2, 2],
+      [3, 3],
+    ],
+    explicacion:
+      'Los dos vocabularios describen la misma escalera y el examen los usa indistintamente, de modo que conviene tener la correspondencia hecha. El par que más se falla es el asociativo, porque su nombre sugiere trabajo en grupo cuando se refiere a encadenar las partes del movimiento. Dato para recordar: cognitiva es pensar cada parte, asociativa es encadenarlas, autónoma es no tener que pensarlas.',
+    referencia: 'Cartilla 2, Tema 6, Subtema 6.1 — Fases del aprendizaje de la técnica',
+    etiquetas: ['fase asociativa', 'fase cognitiva', 'fase autónoma', 'clasificación'],
+  },
+  {
+    id: 'B6-016',
+    modulo: 'b6-aprendizaje-sesion',
+    bloque: 'B',
+    tipo: 'vf',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado:
+      'La sesión de la etapa de formación es la misma que la del adulto, con menos carga y menos duración.',
+    correcta: false,
+    explicacion:
+      'Falso. En formación no cambia solo la magnitud, cambia el contenido: lo que se compra a esa edad es repertorio motor y coordinación, no condición física, y el juego es el medio de toda la sesión y no el adorno del calentamiento. Tratarla como una versión reducida de la del adulto desaprovecha la fase sensible de las coordinativas. Dato para recordar: menos peso no convierte una sesión de adulto en una sesión de formación.',
+    referencia: 'Cartilla 2, Tema 6, Subtema 6.4 — La sesión por nivel',
+    etiquetas: ['formación', 'sesión', 'fases sensibles'],
+  },
+  {
+    id: 'B6-017',
+    modulo: 'b6-aprendizaje-sesion',
+    bloque: 'B',
+    tipo: 'multiple',
+    nivel: 'comprension',
+    dificultad: 3,
+    enunciado:
+      'Seleccione las DOS diferencias correctas entre la sesión de perfeccionamiento y la de altos logros.',
+    opciones: [
+      'En altos logros el calentamiento es más específico y más prolongado',
+      'En altos logros la recuperación se programa con sus medios dentro del plan',
+      'En perfeccionamiento no existe parte final ni vuelta a la calma',
+      'En perfeccionamiento la carga no se controla en ningún momento de la sesión',
+      'En altos logros desaparece el trabajo técnico y solo queda el condicional',
+    ],
+    correctas: [0, 1],
+    explicacion:
+      'Las dos primeras son diferencias reales de grado y de contenido programado. Las otras tres niegan cosas que sí ocurren en perfeccionamiento —vuelta a la calma y control de la carga— o inventan una supresión del trabajo técnico que ningún nivel contempla, y menos el de mayor especificidad. Dato para recordar: entre niveles cambian la especificidad, el volumen y lo que se programa, no las partes de la sesión.',
+    referencia: 'Cartilla 2, Tema 6, Subtema 6.4 — La sesión por nivel',
+    etiquetas: ['altos logros', 'perfeccionamiento', 'sesión', 'comparación'],
+  },
+  {
+    id: 'B6-018',
+    modulo: 'b6-aprendizaje-sesion',
+    bloque: 'B',
+    tipo: 'caso',
+    nivel: 'comprension',
+    dificultad: 3,
+    viñeta:
+      'Una entrenadora de baloncesto trabaja el tiro libre con un grupo cadete. Todos encestan bien en la sesión de tiro aislado, con la pista en silencio y sin límite de tiempo. En partido, el porcentaje se desploma en los últimos cinco minutos.',
+    enunciado: '¿Qué corresponde introducir en el entrenamiento?',
+    opciones: [
+      'Perturbaciones en la tarea: fatiga previa, ruido, marcador y límite de tiempo',
+      'Más repeticiones diarias de tiro libre en las mismas condiciones de silencio',
+      'Trabajo analítico de la mecánica del tiro, descompuesta en sus fases',
+      'Una progresión desde la idea del movimiento, con observación de un modelo',
+    ],
+    correcta: 0,
+    explicacion:
+      'El grupo está en coordinación fina: el gesto es preciso mientras el entorno no perturba, y se rompe cuando aparecen fatiga y presión. Lo que lleva a la fase 4 son repeticiones con perturbación, no más repeticiones limpias. El distractor más tentador es el segundo, porque es la reacción instintiva ante un mal porcentaje; añadir volumen en condiciones estables consolida una fase que ya está superada. Dato para recordar: lo que falta no es cantidad, es contexto.',
+    referencia: 'Cartilla 2, Tema 6, Subtema 6.1 — Fases del aprendizaje de la técnica',
+    etiquetas: ['disponibilidad variable', 'coordinación fina', 'diseño de tareas'],
+  },
+  {
+    id: 'B6-019',
+    modulo: 'b6-aprendizaje-sesion',
+    bloque: 'B',
+    tipo: 'emparejar',
+    nivel: 'comprension',
+    dificultad: 3,
+    enunciado: 'Relacione cada conducta del deportista con la fase del ciclo autorregulado.',
+    izquierda: [
+      'Antes de la serie decide a qué ritmo va a salir y qué quiere conseguir',
+      'Durante la carrera comprueba su respiración y ajusta la zancada',
+      'Al terminar compara su marca con el objetivo y busca la causa del desvío',
+      'Al terminar concluye que no sirve para esto y no cambia nada del plan',
+    ],
+    derecha: [
+      'Planificación',
+      'Ejecución y control voluntario',
+      'Autorreflexión que realimenta el ciclo',
+      'Autorreflexión rota: atribución a una causa incontrolable',
+    ],
+    pares: [
+      [0, 0],
+      [1, 1],
+      [2, 2],
+      [3, 3],
+    ],
+    explicacion:
+      'Las tres primeras conductas se separan por el momento: antes, durante y después del intento. El par que más se falla es el segundo con el tercero, porque los dos implican observarse: durante la ejecución la autoobservación sirve para ajustar sobre la marcha, y después sirve para juzgar el resultado. La cuarta ocurre en el mismo momento que la tercera y no realimenta nada, porque la causa elegida no se puede modificar. Dato para recordar: ajustar es control, juzgar es reflexión, y rendirse no es ninguna de las dos.',
+    referencia: 'Cartilla 2, Tema 6, Subtema 6.2 — Aprendizaje autorregulado',
+    etiquetas: ['aprendizaje autorregulado', 'autorreflexión', 'clasificación'],
+  },
+  {
+    id: 'B6-020',
+    modulo: 'b6-aprendizaje-sesion',
+    bloque: 'B',
+    tipo: 'caso',
+    nivel: 'aplicacion',
+    dificultad: 2,
+    viñeta:
+      'Un club decide dedicar sus tres sesiones semanales de la categoría benjamín, de 8 a 9 años, a trabajo de fuerza con autocargas y a series de resistencia continua, con el argumento de construir una base física temprana.',
+    enunciado: '¿Qué objeción corresponde plantear desde las fases sensibles?',
+    opciones: [
+      'Que a esa edad la ventana abierta es la de las coordinativas, y se está dejando pasar',
+      'Que la fuerza y la resistencia no pueden entrenarse en ningún caso antes de la pubertad',
+      'Que las sesiones semanales son insuficientes para producir adaptaciones de base',
+      'Que a esa edad conviene especializar ya en la posición de juego de cada niño',
+    ],
+    correcta: 0,
+    explicacion:
+      'Entre los 6 y los 12 años la ventana rentable es la de las capacidades coordinativas, y la fuerza máxima tiene la suya después del pico de crecimiento: el plan descrito invierte las dos y desperdicia la que está abierta. El distractor más tentador es el segundo, porque suena a la misma objeción llevada al extremo; el trabajo de fuerza adaptado a la edad no está prohibido, simplemente no es lo más rentable ahora. Dato para recordar: no es que no se pueda, es que hay algo mejor que hacer.',
+    referencia: 'Cartilla 2, Tema 6, Subtema 6.3 — Fases sensibles',
+    etiquetas: ['fases sensibles', 'formación', 'capacidades coordinativas', 'aplicación'],
+  },
+  {
+    id: 'B6-021',
+    modulo: 'b6-aprendizaje-sesion',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'aplicacion',
+    dificultad: 2,
+    enunciado:
+      'Un entrenador quiere que sus deportistas aprendan a corregirse solos entre sesiones. ¿Qué debe reforzar del ciclo autorregulado?',
+    opciones: [
+      'La autorreflexión, y en particular que atribuyan el resultado a causas controlables',
+      'La planificación, ampliando el detalle de los objetivos que fija él para cada sesión',
+      'El control voluntario, midiendo la frecuencia cardíaca en todas las tareas',
+      'La ejecución, aumentando el número de repeticiones de cada tarea programada',
+    ],
+    correcta: 0,
+    explicacion:
+      'Corregirse solo entre sesiones es exactamente lo que produce la autorreflexión bien hecha, y su pieza decisiva es la atribución causal: si la causa que se identifica es controlable, la próxima planificación ya tiene material. El distractor más tentador es el segundo, porque también habla de objetivos; que los fije el entrenador es justo lo contrario de la autorregulación. Dato para recordar: el objetivo lo pone el deportista, o no hay ciclo suyo.',
+    referencia: 'Cartilla 2, Tema 6, Subtema 6.2 — Aprendizaje autorregulado',
+    etiquetas: ['aprendizaje autorregulado', 'atribución causal', 'autonomía', 'aplicación'],
+  },
+  {
+    id: 'B6-022',
+    modulo: 'b6-aprendizaje-sesion',
+    bloque: 'B',
+    tipo: 'caso',
+    nivel: 'aplicacion',
+    dificultad: 3,
+    viñeta:
+      'Un nadador de alto rendimiento entrena dos veces al día, seis días por semana. El entrenador ha diseñado con detalle el calentamiento y la parte principal de cada sesión, y deja la vuelta a la calma a criterio de cada deportista, «que ya saben lo que necesitan».',
+    enunciado: '¿Qué problema tiene ese planteamiento en su nivel?',
+    opciones: [
+      'Que en altos logros la recuperación es contenido programado, porque decide el rendimiento de la sesión siguiente',
+      'Que la vuelta a la calma solo puede dejarse a criterio del deportista en la etapa de formación',
+      'Que sin vuelta a la calma dirigida el calentamiento de la sesión siguiente pierde su efecto',
+      'Que la estructura de la sesión de altos logros no contempla una parte final diferenciada',
+    ],
+    correcta: 0,
+    explicacion:
+      'Con dos sesiones diarias, lo que ocurre entre una y otra determina si la segunda rinde, y por eso en altos logros los medios de recuperación entran en el plan con el mismo rango que un ejercicio. El distractor más tentador es el segundo, porque invierte la lógica de forma verosímil: es precisamente en formación donde la vuelta a la calma admite más informalidad. Dato para recordar: a más sesiones diarias, más programada la recuperación.',
+    referencia: 'Cartilla 2, Tema 6, Subtema 6.4 — La sesión por nivel',
+    etiquetas: ['altos logros', 'recuperación', 'sesión', 'aplicación'],
+  },
+  {
+    id: 'B6-023',
+    modulo: 'b6-aprendizaje-sesion',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'aplicacion',
+    dificultad: 3,
+    enunciado:
+      'Un deportista en fase de coordinación gruesa recibe correcciones sobre cinco detalles del gesto en cada intento. ¿Qué corresponde ajustar?',
+    opciones: [
+      'Reducir la corrección a un solo aspecto por intento, porque la fase aún no admite precisión',
+      'Mantener las cinco correcciones, porque cuanto antes se depure el gesto mejor será después',
+      'Suspender el trabajo del gesto y volver a la observación del modelo hasta la próxima sesión',
+      'Introducir oposición para que las correcciones se apliquen en un contexto más real',
+    ],
+    correcta: 0,
+    explicacion:
+      'En coordinación gruesa el objetivo es que el gesto salga, no que salga fino: cinco correcciones simultáneas exceden lo que el deportista puede atender y bloquean la fase. Una por intento es lo que corresponde. El distractor más tentador es el último, porque añadir contexto suena a progresión; introducir oposición en la fase 2 impide incluso que el gesto llegue a estabilizarse. Dato para recordar: la precisión es de la fase 3 y la perturbación de la 4.',
+    referencia: 'Cartilla 2, Tema 6, Subtema 6.1 — Fases del aprendizaje de la técnica',
+    etiquetas: ['coordinación gruesa', 'feedback', 'fases del aprendizaje', 'aplicación'],
+  },
+  {
+    id: 'B6-024',
+    modulo: 'b6-aprendizaje-sesion',
+    bloque: 'B',
+    tipo: 'ordenar',
+    nivel: 'aplicacion',
+    dificultad: 3,
+    enunciado: 'Ordene las partes de una sesión de perfeccionamiento tal como se desarrollan.',
+    elementos: [
+      'Información inicial: objetivo de la sesión y organización del trabajo',
+      'Calentamiento específico del contenido que se va a trabajar ese día',
+      'Parte principal: contenidos técnico-tácticos y de condición específica',
+      'Vuelta a la calma con estiramiento y trabajo de movilidad',
+      'Cierre: valoración de lo trabajado y avance de la sesión siguiente',
+    ],
+    ordenCorrecto: [0, 1, 2, 3, 4],
+    explicacion:
+      'La secuencia sitúa la información antes del calentamiento porque el grupo necesita saber qué va a hacer para calentar lo que corresponde, y cierra con la valoración, que enlaza con el aprendizaje autorregulado del propio módulo. El error frecuente es dar la información después de calentar, cuando el calentamiento ya debería haber sido específico de un contenido que nadie conocía. Dato para recordar: el calentamiento específico exige saber de qué.',
+    referencia: 'Cartilla 2, Tema 6, Subtema 6.4 — La sesión por nivel',
+    etiquetas: ['sesión', 'perfeccionamiento', 'estructura', 'secuencia'],
+  },
+  {
+    id: 'B6-025',
+    modulo: 'b6-aprendizaje-sesion',
+    bloque: 'B',
+    tipo: 'multiple',
+    nivel: 'aplicacion',
+    dificultad: 2,
+    enunciado:
+      'Un entrenador de categoría infantil dispone de 70 minutos por sesión. Seleccione las DOS decisiones coherentes con la etapa de formación.',
+    opciones: [
+      'Emplear el juego como medio de trabajo también en la parte principal',
+      'Priorizar la variedad de tareas motrices sobre el volumen de carga aplicada',
+      'Reservar los últimos veinte minutos a series de resistencia continua a ritmo fijo',
+      'Programar un bloque de fuerza máxima con cargas próximas al máximo individual',
+      'Suprimir la vuelta a la calma para ganar tiempo de trabajo en la parte principal',
+    ],
+    correctas: [0, 1],
+    explicacion:
+      'En formación el juego es el medio de la sesión entera y lo que se busca es repertorio motor y coordinación, no carga. Los tres distractores trasladan contenidos de otras etapas —resistencia continua y fuerza máxima— o suprimen una parte de la sesión que existe en todos los niveles. El más tentador es el tercero, porque veinte minutos de carrera parecen inocuos y consumen justo el tiempo de la ventana coordinativa. Dato para recordar: en formación se compra coordinación, no condición.',
+    referencia: 'Cartilla 2, Tema 6, Subtema 6.4 — La sesión por nivel',
+    etiquetas: ['formación', 'sesión', 'fases sensibles', 'aplicación'],
+  },
+];
