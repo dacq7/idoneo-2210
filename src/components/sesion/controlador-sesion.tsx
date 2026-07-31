@@ -33,11 +33,18 @@ import { ArrowLeft, ArrowRight, Flag } from 'lucide-react';
 import { EnvoltorioItem } from '@/components/items/envoltorio-item';
 import { Retroalimentacion } from '@/components/items/retroalimentacion';
 import { useSesion } from '@/hooks/usar-sesion';
-import { marcarPracticaCompletada, registrarQuiz } from '@/lib/almacenamiento';
+import {
+  guardarColaRepaso,
+  leerEstado,
+  marcarPracticaCompletada,
+  registrarQuiz,
+} from '@/lib/almacenamiento';
 import { armarSimulacro, calificar, presentarTanda } from '@/lib/simulacro';
+import { encolar } from '@/lib/srs';
 import type { BlueprintExamen, BloqueId, Item } from '@/lib/tipos';
 import { CLASES_BLOQUE, cn } from '@/lib/utils';
 import { Boton } from './boton';
+import { fechaLocalDe } from '@/lib/fechas';
 import { ResumenSesion } from './resumen-sesion';
 
 /** Qué se escribe en el progreso cuando la tanda se cierra. */
@@ -158,9 +165,32 @@ function SesionEnCurso({
     yaPersistido.current = true;
     const resumen = sesion.terminar();
     // Handler: el reloj se lee aquí, no en el render (§10.4).
-    const ahora = new Date().toISOString();
+    const momento = new Date();
+    const ahora = momento.toISOString();
     if (registro.clase === 'practica') marcarPracticaCompletada(registro.slug, ahora);
     if (registro.clase === 'quiz') registrarQuiz(registro.slug, resumen.puntaje, ahora);
+
+    // SRS (Paso 10): todo ítem fallado entra a la cola de repaso, y también los
+    // que se dejaron en blanco —`correcta` ya es `false` en ese caso—, porque no
+    // responder tampoco es saberlo. Los acertados NO entran: la cola es lo que
+    // fallaste, no lo que ya dominas (brief §6.1).
+    //
+    // Aquí sí es `encolar` y no `registrarRevision`: §7.2 lo dice expresamente
+    // para los ítems fallados, y su efecto es el correcto — el elemento nace con
+    // `proximaRevision = hoy`, así que fallar en la práctica pone el ítem en la
+    // cola de HOY mismo. Y si ya estaba en la cola no se toca: fallarlo otra vez
+    // no reinicia el progreso que llevaba.
+    //
+    // El encolado no depende de `registro.clase`, así que el diagnóstico y los
+    // simulacros del Paso 11 —que entran como `'suelta'`— lo heredan sin tocar
+    // nada, que es lo que §7.2 pide.
+    const fallados = resumen.detalle.filter((d) => !d.correcta).map((d) => d.item.id);
+    if (fallados.length > 0) {
+      // `leerEstado` y no un snapshot de render: las dos escrituras de arriba ya
+      // movieron el estado y la cola tiene que salir del valor fresco.
+      const cola = leerEstado(ahora).colaRepaso;
+      guardarColaRepaso(encolar(cola, fallados, fechaLocalDe(momento)), ahora);
+    }
   }, [sesion, registro]);
 
   // El foco salta al titular del resumen: el botón que se pulsó desaparece del

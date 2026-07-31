@@ -22,13 +22,22 @@
 // escribió las tarjetas, que es un orden pedagógico. Barajar exigiría
 // `crearRng(semilla)` y una semilla que aquí no significa nada.
 //
-// SRS: este componente registra `tarjetasVistas` y NADA MÁS. La cola de repaso
-// espaciado es de un paso posterior y no se adelanta aquí.
+// SRS (Paso 10): además de `tarjetasVistas`, cada tarjeta respondida entra a la
+// cola de repaso espaciado. Se usa `registrarRevision` y no `encolar`, y la
+// diferencia importa: `encolar` crea el elemento con `proximaRevision = hoy`, de
+// modo que las 15 tarjetas que el usuario acaba de ver le volverían a aparecer
+// en `/repaso` un minuto después — que es justo lo contrario del espaciado.
+// `registrarRevision` crea el elemento SI NO EXISTE y además lo programa: sabida
+// o no, la primera revisión cae a un día, y a partir de ahí el intervalo y la
+// facilidad divergen según se acierte o se falle. Es la misma función del motor,
+// llamada en el punto donde el usuario de verdad emitió un juicio.
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Check, RotateCcw, X } from 'lucide-react';
-import { registrarTarjetasVistas } from '@/lib/almacenamiento';
+import { guardarColaRepaso, leerEstado, registrarTarjetasVistas } from '@/lib/almacenamiento';
+import { registrarRevision } from '@/lib/srs';
+import { fechaLocalDe } from '@/lib/fechas';
 import { CLASES_BLOQUE, cn } from '@/lib/utils';
 import type { BloqueId, Tarjeta } from '@/lib/tipos';
 
@@ -102,8 +111,31 @@ export function MazoTarjetas({ slug, bloque, tarjetas }: Props) {
     // pasada de repaso el mazo es un subconjunto y el número sería menor;
     // `registrarTarjetasVistas` aplica Math.max, así que no bajaría el valor
     // guardado, pero la escritura no aportaría nada.
+    //
+    // La cola de repaso se escribe con el mismo criterio, y por una razón más
+    // fuerte: registrar dos revisiones del mismo elemento con un minuto de
+    // diferencia infla `repeticiones` y alarga el intervalo sin que haya habido
+    // espaciado real. La pasada de falladas es un repaso inmediato, no una
+    // revisión del día siguiente.
     if (!esRepaso) {
-      registrarTarjetasVistas(slug, indice + 1, new Date().toISOString());
+      // Handler: aquí sí se puede leer el reloj (§10.4).
+      const ahora = new Date();
+      const ahoraISO = ahora.toISOString();
+      registrarTarjetasVistas(slug, indice + 1, ahoraISO);
+      // `leerEstado` y no un snapshot de render: la cola es acumulativa y esta
+      // escritura ocurre una vez por tarjeta.
+      const cola = leerEstado(ahoraISO).colaRepaso;
+      const hoy = fechaLocalDe(ahora);
+      // Solo se programa lo que de verdad TOCA hoy: una tarjeta ya programada
+      // para el futuro no se re-registra. Sin esta guarda, estudiar el mazo a
+      // las 8 y repetirlo a las 9 cuenta dos revisiones sin espaciado real
+      // (`repeticiones` 1→2, intervalo 1→3 días) y el SM-2 empieza a mentir
+      // sobre lo que el usuario recuerda. `esRepaso` cubría la pasada de
+      // falladas DENTRO de la sesión; esto cubre la segunda visita a la ruta.
+      const yaProgramada = cola[tarjeta.id];
+      if (yaProgramada === undefined || yaProgramada.proximaRevision <= hoy) {
+        guardarColaRepaso(registrarRevision(cola, tarjeta.id, sabia, hoy), ahoraISO);
+      }
     }
 
     if (indice + 1 >= total) {

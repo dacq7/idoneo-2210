@@ -519,11 +519,11 @@ app pasa de **6 a 9 clientes**. Comprobación:
   el ratio nunca cambia de 0 y el observador no dispara. **Es deliberado, no un
   fallo:** quien salta el texto no lo leyó. Verificado en navegador en los dos
   sentidos: lectura gradual marca `teoriaLeida`, salto directo no.
-- **El mazo registra `tarjetasVistas` y nada más.** La cola de repaso espaciado
-  es del Paso 10. Verificado en navegador: tras recorrer las 15 tarjetas,
-  `colaRepaso` sigue en `{}` y `practicaCompletada`/`mejorQuiz` sin tocar. En la
-  pasada de repaso de las falladas **no** se registra: el mazo es un
-  subconjunto y `Math.max` no bajaría el valor, pero la escritura no aporta nada.
+- ~~**El mazo registra `tarjetasVistas` y nada más.**~~ **Cambiado en el Paso 10:**
+  cada tarjeta respondida entra además a la cola de repaso con
+  `registrarRevision` (no con `encolar` — ver la sección del Paso 10). Lo que
+  **no** cambió es la regla del subconjunto: en la pasada de repaso de las
+  falladas (`esRepaso`) no se escribe ni `tarjetasVistas` ni la cola.
 - **El progreso se registra tarjeta a tarjeta, no al final.** Cerrar la pestaña a
   mitad del mazo conserva lo visto.
 - **Cero aleatoriedad.** El mazo va en el orden en que el autor escribió las
@@ -821,10 +821,11 @@ misma opción, el mismo botón y la pantalla de cierre no se escriban cuatro vec
   y es deuda declarada.** Es la fórmula de `calcularPuntaje` (§7.5), que todavía no
   existe: **el Paso 12 es su dueño** y cuando cree `src/lib/informe.ts` esa línea se
   sustituye por la llamada. Está marcada con comentario en el archivo.
-- **Nada de esto encola en el SRS todavía.** `lib/srs.ts` es del Paso 10. Los
-  ítems fallados en práctica y quiz **tienen que entrar a la cola** cuando exista,
-  y el punto de enganche es el handler `cerrar` de `controlador-sesion.tsx`, que ya
-  tiene el `ResumenSesion` con `detalle[].correcta` en la mano.
+- ~~**Nada de esto encola en el SRS todavía.**~~ **Resuelto en el Paso 10**, en el
+  punto que este contrato anticipaba: el handler `cerrar` de
+  `controlador-sesion.tsx` encola con `encolar()` los `detalle[]` con
+  `correcta === false`. Ver la sección del Paso 10 para el porqué de `encolar` y
+  no `registrarRevision`, y para el comportamiento en `clase: 'suelta'`.
 - **Las etapas 3 y 4 ya enlazan.** `DatosEtapas` gana **`totalItems`** y
   `construirFilas` da `href` a las dos etapas cuando el módulo tiene banco. Las
   cuatro páginas que montan `EtapasModulo` pasan el campo, así que **añadir un
@@ -914,6 +915,211 @@ delante.**
 
 ---
 
+## Repaso espaciado — `/repaso` (Paso 10)
+
+| Componente | Archivo | S/C | Props | Quién lo usa |
+|---|---|---|---|---|
+| `PaginaRepaso` | `src/app/repaso/page.tsx` | Server | — | ruta `/repaso`, destino «Repaso» de las dos barras |
+| `ControladorRepaso` | `src/components/sesion/controlador-repaso.tsx` | **Client** | `modulos: readonly ModuloPublicado[]` | `PaginaRepaso` |
+| `ModuloPublicado` | `src/components/sesion/repaso-vacio.tsx` | tipo | `{ slug, titulo, bloque }` | la página lo proyecta desde `MODULOS` |
+| `siguienteSinDominar`, `AccionSiguiente` | idem | pieza compartida | ver abajo | las cuatro pantallas sin sesión |
+| `ColaSinEstrenar`, `NadaPendienteHoy`, `ColaSinContenido`, `CierreRepaso` | idem | pieza compartida | ver el archivo | `ControladorRepaso` |
+| `fechaLocalDe` | `src/components/sesion/fecha-local.ts` | pieza compartida | `(momento: Date) => 'YYYY-MM-DD'` | `ControladorRepaso`, `ControladorSesion`, `MazoTarjetas` |
+
+**Un alta a la lista cerrada de §10.3** —`controlador-repaso.tsx`, prevista por el
+blueprint—. La app pasa de **19 a 20** clientes propios (34 con `ui/` y `hooks/`):
+
+```bash
+grep -rlE "^\s*['\"]use client['\"];?\s*$" src/ | grep -v "src/components/ui/\|src/hooks/"   # 20
+grep -rlE "^\s*['\"]use client['\"];?\s*$" src/                                              # 34
+```
+
+`repaso-vacio.tsx` y `fecha-local.ts` **no llevan la directiva y no son altas**:
+los importa un Client Component y se compilan con él, igual que `boton.tsx` y
+`resumen-sesion.tsx`.
+
+### El problema del paso: de dónde sale el contenido de la cola
+
+Es el único caso de la app en que el servidor **no puede** cargar el contenido:
+la cola vive en `localStorage`, así que solo el navegador sabe qué hay que
+repasar, y la cola **mezcla módulos**. Las rutas anteriores conocían su slug por
+`params`.
+
+**Resuelto con `import()` dinámico de `content/tarjetas/indice` y
+`content/banco/indice` desde el cliente, cargando solo los módulos que la cola
+menciona.** El razonamiento completo, con las dos alternativas descartadas, está
+en la cabecera de `controlador-repaso.tsx`. En corto:
+
+- **No viola ADR-010, es el caso que ADR-010 declara permitido.** Su párrafo
+  final distingue el import **estático** (prohibido, mete el grafo en el bundle
+  inicial) del **dinámico bajo interacción** (que es para lo que §2.2 y §10.2
+  regla 4 hicieron `banco/` y `tarjetas/` client-safe). Lo que ADR-010 protege
+  es `content/estructura`, y eso **sigue entrando por prop**: `ModuloPublicado`
+  son tres campos.
+- **La alternativa «el servidor lo manda todo por prop»** —lo que hacen
+  `/practica` y `/quiz`— se descartó por medición: hoy costaría ~8 kB gz de carga
+  útil RSC, pero a 29 módulos serían ~750 ítems y ~350 tarjetas **en el documento
+  de la ruta que se abre a diario**, aunque la cola tenga tres elementos. El
+  coste crecería con el contenido y no con el uso.
+- **A 29 módulos** el usuario descarga los chunks de los módulos que su cola
+  menciona y solo esos. El bundle inicial de `/repaso` no lleva ni un ítem.
+
+### ⚠ Desde este paso HAY contenido del banco en `.next/static/chunks/`
+
+Es la primera vez. Medido en este build:
+
+| Chunk | gz | Qué es | ¿En algún manifest inicial? |
+|---|---|---|---|
+| `329.*.js` | **9.6 kB** (34.6 kB raw) | `content/banco/c5-umbrales-zonas.ts` | **no** — diferido |
+| `886.*.js` | **1.8 kB** (4.8 kB raw) | `content/tarjetas/c5-umbrales-zonas.ts` | **no** — diferido |
+
+Ninguno entra en la primera carga de ninguna ruta: se descargan cuando `/repaso`
+resuelve una cola que menciona C5.
+
+**Los dos canarios de ADR-010 siguen siendo válidos y siguen limpios**
+(`osteomuscular` → 0, `Malondialdehído` → 0), porque ninguno sale de `banco/` ni
+de `tarjetas/` — que es exactamente el motivo por el que este documento ya
+advertía que las cadenas de esos dos directorios **no sirven como canario**.
+**Cualquier sonda que busque cadenas del banco en los chunks da positivo desde
+hoy y hay que retirarla:** `grep -rl "creatina quinasa\|MLSS" .next/static/chunks/`
+devuelve ahora los dos chunks de arriba, y eso es lo correcto, no una fuga.
+
+### Contratos de este paso
+
+- **La sesión se congela al empezar.** `colaDelDia` se llama **una vez**, en el
+  efecto de preparación. Si se recalculara en cada render, el elemento recién
+  respondido desaparecería de la lista bajo los pies del usuario y el contador
+  saltaría de «3 de 8» a «3 de 7».
+- **`useEstado()` null es el caso NORMAL aquí**, no un estado transitorio: un
+  usuario nuevo no tiene nada guardado. Se usa la bandera `montado` de
+  `EtapasModulo`; sin ella el esqueleto se queda puesto para siempre en la ruta
+  que más gente abre en blanco. Cubierto por test (`controlador-repaso.test.tsx`).
+- **El «hoy» del SRS es la FECHA LOCAL, no `soloFecha(...toISOString())`.** Es
+  `fechaLocalDe(momento)`, y el porqué está en la cabecera de `fecha-local.ts`:
+  Colombia es UTC−5, así que con la fecha UTC la cola del día se adelantaría
+  cinco horas cada tarde — justo la franja en la que este usuario estudia—, y el
+  intervalo real del SM-2 se acortaría un día de forma sistemática. **Deuda
+  declarada:** el helper pertenece a `src/lib/fechas.ts`, junto a `soloFecha` y
+  `sumarDias`; no se creó allí porque el Paso 10 tenía `src/lib/` reservado al
+  motor. Moverlo no exige tocar nada más.
+- **Dos entradas a la cola, y NO usan la misma función del motor.** La diferencia
+  es de comportamiento, no de estilo:
+
+  | Punto de enganche | Función | Efecto | Por qué |
+  |---|---|---|---|
+  | `mazo-tarjetas.tsx`, cada tarjeta respondida | `registrarRevision` | crea si no existe **y programa**: cae a 1 día | con `encolar` (`proximaRevision = hoy`) las 15 tarjetas recién vistas reaparecerían en `/repaso` un minuto después, que es lo contrario del espaciado |
+  | `controlador-sesion.tsx`, handler `cerrar` | `encolar` | nace con `proximaRevision = hoy` | §7.2 lo dice expresamente para los ítems fallados, y el efecto es el correcto: lo que fallas hoy se repasa hoy |
+
+  Verificado en navegador: `C5-T01` («no la sabía») queda con `facilidad 2.3` y
+  `C5-T02` («la sabía») con `2.6`, las dos a `2026-07-31`; los 8 ítems dejados en
+  blanco quedan a `2026-07-30`.
+- **Los acertados NO entran a la cola** (brief §6.1: la cola es lo que fallaste,
+  no lo que ya dominas). Los dejados en blanco **sí**: `correcta` ya es `false`
+  y no responder tampoco es saberlo.
+- **La pasada de repaso del mazo (`esRepaso`) no escribe en el SRS.** Registrar
+  dos revisiones del mismo elemento con un minuto de diferencia infla
+  `repeticiones` y alarga el intervalo sin que haya habido espaciado real. Es el
+  mismo criterio que ya aplicaba `registrarTarjetasVistas`.
+- **El encolado de ítems no depende de `registro.clase`**, así que el diagnóstico
+  y los simulacros del Paso 11 —que entran como `'suelta'`— lo heredan sin tocar
+  nada, que es lo que §7.2 pide.
+- **`leerEstado(ahoraISO)` y no el snapshot del render** en los tres puntos de
+  escritura. La cola es acumulativa y en `cerrar()` hay dos escrituras previas
+  (`registrarQuiz` / `marcarPracticaCompletada`): partir de un snapshot de render
+  podría perder una.
+- **Cuatro pantallas sin sesión, no una.** Cola sin estrenar · nada pendiente hoy
+  (con el `proximoEnDias` de `resumirRepaso`) · cola que apunta a contenido no
+  publicado · cierre de la sesión. El consejo correcto es distinto en cada una y
+  **ninguna rellena la cola con nada**. Las cuatro llevan la misma acción
+  concreta: `siguienteSinDominar`, el primer módulo publicado que el usuario no
+  domina, en orden de estudio; si no hay ninguno, enlace al índice — no se
+  inventa un módulo para tener algo que ofrecer.
+- **Un id de la cola sin contenido publicado se omite de la sesión y NO se purga
+  de la cola.** El módulo puede publicarse en los pasos 15–17 y su progreso sigue
+  siendo válido (§22 regla 12). Si TODOS los pendientes son huérfanos se muestra
+  la tercera pantalla, nunca una en blanco.
+- **El orden de la sesión no se sortea; las opciones de los ítems sí.** El orden
+  lo fija `colaDelDia` (más atrasado primero, desempate por `localeCompare`), que
+  es determinista. Las opciones pasan por `presentarTanda(items, semilla)` con
+  semilla de `Date.now()` **dentro del efecto** (§10.4): sin barajar, repasar tres
+  veces el mismo ítem fallado enseña la posición de la correcta, no el contenido.
+  Cero `Math.random()`.
+- **`/repaso` NO monta `RotuloBloque`** (DISENO.md §2.4: exige exactamente un
+  bloque en contexto). El bloque se comunica elemento a elemento: la banda de
+  avance toma el color del bloque del elemento en pantalla y el contador dice de
+  qué módulo es.
+- **El contador `role="status"` dice también QUÉ se está repasando**: «Elemento 3
+  de 8 · tarjeta de Umbrales y zonas de entrenamiento» / «· pregunta de …». La
+  cola mezcla dos cosas con gestos distintos y el usuario tiene que saber cuál
+  tiene delante antes de tocar.
+- **La calificación de un ítem la hace `calificar()`**, nunca el componente, igual
+  que en la sesión. «Comprobar» sin haber respondido es «no sé esta» y cuenta
+  como fallo, que es la verdad.
+- **Teclado igual que el mazo y la sesión:** listener en `window` con guarda
+  contra `INPUT/TEXTAREA/SELECT/contentEditable` y modificadores; `1`/`2` solo
+  cuando hay una tarjeta revelada; `Enter` comprueba y avanza; la ayuda se anuncia
+  bajo `[@media(any-pointer:fine)]`. Los `1`–`4` de los ítems los aportan los
+  propios componentes de opción, sin código nuevo.
+
+### Peso — las dos métricas, medidas al cerrar el paso
+
+| | gz |
+|---|---|
+| **`/layout` js — MÉTRICA OFICIAL** | **132.0 kB** (131 999 B · 131 913 B en el Paso 9: **+86 B**, churn de hash por el resplit de chunks) |
+| `/layout` css | **13.6 kB** (13 599 B, sin cambio) |
+| `/layout` total | **145.6 kB** |
+
+| Ruta | js gz | chunks | Antes |
+|---|---|---|---|
+| `/repaso/page` | **144.0 kB** | 10 | — (nueva) |
+| `/modulos/[slug]/page` | 134.2 kB | 9 | 133.9 kB |
+| `/modulos/[slug]/tarjetas/page` | 136.6 kB | 9 | 136.0 kB |
+| `/modulos/[slug]/practica/page` | **145.1 kB** | 11 | 143.5 kB |
+| `/modulos/[slug]/quiz/page` | **145.1 kB** | 11 | 143.5 kB |
+
+**`/repaso` a 144.0 kB no es una anomalía y se explica por diferencia de chunks**
+contra `/practica`, que es la ruta comparable: comparte **todo** menos su propio
+`page-*.js` de **4.9 kB gz**. El chunk compartido `201-*` (**7.1 kB gz**) trae los
+7 componentes de ítem, la retroalimentación, `lib/simulacro.ts` y `lib/srs.ts`; el
+`429-*` (5.8 kB gz) es solo de práctica y quiz (`controlador-sesion` +
+`resumen-sesion`). Es decir: **`/repaso` reutiliza el sistema de ítems entero y
+paga 4.9 kB propios.**
+
+**El +1.6 kB gz de práctica y quiz también se investigó, como manda la regla.** No
+es un import accidental: es el **resplit** del antiguo chunk `429` de 9.9 kB en
+`201` (7.1, compartido con `/repaso`) + `429` (5.8, exclusivo) = 12.9 kB, más
+`lib/srs.ts` y `fecha-local.ts`. Gzip comprime peor dos archivos que uno; a cambio,
+`/repaso` no duplica el sistema de ítems. El chunk `201` es el que la app entera
+va a compartir a partir del Paso 11.
+
+### Verificado en navegador, a 375 px, sobre el build de producción
+
+- **Usuario nuevo:** `h2` «Todavía no hay nada que repasar», **0 esqueletos
+  vivos** y un enlace al siguiente módulo. Es el bug que el contrato de
+  `useEstado()` anuncia, y no ocurre.
+- **El mazo encola de verdad:** tras 3 tarjetas, `colaRepaso` trae `C5-T01`
+  (facilidad 2.3, «no la sabía»), `C5-T02` y `C5-T03` (2.6), las tres a mañana.
+- **La práctica encola de verdad:** 8 ítems dejados en blanco entran los 8, todos
+  con `proximaRevision` = hoy, y **las 3 tarjetas quedan intactas**.
+- **Sesión mixta:** contador «Elemento 1 de 8 · pregunta de Umbrales y zonas de
+  entrenamiento»; con una cola de tarjetas, «· tarjeta de …» y botón «Ver la
+  respuesta».
+- **Teclado, con el foco forzado al `<body>`:** `Enter` comprueba —aparece la
+  explicación— y el segundo `Enter` pasa de «Elemento 1 de 8» a «Elemento 2 de 8».
+  Con tarjeta, `1` avanza de «Elemento 1 de 2» a «Elemento 2 de 2» y `2` cierra.
+- **Foco en las tres transiciones:** al revelar va a la caja de la respuesta, al
+  avanzar al botón «Ver la respuesta», al cerrar al `h2` «Terminaste el repaso de
+  hoy».
+- **Táctil:** «La sabía» / «No la sabía» miden **343 × 52 px**; con
+  `any-pointer: coarse` la línea de atajos **no se muestra**.
+- **Segunda visita el mismo día:** «Nada que repasar hoy — tu memoria va al día ·
+  Tienes 11 elementos en la cola y ninguno vence hoy. El siguiente te toca
+  mañana.» Cero relleno.
+- **Cero desborde horizontal** a 375 px en las tres pantallas, y jerarquía
+  `h1 → h2` sin saltos.
+
+---
+
 ## Ayudantes de UI en `src/lib/utils.ts`
 
 | Función | Qué hace | Test |
@@ -951,7 +1157,6 @@ note.
 
 | Qué | Paso |
 |---|---|
-| `ControladorRepaso` | 10 |
 | `CronometroVisual`, `PanelNavegacion`, `DialogoReanudar` | 11 |
 | `VistaInforme`, `BarrasDominio`, `TemasPrioritarios`, `RevisionItems` y la **escala de umbral** de DISENO.md §4.4 | 12 |
 | `VistaPlan` | 13 |

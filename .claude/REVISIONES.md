@@ -18,6 +18,7 @@ obliga a RECHAZADO.
 | 4 | 2026-07-29 | ✅ | ✅ 159 | ✅ 29 avisos | ✅ | APROBADO CON CAMBIOS | 10 tests ausentes, verificados por mutación (64 mutantes, 16 supervivientes, **todos huecos de test y no defectos**): `guardarEstado` no prueba `notificar()` —el único cable escritura→UI en la misma pestaña, del que dependen los pasos 8–13— · `obtenerIntento` solo prueba el caso negativo, y devolver `intentos[0]` pasa la suite (Paso 12) · `borrarSesion`, `guardarColaRepaso` y `guardarDatosPersonales` sin ningún test (pasos 10, 11, 13) · `marcarTeoriaLeida` nunca verifica su bandera · `importarJSON` sin test de pureza en el éxito (regla 12 vía §18.5) · `necesitaRespaldo` "sin intentos" pasa por la razón equivocada y su frontera `<=` no se ejerce · `desuscribir` afirma sobre el registro de listeners de `window`, nunca sobre el Set interno · `CLAUDE.md` sigue diciendo `usarEstado` (líneas 1437, 6298, 6640) y rompería el Paso 8 · ADR-008 pendiente de ratificación del `software-architect` (tercera clave donde §6 dice "dos") · heredado al Paso 11: `leerSesion` castea sin validar y no hay `esqSesionCronometro` |
 | 8 | 2026-07-30 | ✅ | ✅ 187 | ✅ 84 avisos, 0 errores | ✅ | APROBADO CON CAMBIOS | 🔴 **C5-028 mezcla escalas y sitúa en R1 un valor que la teoría del propio módulo pone en R2**: pide «el límite superior de R1 al 75 % de la FC de reserva» y su respuesta, 152,5 lpm, es el 82,4 % de la FCmáx (R1 = 120–139 lpm; R2 = 148–167 lpm). Es la ambigüedad que C5-008 existe para enseñar a evitar, en la plantilla que se replica 28 veces. Arreglo de una línea: quitar el marco de zona del enunciado; respuesta, `pasos` y explicación quedan válidos · 🟡 el JSDoc de `useEstado` (`src/hooks/usar-estado.ts:11-14`) sigue enseñando el contrato viejo («renderizar un esqueleto mientras sea null»), que es justo el bug del esqueleto permanente; COMPONENTES.md lo corrigió, el hook no, y los Pasos 9–14 leen el hook · 🟡 C5-026 atribuye a R2 un «5–10 % de grasas» que la cartilla no da (dice «casi exclusivamente hidratos»): cifra inventada en la plantilla de oro → derivado a `technical-writer` · heredado y escalado a `software-architect`: `esquemas.ts` manda al navegador los 7 esquemas de ítem + tarjetas/erratas/glosario (evidencia dura: `diceLaCartilla` está en `static/chunks/571-*.js`) donde solo se usa `esqEstadoProgreso` — **no es violación de §5**, que sanciona el import, sino coste no previsto; decidir junto con la deuda del barrel de `radix-ui` (ADR-011) en el Paso 9 |
 | 9 | 2026-07-30 | ✅ | ✅ 382 | ✅ 84 avisos, 0 errores | ✅ (+ lint ✅) | APROBADO CON CAMBIOS | 🔴 **CORREGIDO EN LA REVISIÓN** — `envoltorio-item.tsx:52` montaba `<Control {...props} />` sin `key`: dos ítems consecutivos del mismo `tipo` reusaban la instancia hoja y arrastraban su estado local. En `calculo` (4 de 28 en C5) el campo mostraba el número tecleado en el ítem anterior con `valor` en `null` → **número en pantalla, ítem calificado en blanco**, sin aviso. `calculo.tsx:44-45` y `ordenar.tsx:45-47` daban el remontaje por hecho en comentario. Arreglado con `key={item.id}`; **sin test de regresión: no existe stack de test de componentes** (`environment: 'node'`, `include` solo `*.test.ts`) y añadir jsdom/@testing-library es dependencia nueva → escalado al `software-architect` · 🟡 `useSesion.terminar()` (`usar-sesion.ts:153`) no es idempotente y `cerrar()` (`controlador-sesion.tsx:150`) tampoco: hoy irreproducible porque el botón se desmonta, pero el auto-envío del Paso 11 lo pone en carrera con el clic del usuario → `intentosQuiz` doble · 🟡 `ordenar.tsx:44` escribe respuesta en un efecto sin consultar `editable(modo)`: inofensivo hoy, rellena una respuesta ya fija en cuanto exista `bloqueado` (Paso 11) · 🟡 textos que tratan `bloqueado` como editable en `emparejar.tsx:81` y `ordenar.tsx:91` · 🟡 `emparejar.tsx:101,124,227` usa `key={texto}` sin que el esquema garantice unicidad de `izquierda`/`derecha` · 💭 el banco completo (con `explicacion` y `correcta`) viaja en la carga útil RSC del HTML antes de responder — **verificado**, 73 kB en `quiz.html`; inevitable con calificación en cliente y documentado en `practica/page.tsx:11-17`, pero la página de **teoría** también lo arrastra solo para mostrar un conteo · 💭 sin `itemsRecientes`, repetir el quiz puede servir los mismos 10 ítems |
+| 10 | 2026-07-30 | ✅ | ✅ 455 | ✅ 84 avisos, 0 errores | ✅ (+ lint ✅ + canario ✅) | APROBADO CON RESERVAS | 🔴 `controlador-repaso.tsx:252` — `void resolverElementos(...).then(...)` **sin `.catch()`**: si el `import()` dinámico rechaza (ChunkLoadError por red caída antes de que el SW cachee, o chunk viejo tras un redespliegue) la vista se queda en `{fase:'cargando'}` y `preparando.current` en `true`, así que **ninguna escritura posterior reintenta**. Esqueleto eterno permanente, en la ruta que se abre a diario, en una app cuyo §3 exige conectividad intermitente. Es el mismo bug que el propio test 1 del paso blinda para la rama `useEstado()===null`; falta la rama del fallo. **No lo arreglé**: el arreglo correcto necesita una quinta pantalla con texto honesto y reintento (decisión de `technical-writer`/`ui-designer`), y reciclar `ColaSinContenido` pondría en pantalla un mensaje falso («volverán a aparecer en cuanto su módulo se publique» cuando lo que pasa es que no hay red) · 🔴 **CORREGIDO EN LA REVISIÓN** — la sonda `Malondialdehído` del canario ADR-010 **nació muerta**: el minificador escapa todo carácter no ASCII de los literales (`í` → `\xed`, verificado sobre `329.df5720dcd0524074.js`, que solo contiene `\xbf \xd7 \xe1 \xe9 \xed \xf1 \xf3 \xfa` y ni un acento crudo), así que esa mitad del guardián reportaba «frontera intacta» sin comprobar nada de `content/datos-duros.ts` desde ADR-014. Sustituida por `Mioglobina` (`DD-066`, ASCII, única fuera de `src/`), más guardián que aborta ante sonda no ASCII y `scripts/__tests__/canario-frontera.test.ts` (3 casos); verificado por mutación · 🟡 `mazo-tarjetas.tsx:127-131` usa `registrarRevision` donde el docblock de §7.2 manda `encolar` («se llama con: toda tarjeta vista en la etapa Tarjetas»). El razonamiento del comentario es correcto —`encolar` haría vencer las 15 tarjetas al minuto—, pero es la **5.ª desviación del código literal del blueprint sin ADR** (las 4 previas sí lo tienen: 003, 005, 015, 017) y `registrarRevision` **no es idempotente**: reabrir el mazo el mismo día da a cada tarjeta una segunda revisión (`repeticiones` 1→2, intervalo 1→3 días) sin espaciado real; la guarda `esRepaso` solo cubre la pasada de falladas intrasesión → `software-architect` · 🟡 `controlador-repaso.tsx:234-266` — con la pestaña abierta cruzando medianoche la cola no se recalcula (deps `[montado, estado, modulos, vista.fase]`, y en `'vacia'` no cambia ninguna); se cura al navegar, y la programación sí es correcta porque `registrar` lee `fechaLocalDe` fresco por respuesta · 💭 `osteomuscular` sale también de `content/blueprint-examen.ts:66`: sigue siendo acierto verdadero (ese archivo importa `estructura` y ADR-010 le prohíbe el cliente igual), pero el mensaje de fuga nombraría el archivo equivocado · 💭 el canario no mira los 11 chunks diferidos, y ADR-010 prohíbe el import **sin matizar**: un `import('@/content/estructura')` dentro de un cliente pasaría en verde. Los estáticos —la regresión realista— sí caen en chunks ansiosos y sí se detectan |
 
 ## Notas por paso
 
@@ -267,3 +268,101 @@ documentadas; conviene que las valide quien sí audita.
 
 **No comiteé nada.** El único cambio de código que apliqué es la línea de `key` en
 `envoltorio-item.tsx` más su comentario; las cinco compuertas se repitieron en verde después.
+
+---
+
+## Paso 10 — Motor SRS y `/repaso` · 2026-07-30
+
+**Alcance.** El diff completo del paso salvo `src/lib/srs.ts` y `src/lib/__tests__/srs.test.ts`,
+ya revisados por otro agente (mirados solo para verificar el contrato de idempotencia de
+`encolar`, que se cumple: `if (!siguiente[id])`). Revisado: `app/repaso/page.tsx`,
+`sesion/controlador-repaso.tsx`, `sesion/repaso-vacio.tsx`,
+`sesion/__tests__/controlador-repaso.test.tsx`, los dos enganches (`mazo-tarjetas.tsx`,
+`controlador-sesion.tsx`), `lib/fechas.ts#fechaLocalDe` y `scripts/canario-frontera.ts`.
+
+**Compuertas, las seis, tras aplicar la corrección del canario:** typecheck ✅ (exit 0) ·
+lint ✅ (exit 0) · `npx vitest run` ✅ **455** en 12 archivos · validar ✅ 0 errores / 84 avisos
+(los 84 son módulos en preparación y cuotas de blueprint sin banco: transitorios esperados de
+§8) · build ✅ · canario ✅ (23 chunks ansiosos, 2 sondas).
+
+> La consigna esperaba **448** tests y hay **455**. No falta ninguno: son los 4 de
+> `fechaLocalDe` (que la consigna sí menciona) y los 3 del canario añadidos en esta revisión.
+
+**Invariantes verificados con comando, no de memoria.**
+
+| Invariante | Comando | Resultado |
+|---|---|---|
+| Cero `Math.random()` | `grep -rn "Math.random" src/ content/ scripts/` | 3 hits, **los 3 en comentarios** que prohíben usarlo |
+| Reloj solo en efectos y handlers | `grep -rn "Date.now()\|new Date()" src/` | 8 hits de código: `marcador-lectura.tsx:40` (efecto), `controlador-sesion.tsx:80,168` (handlers), `controlador-repaso.tsx:240` (efecto de preparación) y `:344` (handler `registrar`), `mazo-tarjetas.tsx:122` (handler), `usar-sesion.ts:102,109`. **Ninguno en el cuerpo de un render** |
+| Ningún motor conoce el reloj | `grep -rn "Date.now()\|new Date()" src/lib/` | solo comentarios de `fechas.ts`. `fechaLocalDe` **recibe** el `Date`, no lo construye |
+| `localStorage` solo tras el wrapper | `grep -rn "localStorage" src/ --include=*.ts{,x} \| grep -v almacenamiento.ts` | solo comentarios y tests |
+| Cero sistema de erratas (ADR-014) | `ls content/erratas.ts src/app/erratas` | no existen ✅ |
+| `"use client"` = §10.3 | `grep -rlE "^[\"']use client[\"']" src/` | **22** fuera de `ui/` (shadcn) = §10.3 + las 2 altas de ADR-010 (`riel-bloques`, `app/error`) + `controlador-repaso` (alta declarada en este paso). Sin desvíos |
+| Teoría server-only | `grep -rn "lib/contenido" src/components/` | vacío |
+| Banco en diferido | `grep -rn "from '@/content/banco/" src/` | solo páginas servidor + un test. En cliente, `import()` dinámico |
+| ADR-010 | `npm run build && npm run canario` | verde (tras corregir la sonda) |
+
+**Calificación y programación centralizadas.** Verificado: el controlador no decide nada por su
+cuenta. La corrección es `calificar()` de `lib/simulacro.ts` (`controlador-repaso.tsx:409,424,531`),
+la programación es `registrarRevision`/`programarSiguiente` de `lib/srs.ts`, la selección es
+`colaDelDia` y el resumen `resumirRepaso`. Cero reimplementación.
+
+**Sobre el canario, que la consigna pidió auditar explícitamente.** Las dos preguntas tenían
+respuestas opuestas.
+
+*Su arquitectura es correcta y la premisa que la justifica es cierta.* Comprobado: el contenido
+de C5 sí está ahora en `.next/static/chunks/` —`329.*`, `886.*`, `160.*`, `601.*`, los cuatro
+**diferidos**— así que un `grep -rl` sobre esa carpeta daría desde hoy el falso positivo que el
+script existe para evitar. La exclusión de los diferidos hace trabajo real: 34 js bajo `static`,
+23 ansiosos, 11 diferidos. Y el script lee archivos de verdad, no falla en abierto: la cadena
+`Nada que repasar hoy` aparece en el chunk ansioso `app/repaso/page-*.js`.
+
+*Y una de sus dos sondas estaba muerta.* `Malondialdehído` no puede casar jamás, porque el
+minificador escapa los no-ASCII en los literales de cadena. Evidencia dura: en
+`329.df5720dcd0524074.js` no hay **ni un** acento crudo y sí `\xbf \xd7 \xe1 \xe9 \xed \xf1 \xf3
+\xfa`; `í` es `\xed`. El canario llevaba desde ADR-014 reportando «frontera intacta» sin haber
+comprobado una sola cadena de `content/datos-duros.ts`. La nota de ADR-010 dice «verificado por
+mutación», y lo fue —pero solo para `osteomuscular`, que es ASCII y sí funciona.
+
+Corregido en la revisión: sonda `Mioglobina` (`DD-066`; ASCII, ausente de `src/`), guardián que
+aborta el CLI ante cualquier sonda no ASCII, `SONDAS` exportada y `main()` bajo guarda de argv
+para poder testearla. `scripts/__tests__/canario-frontera.test.ts` fija las tres propiedades:
+ASCII, presencia en el archivo que dice vigilar, y ausencia de `src/` (que es el falso positivo
+que quemó a `conceptosClave` en el Paso 8). **Verificado por mutación:** devuelta la sonda a
+`Malondialdehído`, cae el primer caso y el CLI se niega a correr; restaurada, verde.
+
+**La asimetría de los dos enganches: uno está bien y el otro necesita ADR.**
+
+El del cierre de sesión (`controlador-sesion.tsx:186-191`) es correcto y es el difícil. `encolar`
+es idempotente por contrato y `srs.ts` lo cumple, así que volver a fallar un ítem que ya estaba
+en la cola **no reinicia su progreso** (§22 regla 12). Además no depende de `registro.clase`, con
+lo que el diagnóstico y los simulacros del Paso 11 lo heredan sin tocar nada.
+
+El del mazo no. `registrarRevision` es la función correcta *pedagógicamente* —el comentario tiene
+razón en que `encolar` haría vencer las 15 tarjetas al minuto de verlas— pero no es idempotente,
+y ahí está el agujero que el comentario no cubre: la guarda `esRepaso` protege la pasada de
+falladas dentro de la sesión, no una **segunda visita a la ruta el mismo día**. Estudiar el mazo
+a las 8 y repetirlo a las 9 da a cada tarjeta dos revisiones sin espaciado real: `repeticiones`
+1→2 y el intervalo 1→3 días. Con `encolar` eso no pasa. Y sea cual sea la decisión, es la 5.ª
+desviación del código literal del blueprint y las cuatro anteriores tienen ADR. → `software-architect`.
+
+**Lo que está bien resuelto y conviene que no se pierda.** `fechaLocalDe` no es cosmética: con
+`soloFecha(new Date().toISOString())` la cola se adelanta cinco horas cada tarde justo en la
+franja en que este usuario estudia, y el SM-2 pierde un día de intervalo de forma sistemática y
+**silenciosa**. Está en `lib/`, recibe el `Date` en vez de construirlo, y se calcula a mano en
+vez de con `toLocaleDateString('en-CA')` para no depender de qué ICU traiga el navegador. Los
+ids huérfanos se omiten pero **no se purgan**, con su propia pantalla y su propio test: es §22
+regla 12 aplicada donde de verdad se podía perder progreso. Las cuatro pantallas vacías dicen
+cosas distintas porque el consejo correcto es distinto, y ninguna rellena la cola (brief §6.1).
+Y `repaso-vacio.tsx` sin directiva de cliente para no inflar §10.3 es la lectura fina correcta
+de la regla.
+
+**Derivado al `accessibility-auditor`** (no es mi paso): la `aria-live` siempre montada, el
+`role="status"` del contador de elementos, el `tabIndex={-1}` del titular de cierre y el
+enrutado explícito de foco por `objetivoFoco` son deliberados y están documentados; y los atajos
+`1`/`2`/`Enter` se anuncian solo bajo `@media(any-pointer:fine)`, lo que conviene que valide
+quien sí audita.
+
+**No comiteé nada.** El único cambio de código que apliqué está en `scripts/canario-frontera.ts`
+(sonda + guardián + export) más `scripts/__tests__/canario-frontera.test.ts`. Las seis compuertas
+se repitieron en verde después.

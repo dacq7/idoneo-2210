@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   diasEntre,
   etiquetaCorta,
+  fechaLocalDe,
   formatearDuracion,
   soloFecha,
   sumarDias,
@@ -104,5 +105,33 @@ describe('formatearDuracion', () => {
 
   it('nunca devuelve negativos', () => {
     expect(formatearDuracion(-5)).toBe('00:00');
+  });
+});
+
+/* ─── fechaLocalDe — el «hoy» del repaso espaciado (Paso 10) ────────── */
+
+describe('fechaLocalDe', () => {
+  it('usa la fecha del DISPOSITIVO, no la UTC', () => {
+    // 19:00 en Bogotá (UTC−5) = 00:00 UTC del día siguiente. Es la franja en la
+    // que este usuario estudia, y con la fecha UTC la cola del día se
+    // adelantaría: el SM-2 perdería un día de intervalo de forma sistemática.
+    const momento = new Date(2026, 6, 30, 19, 0, 0); // 30 jul 2026, 19:00 local
+    expect(fechaLocalDe(momento)).toBe('2026-07-30');
+  });
+
+  it('rellena mes y día a dos dígitos', () => {
+    expect(fechaLocalDe(new Date(2026, 0, 5, 12, 0, 0))).toBe('2026-01-05');
+  });
+
+  it('el resultado encaja con el formato que exige esqTarjetaSRS', () => {
+    for (const fecha of [new Date(2026, 11, 31, 23, 59), new Date(2027, 1, 1, 0, 0)]) {
+      expect(fechaLocalDe(fecha)).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    }
+  });
+
+  it('lo que produce sirve de entrada a sumarDias sin conversión', () => {
+    const hoy = fechaLocalDe(new Date(2026, 6, 30, 19, 0, 0));
+    expect(sumarDias(hoy, 1)).toBe('2026-07-31');
+    expect(diasEntre(hoy, '2026-08-02')).toBe(3);
   });
 });

@@ -12,7 +12,8 @@
     "validar": "tsx scripts/validar-banco.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "canario": "tsx scripts/canario-frontera.ts"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
