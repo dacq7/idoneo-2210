@@ -2588,3 +2588,46 @@ El integrador hizo bien en no tocarlos —viven en `src/`— y en escalarlos. **
 **+0.3 kB gz en todas las rutas**, uniforme. Con 200 ítems y 120 tarjetas nuevos, ese incremento es el índice (16 líneas de `import()`), no el contenido: la frontera de ADR-010 aguantó su primer bloque completo sin que un solo ítem entre en un chunk de carga ansiosa. El canario, en verde.
 
 **Nota heredada, sin resolver:** los subtemas de `referencia` se asignaron por coherencia temática, no contra la numeración real de la Cartilla 4. Es verificable contra el material oficial y su corrección sería un renombrado mecánico de un campo.
+
+## [2026-07-31 09:45] · code-reviewer · Paso 15
+
+**Qué revisé:** `git diff main...paso-15-bloque-d` (c799f1a) — 8 módulos del bloque D: 8 `content/teoria/d*.mdx`, 8 `content/tarjetas/d*.ts` (120 tarjetas), 8 `content/banco/d*.ts` (200 ítems), los dos `indice.ts`, `content/glosario.ts` (+27), `content/estructura.ts` (8 × `estadoContenido`), y los dos tests reescritos (`censo.test.ts`, `panel-inicio.test.tsx`). Revisión de CONTENIDO, no de código: cero líneas de `src/` fuera de tests.
+
+**Compuertas:** validar ✅ (0 errores · avisos solo de módulos aún vacíos) · typecheck ✅ · test ✅ 676/676 · canario ✅ (33 chunks, frontera intacta) · lint ❌ · build ❌
+
+**Invariantes verificados:**
+- Ítems como datos literales: `grep -rn "\.map(\|=>\|\`\|for (\|function " content/banco/d*.ts` → vacío. Cero generación.
+- Explicaciones ≥200 car.: 200/200 cumplen (sonda ejecutada sobre `BANCO`).
+- ADR-014, cero mención al material fuente en el cuerpo: regex sobre `la cartilla|las cartillas|el material oficial|según el texto|material fuente|la guía oficial` en las 200 explicaciones y los 200 enunciados → 0 hits.
+- Prohibido «todas/ninguna de las anteriores»: 0 hits en las 128×4 opciones.
+- Ids sin duplicar, `bloque: 'D'` y `modulo` correctos en los 200; tarjetas con prefijo e id correctos, 15 por módulo.
+- Referencias disjuntas: 8 módulos, 0 colisiones de subtema. El remapeo D3 (3.1.x) / D4 (3.2.x) / D5 (3.3.x) / D6 (3.4.x) / D7 (4.1.x) / D8 (4.2.x) quedó bien.
+- Cuotas: 11/8/6 por nivel (44/32/24 %) y ≥6 tipos distintos en los 8 módulos.
+- Tablas MDX (A-23): máximo 6 columnas (`d3-fuerza`), cabeceras de una o dos palabras. Ninguna se pasa.
+- Aritmética: los 20 ítems de `calculo` recomputados uno a uno. Epley `w×(1+r/30)`, Brzycki `w/(1,0278−0,0278r)`, Cooper `(m−504,9)/44,73`, Léger adultos `5,857V−19,458` con paliers `8,5+0,5×(p−1)`, densidad, sRPE `RPE×min`. Las cuatro fórmulas son las canónicas y las 20 respuestas cuadran.
+- Datos verificables: Borg original 6–20 y CR-10 0–10 · macro 3–12 meses / meso 2–6 sem / micro 3–10 días · %1RM coherente con DD-010/011/012 · Ley 2210 del 23 de mayo de 2022 · atribuciones (Matveiev, Verkhoshansky, Issurin y Kaverin para ATR, Tschiene) correctas · umbral de salida falsa 0,100 s · FNP 10 s / 6 s / 10–30 s. **Cero datos incorrectos enseñados como verdaderos.**
+- Tests derivados del catálogo: mutación consistente (a1-celula → `'completo'` + banco y tarjetas reales en ambos índices) → 33/33 pasan. Derivan de verdad; no es un literal cambiado por otro. Mutación revertida.
+
+**Hallazgos:** 🔴 1 · 🟡 1 · 💭 2
+- 🔴 `src/components/inicio/__tests__/panel-inicio.test.tsx` incumple `max-lines` (306 contadas, máximo 300). Rompe `npm run lint` y `npm run build`. Es regresión de este paso: `main` pasa lint limpio.
+
+**Veredicto:** RECHAZADO
+
+**Pendiente antes de cerrar el paso:** bajar `panel-inicio.test.tsx` de 300 líneas contadas (extraer un `describe` a un archivo hermano) y volver a correr lint y build. El contenido no requiere cambios.
+
+### Revisión del `code-reviewer` — Paso 15
+
+**RECHAZADO por un bloqueante que era mío y no del contenido**: `panel-inicio.test.tsx` llegó a **306 líneas contadas** al derivar sus fixtures del catálogo, y la compuerta `max-lines` de ADR-022 lo paró. `npm run lint` y `npm run build` en rojo.
+
+**Dos cosas que conviene no olvidar de esto:**
+
+1. **La compuerta que encendí en el Paso 12 me pilló a mí, y funcionó exactamente como debía.** La fila del Paso 12 en `REVISIONES.md` ya avisaba —«margen cero: una línea más y salta sin aviso»— y saltó. Arreglado extrayendo `panel-inicio-avisos.test.tsx`: 185 y 183 líneas, las dos holgadas, y agrupan mejor —un archivo prueba qué recomienda la portada, el otro qué **no** puede llegar a decir—.
+2. **Yo no lo vi porque verifiqué con `tail -1`.** El comando fue `npm run lint 2>&1 | tail -1`, que se traga el error y muestra una línea vacía. Desde ahora las compuertas se comprueban **por exit code**, no por la última línea de salida. Las seis, reverificadas así: `typecheck 0 · lint 0 · test 0 · validar 0 · build 0 · canario 0`.
+
+**El contenido no necesitó ni un cambio**, y el revisor lo midió en vez de hojearlo: cero `map()` en los 200 ítems, **cero menciones al material fuente** en las 200 explicaciones y los 200 enunciados (ADR-014), las 200 explicaciones por encima de 200 caracteres, cero «todas las anteriores» en 512 opciones, ids sin duplicar, **0 colisiones de subtema** tras el remapeo, y los **20 cálculos recomputados uno a uno**: Epley, Brzycki, Cooper y Léger son las fórmulas canónicas y todas las respuestas cuadran.
+
+Tres puntos donde el material de partida suele fallar y aquí está bien resuelto: **ATR atribuido a Issurin y Kaverin** —no a Verkhoshansky, que es el error habitual—, el estiramiento estático largo antes de potencia **con el matiz honesto** de que el corto dentro de un calentamiento completo no daña, y el FNP explicado como **tolerancia al estiramiento** y no como alargamiento del músculo. Eso es ADR-014 hecho bien.
+
+**Y verificó los tests reescritos con una mutación de verdad:** marcó `a1-celula` como completo **y** le registró banco y tarjetas en ambos índices —una publicación consistente, como será el Paso 16— y los 33 tests siguieron pasando. No era un literal cambiado por otro.
+
+**Un relevante que NO bloquea este paso y sí condiciona los siguientes:** el sesgo de longitud de la opción correcta. Anotado en `PENDIENTES.md` con la medición completa, incluida la parte incómoda — **C5, la plantilla de oro, es peor que el bloque D**.
