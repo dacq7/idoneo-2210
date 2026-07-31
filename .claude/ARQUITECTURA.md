@@ -1254,3 +1254,32 @@ Lo decisivo es que la segunda **no cambia lo que viaja al cliente**: sigue siend
 - **Un censo vacío no se declara exacto por vacuidad.** `[].every(...)` es `true`, así que sin la guarda de longitud un censo sin entradas afirmaría exactitud sobre cero evidencia. Tiene test propio, y el mutante que quita la guarda muere.
 
 **Consecuencia:** el diagnóstico se comporta como los simulacros —hoy dice que no es armable, con cifras— y ahora **ese veredicto es exacto**, no una cota. La portada ya lo bloqueaba con `exacto: false` desde el Paso 12; lo que cambia es que deja de bloquearlo por precaución y pasa a bloquearlo por conocimiento.
+
+---
+
+## ADR-026 · `/plan` proyecta los módulos, y la excepción que decía lo contrario cae
+
+**Estado:** Aceptada
+**Fecha:** 2026-07-31 · **Autor:** Paso 13, tras el hallazgo del `code-reviewer`
+
+**Contexto.** La primera versión de `/plan` pasaba los 29 `Modulo` **completos** al Client Component, con esta justificación escrita en la cabecera y repetida en la bitácora:
+
+> *«`generarPlan` necesita `prerequisitos`, `minutosEstimados`, `orden` y `bloque` de los 29 —no un subconjunto de tres campos como el informe—, así que proyectar no ahorraría gran cosa.»*
+
+**Esa cifra nunca se midió.** Medida por el `code-reviewer`:
+
+| | raw | gz |
+|---|---|---|
+| `Modulo` completos | 19 054 B | 5 583 B |
+| Proyectados a los 6 campos que el motor lee | 4 674 B | **1 126 B** |
+| **Ahorro** | 14 380 B | **4 457 B (−75 %)** |
+
+Viajaban `objetivos`, `conceptosClave`, `subtitulo` y `estadoContenido`, que `generarPlan` **no lee nunca**. Y se comprobó con una sonda de contenido: `grep "Prescribir la zona correcta" .next/server/app/plan.rsc` acertaba.
+
+**Decisión: se proyecta.** `ModuloDelPlan` (6 campos) y `BloqueDelPlan` (2), igual que `ModuloDelInforme` hace en `informe.ts`. `Modulo` sigue siendo asignable a ellos, así que el servidor y los tests pasan el objeto entero sin conversión.
+
+**Lo importante de este ADR no es la decisión, es cómo se llegó a ella.** La regla de ADR-010 tiene dos mitades: la dura —ningún import estático de `content/` desde cliente— **se respetaba**, y el canario estaba en verde. Lo que se desviaba era la segunda mitad de su frase: *«reducidos al subconjunto serializable que el componente necesita»*. Y se desviaba apoyándose en una estimación presentada como hecho.
+
+**En un proyecto que mide el peso en kB gz en cada paso, «ahorraría poco» sin una cifra al lado no es una justificación: es una suposición con tono de conclusión.** El canario no lo habría detectado nunca —vigila contenido en chunks de cliente, y esto era carga útil RSC—, así que la única defensa era medir. Queda como criterio: **toda excepción a la proyección de ADR-010 se documenta con su medición, o no es una excepción, es un descuido**.
+
+**Verificado tras el cambio:** la sonda de contenido ya no acierta en `plan.rsc`.

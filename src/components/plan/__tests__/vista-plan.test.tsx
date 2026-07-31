@@ -12,6 +12,7 @@
 
 import { beforeEach, describe, expect, it } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { BLOQUES, MODULOS } from '@/content/estructura';
 import { crearEstadoInicial, guardarEstado, reiniciarTodo } from '@/lib/almacenamiento';
 import { fechaLocalDe, sumarDias } from '@/lib/fechas';
@@ -40,8 +41,29 @@ describe('VistaPlan', () => {
 
     expect(screen.getByText('Las próximas seis semanas')).toBeDefined();
     expect(screen.getByText(/no has puesto la fecha del examen/)).toBeDefined();
-    // Y ofrece dónde ponerla, en vez de solo lamentarlo.
-    expect(screen.getByRole('link', { name: 'Ir a Ajustes' })).toBeDefined();
+  });
+
+  it('ofrece el campo para ponerla AQUÍ, no un enlace a una ruta que no existe', async () => {
+    // El test anterior fijaba un enlace a `/ajustes`, que **devuelve 404**: esa
+    // ruta se construye en el paso 18.5. Es decir, el remedio del requisito
+    // «sin fecha el plan sigue siendo útil» mandaba a una página inexistente, y
+    // había un test que lo bendecía. Lo encontró el `code-reviewer` con curl.
+    montar();
+    await waitFor(() => expect(screen.getByLabelText('Fecha del examen')).toBeDefined());
+    expect(screen.getByRole('button', { name: 'Guardar' })).toBeDefined();
+    expect(screen.queryByRole('link', { name: 'Ir a Ajustes' })).toBeNull();
+  });
+
+  it('guardar la fecha recalcula el plan sin recargar', async () => {
+    const usuario = userEvent.setup();
+    montar();
+    const campo = await screen.findByLabelText('Fecha del examen');
+    await usuario.clear(campo);
+    await usuario.type(campo, sumarDias(HOY, 20));
+    await usuario.click(screen.getByRole('button', { name: 'Guardar' }));
+
+    await waitFor(() => expect(screen.getByText('Hasta tu examen')).toBeDefined());
+    expect(screen.queryByText(/no has puesto la fecha del examen/)).toBeNull();
   });
 
   it('CON fecha de examen usa los días reales y no avisa de fecha ausente', async () => {

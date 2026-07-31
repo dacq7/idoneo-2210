@@ -25,12 +25,15 @@ import { CalendarDays, TriangleAlert } from 'lucide-react';
 import { useEstado } from '@/hooks/usar-estado';
 import { etiquetaCorta, fechaLocalDe } from '@/lib/fechas';
 import { diaVigente, generarPlan } from '@/lib/plan';
-import type { Bloque, Modulo, TareaPlan } from '@/lib/tipos';
+import type { BloqueDelPlan, ModuloDelPlan } from '@/lib/plan';
+import type { TareaPlan } from '@/lib/tipos';
 import { cn } from '@/lib/utils';
+import { CampoFechaExamen } from './campo-fecha-examen';
 
 interface Props {
-  modulos: readonly Modulo[];
-  bloques: readonly Bloque[];
+  /** Proyectados a los seis campos que el motor lee (ADR-026). */
+  modulos: readonly ModuloDelPlan[];
+  bloques: readonly BloqueDelPlan[];
 }
 
 export function VistaPlan({ modulos, bloques }: Props) {
@@ -82,6 +85,10 @@ export function VistaPlan({ modulos, bloques }: Props) {
 
   return (
     <div className="space-y-8">
+      {/* El campo va ARRIBA cuando falta la fecha —es lo que desbloquea el
+          resto— y abajo del todo cuando ya está puesta, donde no estorba. */}
+      {!estado?.fechaExamen ? <CampoFechaExamen /> : null}
+
       {sinDiagnostico ? (
         <section
           aria-labelledby="sin-diagnostico"
@@ -116,20 +123,11 @@ export function VistaPlan({ modulos, bloques }: Props) {
                 className="flex items-start gap-3 rounded-md border-l-4 border-aviso bg-aviso/10 p-3 text-[0.8125rem] leading-[1.45]"
               >
                 <TriangleAlert className="mt-0.5 size-4 shrink-0 text-aviso" aria-hidden="true" />
-                <span>
-                  {a}
-                  {a.includes('fecha del examen') && !estado?.fechaExamen ? (
-                    <>
-                      {' '}
-                      <Link
-                        href="/ajustes"
-                        className="font-medium text-primary underline underline-offset-2"
-                      >
-                        Ir a Ajustes
-                      </Link>
-                    </>
-                  ) : null}
-                </span>
+                {/* Ya no se enlaza a `/ajustes`: esa ruta se construye en el
+                    paso 18.5 y hasta entonces devuelve 404 — el remedio de la
+                    advertencia era un enlace roto. El campo para poner la fecha
+                    está arriba, en esta misma pantalla. */}
+                <span>{a}</span>
               </li>
             ))}
           </ul>
@@ -190,6 +188,8 @@ export function VistaPlan({ modulos, bloques }: Props) {
           ))}
         </ol>
       </section>
+
+      {estado?.fechaExamen ? <CampoFechaExamen fechaActual={estado.fechaExamen} /> : null}
     </div>
   );
 }

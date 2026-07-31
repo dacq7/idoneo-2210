@@ -18,6 +18,27 @@
 import { diasEntre, sumarDias } from './fechas';
 import type { Bloque, DesgloseIntento, DiaPlan, Modulo, Plan, TareaPlan } from './tipos';
 
+/**
+ * Lo que el motor necesita saber de un módulo. **Seis campos, no los doce.**
+ *
+ * Igual que `ModuloDelInforme` en `informe.ts`, y por el mismo motivo (ADR-010):
+ * este tipo cruza la frontera hacia el cliente. La primera versión de `/plan`
+ * pasaba los `Modulo` completos con la excusa de que «proyectar ahorraría
+ * poco», y **esa cifra nunca se midió**. Medida por el `code-reviewer`: 5 583 B
+ * gz completos contra 1 126 B proyectados, **−75 %**. Viajaban `objetivos`,
+ * `conceptosClave`, `subtitulo` y `estadoContenido`, que el motor no lee nunca.
+ *
+ * `Modulo` sigue siendo asignable a esto, así que el servidor y los tests
+ * pueden pasar el objeto entero sin conversión.
+ */
+export type ModuloDelPlan = Pick<
+  Modulo,
+  'slug' | 'titulo' | 'bloque' | 'orden' | 'minutosEstimados' | 'prerequisitos'
+>;
+
+/** Lo que el motor necesita de un bloque: su id y cuánto pesa en el examen. */
+export type BloqueDelPlan = Pick<Bloque, 'id' | 'pesoExamen'>;
+
 /** Días finales reservados para simulacro + repaso. Brief §6.5. */
 export const DIAS_RESERVADOS = 3;
 
@@ -43,8 +64,8 @@ export interface OpcionesPlan {
   hoy: string;
   /** 'YYYY-MM-DD'. `undefined` = el usuario aún no la ha puesto. */
   fechaExamen?: string;
-  modulos: readonly Modulo[];
-  bloques: readonly Bloque[];
+  modulos: readonly ModuloDelPlan[];
+  bloques: readonly BloqueDelPlan[];
   /** Desglose del diagnóstico inicial. `null` si aún no se hizo. */
   diagnostico: DesgloseIntento | null;
   /** Módulos ya dominados: bajan de prioridad, no desaparecen. */
@@ -66,8 +87,8 @@ export interface OpcionesPlan {
  * justo por haberlo aprendido pronto.
  */
 function prioridad(
-  modulo: Modulo,
-  bloques: readonly Bloque[],
+  modulo: ModuloDelPlan,
+  bloques: readonly BloqueDelPlan[],
   diagnostico: DesgloseIntento | null,
   dominados: ReadonlySet<string>,
 ): number {
@@ -88,12 +109,12 @@ function prioridad(
  * así que esto es la red de seguridad de la red de seguridad.
  */
 function ordenarPorPrioridadYPrerequisitos(
-  modulos: readonly Modulo[],
+  modulos: readonly ModuloDelPlan[],
   puntajes: Map<string, number>,
-): Modulo[] {
+): ModuloDelPlan[] {
   const pendientes = new Map(modulos.map((m) => [m.slug, m]));
   const colocados = new Set<string>();
-  const resultado: Modulo[] = [];
+  const resultado: ModuloDelPlan[] = [];
 
   while (pendientes.size > 0) {
     // «Listo» = todos sus prerequisitos ya colocados, o fuera de este plan.
@@ -158,7 +179,7 @@ export function generarPlan(opciones: OpcionesPlan): Plan {
   if (sinFecha) {
     advertencias.push(
       'Todavía no has puesto la fecha del examen, así que este plan asume seis semanas desde hoy. ' +
-        'Ponla en Ajustes y se recalcula con tus días reales.',
+        'Ponla arriba y se recalcula con tus días reales.',
     );
   }
 

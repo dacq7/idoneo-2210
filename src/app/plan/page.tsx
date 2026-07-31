@@ -2,15 +2,12 @@
 //
 // El plan de estudio: qué estudiar hoy y en qué orden hasta el examen.
 //
-// Frontera (ADR-010): aquí SÍ se pasan los `Modulo` completos, y es la
-// excepción razonada del proyecto. `generarPlan` necesita `prerequisitos`,
-// `minutosEstimados`, `orden` y `bloque` de los 29 —no un subconjunto de tres
-// campos como el informe—, así que proyectar no ahorraría gran cosa y obligaría
-// a inventar un tipo paralelo que hay que mantener en sincronía con `Modulo`.
-//
-// Lo que ADR-010 prohíbe es el import ESTÁTICO de `content/` desde un Client
-// Component, que metería los 29 módulos en el bundle. Aquí viajan como carga
-// útil RSC de una sola ruta, medida y declarada en la bitácora del paso.
+// Frontera (ADR-010): se proyecta a `ModuloDelPlan` —los **seis** campos que
+// `generarPlan` lee— y a `BloqueDelPlan`. La primera versión pasaba los
+// `Modulo` completos alegando que proyectar «ahorraría poco», y esa cifra
+// nunca se midió: son **4 457 B gz, un 75 %** de la carga útil de esta ruta
+// (ADR-026). Viajaban `objetivos`, `conceptosClave`, `subtitulo` y
+// `estadoContenido`, que el motor no lee nunca.
 //
 // NO monta `RotuloBloque`: el plan cruza los cuatro bloques (DISENO.md §2.4).
 
@@ -35,7 +32,17 @@ export default function PaginaPlan() {
         </p>
       </header>
 
-      <VistaPlan modulos={MODULOS} bloques={BLOQUES} />
+      <VistaPlan
+        modulos={MODULOS.map((m) => ({
+          slug: m.slug,
+          titulo: m.titulo,
+          bloque: m.bloque,
+          orden: m.orden,
+          minutosEstimados: m.minutosEstimados,
+          prerequisitos: m.prerequisitos,
+        }))}
+        bloques={BLOQUES.map((b) => ({ id: b.id, pesoExamen: b.pesoExamen }))}
+      />
     </div>
   );
 }

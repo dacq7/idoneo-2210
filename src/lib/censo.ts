@@ -9,6 +9,11 @@
 // lista `CensoModulo[]` que consume `diagnosticarViabilidad`, que es lo único
 // que cruza la frontera hacia el cliente: tres campos por módulo.
 
+// Barrera mecánica, no solo documental: importa `content/estructura` y el
+// banco, así que un import desde cliente rompería la frontera de ADR-010. El
+// canario lo detectaría después del build; esto lo detiene en el typecheck.
+import 'server-only';
+
 import { cargarBancoModulo, censarBanco } from '@/content/banco/indice';
 import { MODULOS } from '@/content/estructura';
 import type { BlueprintExamen, Item } from './tipos';
