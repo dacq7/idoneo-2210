@@ -50,30 +50,57 @@ Los 7 tipos × 4 estados, el controlador de sesión y las etapas 3 y 4 de C5. AD
 - **`CLAUDE.md` §7.2 quedó desalineado en tres puntos y no se editó** (ADR-017): la normalización de `hoy` en `crearTarjetaSRS` y la acotación del intervalo. No se replica —§7.2 se copia una sola vez— y los tests lo fijan.
 - **El canario de ADR-010 es ahora `npm run canario`**, no un `grep`. Desde este paso hay contenido en chunks de cliente **a propósito** (`import()` diferido en `/repaso`), y el grep viejo da falso positivo. Correrlo **después** de `npm run build`.
 
-## Paso 11 — Cronómetro y sesión persistente
+## Paso 11 — Cronómetro y sesión persistente · ✅ CERRADO el 2026-07-30
 
-- **§7.4 llega aquí, y conviene ejercitarlo con sospecha.** Van cuatro desviaciones del código literal de `src/lib/` en el blueprint (ADR-003, ADR-005, ADR-015, ADR-017), y las tres de motores comparten forma: **fallan en los bordes, no en el caso feliz**, y todas necesitaron lo mismo — normalizar la entrada y acotar la salida. El cronómetro tiene los dos: recibe `ahoraMs` de fuera y produce umbrales de aviso.
+Se cerraron las siete obligaciones que este paso heredaba. Resumen de qué pasó con cada una:
 
-- ~~`<AlertaContradiccion>` es prematuro, no código muerto~~ **borrado por ADR-014.** El panel de retroalimentación de este paso muestra veredicto → `explicacion` → `pasos` si es cálculo → `referencia`, y **nada más**: el campo `contradiccion` de `ItemBase` ya no existe. **§13 del blueprint sigue describiendo el cuadro en el panel: no copiarlo.**
+- ✅ **§7.4 ejercitado con sospecha, y la sospecha estaba justificada.** `restantes()` devolvía `NaN` con una duración corrupta, y `NaN <= 0` es `false`: el auto-envío **no se disparaba nunca**. Sexta desviación del blueprint, misma forma que las cinco anteriores. Ver **ADR-019**.
+- ✅ **La deuda de `esqSesionCronometro`** (§6 hacía `as SesionCronometro` sin validar): resuelta con esquema propio. La sesión ilegible se descarta y **no** manda el progreso a cuarentena, a diferencia de ADR-008 — vive en otra clave. Ver ADR-019.
+- ✅ **La deuda de `src/lib/esquemas.ts` en el bundle**: resuelta, y este paso la volvió urgente. `OcultaEnSimulacro` metió `almacenamiento.ts` en el grafo del **layout raíz**, así que su peso pasó a pagarlo toda la app: `/layout` saltó de 132.0 a **148.4 kB gz**. Con la partición vuelve a **132.5**. Ver **ADR-021**.
+- ✅ **El banco del simulacro final no viaja en la carga útil RSC**: se carga con `import()` bajo interacción, como §2.2 prescribe. El HTML de `/simulacros/final` no contiene ni una cadena del banco.
+- ✅ **Hooks como `useCronometro`** (ADR-007), **`leerSesion` llamada desde efectos** (no es libre de efectos), **`reactStrictMode`** activo.
+- ✅ **El pie se oculta con `hidden`, no se desmonta** (ADR-001), y `Pie` sigue siendo Server Component: viaja como payload RSC dentro de `OcultaEnSimulacro` y no entra al bundle cliente.
+- ✅ **La válvula `data-compacto` (D-8)** se estrena en el panel de navegación, que es la pantalla para la que se aprobó en el Paso 5.
 
-- **Decidir, EN EL MISMO MOMENTO, la deuda de `src/lib/esquemas.ts`.** Manda al navegador los siete esquemas de ítem, más tarjetas y glosario, donde **ninguno se usa**: en cliente solo hace falta `esqEstadoProgreso`, que `almacenamiento.ts` importa para validar el progreso al leerlo. Evidencia: la cadena de sondeo era `grep "diceLaCartilla" .next/static/chunks/`; con `esqErrata` borrado (ADR-014) **hay que elegir una nueva** antes de volver a medirlo. **No es violación de §5** —§5 sanciona ese import explícitamente—; lo no previsto es el coste. Partirlo en `esquemas-progreso.ts` / `esquemas-contenido.ts` sí es arquitectura y choca con §22 regla 2, así que se reportó en vez de hacerse. Misma deuda que el barrel, mismas rutas, mismo momento.
-- ~~Decidir la deuda del barrel de `radix-ui`~~ **✅ CERRADA en el Paso 9.** Los 13 archivos de `ui/` pasan al subpath (`radix-ui/slot`, `radix-ui/dialog`, …): **−76.9 kB gz en `/not-found`**. La condición de cierre se resolvió con una regla `no-restricted-imports` — no se puede impedir que `npx shadcn@2 add` escriba el barrel, sí que sobreviva a `npm run lint`. Ver el cierre de ADR-011.
+**Obligaciones nuevas que este paso genera:**
 
-- Los hooks se exportan como **`useSesion`** y **`useCronometro`**; los archivos siguen siendo `usar-sesion.ts` y `usar-cronometro.ts` (ADR-007). Con nombre en español, `react-hooks/rules-of-hooks` da error **y deja de auditar el interior de la función** — justo en el controlador de sesión y el auto-envío del cronómetro.
-- **Paso 11, deuda de §6 literal:** `leerSesion()` hace `JSON.parse(crudo) as SesionCronometro` **sin validar**, y no existe `esqSesionCronometro`. Con un payload como `{"foo":1}` devuelve un objeto sin `itemIds` ni `duracionSegundos`: recorrer `itemIds` lanza `TypeError` y `restantes()` daría `NaN`, porque `undefined !== null`. Decidir ahí si se añade el esquema.
-- `leerSesion` **no es libre de efectos**: se autolimpia con `borrarCrudo` si el payload es corrupto. El `dialogo-reanudar` debe llamarla desde un efecto, nunca en render.
-- `reactStrictMode` ya está activo desde el Paso 2, precisamente para que el doble disparo de efectos aparezca aquí y no en producción.
+- **Paso 12 — el simulacro NO guarda todavía su `IntentoSimulacro`.** Es deliberado y es la misma decisión que tomó el quiz en el Paso 9: `IntentoSimulacro.desglose` exige `calcularDesglose`, que es de `src/lib/informe.ts` y nace en el Paso 12. Escribir un intento a medias hoy dejaría registros que ese paso tendría que migrar. Hoy el simulacro cierra, califica en pantalla con `ResumenSesion` y **borra la sesión**; lo que falta es persistir el intento y enlazar a `/resultados/[intentoId]`. El `intentoId` ya existe y es la semilla en string, como manda §4.
+- **Paso 12 — `usar-sesion.ts` sigue calculando el puntaje con la fórmula de §7.5.** Sin cambio respecto al Paso 9: la línea está marcada en el archivo y se sustituye por la llamada a `calcularPuntaje` cuando `informe.ts` exista.
+- **Paso 13 — `diagnosticarViabilidad` NO es exacta si el blueprint filtra por tipo o dificultad**, y lo dice: devuelve `exacto: false`. El diagnóstico es el primero que filtrará (`tiposPermitidos: ['unica','emparejar','caso']`, dificultades 1 y 2), así que ahí hay que ampliar el censo con la distribución **conjunta** tipo × dificultad —las marginales no bastan— o cargar el banco en el servidor y contar de verdad. Con el censo actual el veredicto sería una **cota superior**: podría decir «viable» y no serlo.
+- **Cualquier paso que añada un archivo a `src/lib/` importado desde el layout raíz** debe declarar qué arrastra. El canario de ADR-010 **no** cubre esto: vigila contenido, no dependencias. La comprobación es la métrica `/layout` js gz de `COMPONENTES.md`, y este paso demostró que un import inocente cuesta 16 kB en todas las rutas.
+- ~~**Sin paso asignado, al `software-architect` — la regla de las 300 líneas contradice la práctica.**~~ **Resuelto el 2026-07-30 por ADR-022**, con enmienda a ADR-020 y edición de `CLAUDE.md` §21 regla 1. La regla se mantiene en **300**, contadas ahora en **líneas de código** (`skipComments` + `skipBlankLines`, tal como las mide ESLint `max-lines`): faltaba la unidad, no el número. Medido así, el segundo archivo más grande del alcance son 294 líneas y el mayor 414 — no hay nada entre medias, así que 300 cae en un hueco natural de la distribución. **Deja un único incumplidor, `controlador-repaso.tsx` (414), que pasa a ser obligación del Paso 12** junto con el encendido de la compuerta de ESLint.
 
+- **Paso 12 — el resumen de un simulacro se pierde con F5.** Consecuencia declarada de no persistir `IntentoSimulacro` todavía: se pueden hacer 120 minutos y perder el resultado recargando la pantalla de cierre. Se acepta hoy porque escribir un intento sin `desglose` dejaría registros que el Paso 12 tendría que migrar, pero **que nadie lo dé por resuelto**: desaparece cuando `guardarIntento` entre en juego.
 
-- **El banco entero viaja en la carga útil RSC**, y con 100 ítems sobre 29 módulos no escala: `/practica` pesa **17.1 kB gz de HTML** contra 9.1 de `/tarjetas`. El simulacro final es el caso difícil y llega aquí, así que es el momento de decidir si se sigue sirviendo desde el servidor o se carga con `import()` bajo interacción, como propone §2.2.
-- **El puntaje se calcula hoy en `usar-sesion.ts`** con la fórmula de §7.5. `src/lib/informe.ts` nace en el Paso 12 y es su dueño: esa línea se sustituye por la llamada. Está marcado en el archivo.
-- **El motor de simulacro ya está** desde el Paso 9 (ADR-015): `src/lib/simulacro.ts` con §7.3, más 199 tests. Este paso aporta lo suyo — `cronometro.ts`, `usar-cronometro.ts`, la persistencia de `SesionCronometro`, el diálogo de reanudar y el auto-envío—, **no vuelve a copiar §7.3**.
-- **`CLAUDE.md` §7.3 quedó desalineado en dos puntos y no se editó** (ADR-015): la rama `multiple` de `calificar` y el `default` de `presentarItem`. No se replica —§7.3 se copia una sola vez y ya está copiado— y los tests lo fijan. Solo importa si algún día se rehace el blueprint desde cero.
+- **Pasos 15–17 — volver a medir A-29 con la cuadrícula de 100 celdas real.** El auditor la midió clonando celdas en el DOM, no con banco de verdad, y avisó de que con 100 ítems el problema **empeora**: 652 px y 15 filas. El `scroll-padding-bottom` que lo corrige está puesto; lo que falta es confirmarlo sobre el simulacro final ya armable.
+
+- **Paso 18.10 — `SimulacroSinRed` no se ha ejercitado en runtime.** Solo se alcanza si el `import()` del banco rechaza, y en la auditoría el chunk ya estaba cacheado. Queda auditado por código, no por comportamiento — **exactamente el mismo hueco que `src/app/error.tsx`**, que ya estaba en esta lista. Se prueban juntos, con red cortada sobre build de producción.
+
+- **Pasos 15–17 — la portada del simulacro avisará del reparto incumplido.** En cuanto haya ítems suficientes en total pero repartidos desigual, `repartoIncumplido` se enciende y la portada dice que el reparto por tema no será el del examen real. Es el estado esperado durante toda la producción de contenido, no un error.
 
 ## Paso 12 — Informe
 
 - **Riesgo con crash reproducido** (ADR-008): `esqIntento.desglose.porBloque` es `z.record(esqConteo)`, así que un intento **sin** los bloques B/C/D pasa Zod, pero el cast afirma `Record<BloqueId, …>` con las cuatro claves. `construirInforme` de §7.5 hace `porBloque[b.id].total` y revienta con `Cannot read properties of undefined`. Vía de entrada real: `importarJSON` acepta ese respaldo como válido en /ajustes.
   Arreglo: endurecer `desglose` en `src/lib/esquemas.ts` para exigir las 4 claves de bloque y las 3 de nivel. Toca un archivo del Paso 2, así que se decide aquí.
+
+- **Bajar `src/components/sesion/controlador-repaso.tsx` de 300 líneas de código y encender la compuerta. Las dos cosas, en este orden y en este paso** (ADR-022). Hoy mide **414** y es el único archivo que incumple la **primera** mitad de la regla 1.
+
+- **Y resolver los dos incumplimientos de la SEGUNDA mitad de la regla 1** —«un componente **exportado** por archivo», redacción fijada por el usuario el 2026-07-31, ver la enmienda a ADR-022—. Medido tras esa edición:
+
+  | Archivo | Exportados | Cuáles |
+  |---|---|---|
+  | `src/components/sesion/repaso-vacio.tsx` | **6** | `AccionSiguiente`, `ColaSinEstrenar`, `NadaPendienteHoy`, `ColaSinContenido`, `RepasoSinRed`, `CierreRepaso` |
+  | `src/components/items/opcion-unica.tsx` | **2** | `GrupoOpcionUnica`, `OpcionUnica` |
+
+  **El arreglo no está prejuzgado.** `opcion-unica.tsx` exporta una pareja cohesiva que consumen varios tipos de ítem: puede que toque partirlo, o puede que merezca una excepción razonada y registrada. Se decide mirando el código, no contando exports. Lo que **no** vale es dejarlo sin decidir: la regla ya está escrita en su forma correcta y estos dos archivos la incumplen hoy.
+
+  Ojo con lo que la compuerta cubre: `max-lines` vigila **solo la primera mitad**. La de «un componente exportado» no tiene comprobación automática y **no se le inventa una** — distinguir un componente de un helper exportado exige criterio, no una expresión regular.
+  El arreglo no es cortar por la línea 300: el archivo ya está separado por dentro y con nombres — `resolverElementos` (cargador), `ControladorRepaso` (contenedor), **`SesionRepaso` (~250 líneas, la vista de la sesión)** y dos auxiliares. Extraer `SesionRepaso` a su propio archivo lo deja holgadamente dentro sin inventar ninguna abstracción.
+  Hecho eso, se añade a `eslint.config.mjs`, sobre el alcance declarado en ADR-022:
+  ```js
+  'max-lines': ['error', { max: 300, skipComments: true, skipBlankLines: true }],
+  ```
+  **Por qué no se encendió al decidir la regla:** con 414 líneas dejaría `npm run lint` rojo, y las dos salidas para evitarlo —subir el número hasta que nadie incumpla, o poner un `eslint-disable` en la cabecera— son las dos formas de recrear el problema que ADR-022 corrige. **Hasta que esa línea exista, la regla sigue dependiendo de que el revisor se acuerde de invocarla.** Que nadie la dé por blindada antes.
 
 ## Paso 14.4 — Punto de corte usable
 
@@ -120,10 +147,8 @@ Los 7 tipos × 4 estados, el controlador de sesión y las etapas 3 y 4 de C5. AD
 
 ## Sin paso asignado
 
-- **`DISENO.md` §1.4, fila D-1, afirma algo falso y es anterior a ADR-014.** Dice que `text-aviso` «sí se usa como texto: el `<Ojo>` de §12.3». En el `ojo.tsx` real, `text-aviso` está **solo en el icono**; el título va en `text-foreground` por §6.3. El consumidor real de `text-aviso` como texto es el **cronómetro a los 10 min** (Paso 11). Corregirlo cambia la justificación de un valor de la paleta, así que lo decide el `ui-designer` — conviene hacerlo **en el Paso 11**, cuando el cronómetro exista y la justificación se pueda escribir sobre algo medido en vez de sobre una promesa.
+- ~~**`DISENO.md` §1.4, fila D-1, afirma algo falso y es anterior a ADR-014.**~~ **Corregido el 2026-07-30, Paso 11.** El consumidor real de `text-aviso` como texto ya existe y está medido: el **cronómetro entre los 10 y los 2 minutos** (`cronometro-visual.tsx`). La fila de `DISENO.md` §1.4 se actualizó con esa justificación en vez de con la del `<Ojo>`, donde `text-aviso` solo tiñe el icono.
 
 - ~~**`CLAUDE.md` sostiene entero el sistema de erratas que ADR-014 eliminó.**~~ **Editado el 2026-07-30** (enmienda a ADR-014): once secciones limpias, 366 líneas fuera. §1 **sustituye** el diferenciador en vez de borrarlo. Y **§21 y §22 ganan una regla 15** que dice por qué el documento está limpio, para que una copia vieja no reintroduzca el sistema en silencio.
 
-- **ADR-008 pendiente de ratificación** por el `software-architect`: añade una tercera clave de `localStorage` donde §6 dice "dos claves, deliberadamente separadas", más API pública nueva. El `code-reviewer` no lo bloqueó — corrige que §6 destruyera el progreso y restaura un invariante en vez de romperlo.
-- Dos verrugas cosméticas del validador que se dejaron a propósito: el resumen cuenta `items` **antes** de validar mientras las cuotas juzgan solo los válidos (la cabecera puede decir 27 y la cuota 25), y `conteoPorModulo` conserva ese mismo conteo. Inofensivas; revisar solo si estorban en los pasos 15–17.
-- Los guards de versión de `intentarMigrar` son **redundantes hoy** (`esqEstadoProgreso.version` es `z.literal(1)` y Zod ya rechaza ambos casos). Con la v2 del esquema pasan a ser portantes y necesitarán test propio.
+- ~~**Pregunta abierta al usuario — la otra mitad de la regla 1 tampoco describe la práctica.**~~ **Resuelta el 2026-07-31 por el usuario:** la regla dice «un componente **exportado** por archivo», porque los auxiliares locales no son componentes públicos. `CLAUDE.md` §21 regla 1 editada; ver la enmienda a ADR-022. Deja **dos** incumplidores, que suben como obligación del Paso 12 (arriba).

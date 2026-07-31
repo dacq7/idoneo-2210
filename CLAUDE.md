@@ -6347,7 +6347,7 @@ El banco de ítems y las tarjetas son **módulos TS importables desde el cliente
 
 ## Reglas de código
 
-1. Un componente por archivo, máximo 300 líneas.
+1. Un componente **exportado** por archivo, máximo **300 líneas de código**: sin comentarios ni líneas en blanco, tal como las cuenta ESLint `max-lines` con `skipComments` y `skipBlankLines`. Los comentarios **no** cuentan — este proyecto los cultiva a propósito. Alcance: `src/components/**` (salvo `ui/`), `src/hooks/**` y `src/app/**`; quedan fuera `content/**` (son datos), `src/lib/**` (motores copiados por §22 regla 2; su criterio de partición es ADR-021) y los tests. Pasarse no se arregla cortando por tamaño, sino extrayendo la responsabilidad que el archivo ya tiene con nombre propio. **«Exportado» es la palabra que hace la regla cierta:** los auxiliares locales —subcomponentes que solo usa el archivo que los define— no son componentes públicos y no cuentan; partirlos en archivos sueltos empeoraría el código en vez de mejorarlo. Ver **ADR-022** y su enmienda.
 2. Alias `@/` para `src/`. `@/content/*` funciona vía `tsconfig.paths`.
 3. Sin barrel exports: importa desde el archivo fuente.
 4. Cero `any`. Si no sabes el tipo, `unknown` + type guard.

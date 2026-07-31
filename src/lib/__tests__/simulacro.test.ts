@@ -1,16 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { ITEMS } from '@/content/banco/c5-umbrales-zonas';
 import { BLUEPRINTS, blueprintQuiz } from '@/content/blueprint-examen';
+import { MODULOS } from '@/content/estructura';
 import {
   armarSimulacro,
   barajar,
   calificar,
   crearRng,
+  diagnosticarViabilidad,
   itemsDeIntentosRecientes,
   medirCobertura,
   presentarItem,
   presentarTanda,
   sinResponder,
+  type CensoModulo,
 } from '@/lib/simulacro';
 import type {
   BlueprintExamen,
@@ -992,5 +995,165 @@ describe('reproducir un intento guardado', () => {
     for (const p of presentarTanda(tanda, 123)) {
       expect(calificar(p, respuestaCorrectaDe(p))).toBe(true);
     }
+  });
+});
+
+/* ══════════════════════════════════════════════════════════════════
+   Viabilidad — ¿alcanza el banco para armar este examen?
+
+   Es la comprobación que impide el peor fallo silencioso de este paso:
+   `armarSimulacro` rellena desde el pool global cuando falta contenido, así
+   que un «simulacro final de 100 ítems» con solo C5 publicado devolvería 28
+   ítems del mismo módulo presentados como el examen completo, y un porcentaje
+   sobre ellos presentado como el pronóstico del usuario.
+   ══════════════════════════════════════════════════════════════════ */
+
+describe('diagnosticarViabilidad', () => {
+  const CENSO_COMPLETO: CensoModulo[] = MODULOS.map((m) => ({
+    slug: m.slug,
+    bloque: m.bloque,
+    disponibles: 30,
+  }));
+
+  /** El censo REAL de hoy: C5 con sus 28 ítems y los otros 28 módulos a cero. */
+  const CENSO_HOY: CensoModulo[] = MODULOS.map((m) => ({
+    slug: m.slug,
+    bloque: m.bloque,
+    disponibles: m.slug === 'c5-umbrales-zonas' ? ITEMS.length : 0,
+  }));
+
+  it('declara INVIABLE el simulacro final con el contenido de hoy', () => {
+    const v = diagnosticarViabilidad(BLUEPRINTS.final, CENSO_HOY);
+    expect(v.viable).toBe(false);
+    expect(v.totalRequerido).toBe(100);
+    expect(v.totalDisponible).toBe(ITEMS.length);
+    expect(v.faltan).toBe(100 - ITEMS.length);
+  });
+
+  it('declara INVIABLE el simulacro del bloque C con el contenido de hoy', () => {
+    // 40 ítems pedidos, 28 publicados en el único módulo completo del bloque.
+    const v = diagnosticarViabilidad(BLUEPRINTS['bloque-C'], CENSO_HOY);
+    expect(v.viable).toBe(false);
+    expect(v.faltan).toBe(40 - ITEMS.length);
+  });
+
+  it('declara viable el final cuando los 29 módulos tienen contenido', () => {
+    const v = diagnosticarViabilidad(BLUEPRINTS.final, CENSO_COMPLETO);
+    expect(v.viable).toBe(true);
+    expect(v.faltan).toBe(0);
+    expect(v.deficits).toEqual([]);
+    expect(v.repartoIncumplido).toBe(false);
+  });
+
+  it('NO cuenta ítems de bloques ajenos al armar un simulacro de bloque', () => {
+    // El relleno de `armarSimulacro` sale de las unidades del reparto, no del
+    // banco entero. Contar todo daría un «viable» falso en cuanto los pasos
+    // 15–17 publiquen otros bloques, y el usuario recibiría un examen del
+    // bloque C relleno con preguntas del A.
+    const soloBloqueA: CensoModulo[] = MODULOS.map((m) => ({
+      slug: m.slug,
+      bloque: m.bloque,
+      disponibles: m.bloque === 'A' ? 100 : 0,
+    }));
+    const v = diagnosticarViabilidad(BLUEPRINTS['bloque-C'], soloBloqueA);
+    expect(v.viable).toBe(false);
+    expect(v.totalDisponible).toBe(0);
+  });
+
+  it('avisa del reparto incumplido cuando hay total de sobra pero un módulo corto', () => {
+    // Caso de los pasos 15–17: contenido suficiente en conjunto, repartido
+    // desigual. El examen se arma —y se dice que el reparto no será el real.
+    const desigual: CensoModulo[] = MODULOS.map((m) => ({
+      slug: m.slug,
+      bloque: m.bloque,
+      disponibles: m.slug === 'c5-umbrales-zonas' ? 0 : 30,
+    }));
+    const v = diagnosticarViabilidad(BLUEPRINTS.final, desigual);
+    expect(v.viable).toBe(true);
+    expect(v.repartoIncumplido).toBe(true);
+    expect(v.deficits.map((d) => d.clave)).toContain('c5-umbrales-zonas');
+  });
+
+  it('ordena los déficits del más grave al más leve', () => {
+    const censo: CensoModulo[] = MODULOS.map((m) => ({
+      slug: m.slug,
+      bloque: m.bloque,
+      disponibles: m.slug === 'c1-vias-energeticas' ? 0 : m.slug === 'c2-cardiovascular' ? 3 : 30,
+    }));
+    const v = diagnosticarViabilidad(BLUEPRINTS.final, censo);
+    // c1 pide 5 y tiene 0 (déficit 5); c2 pide 4 y tiene 3 (déficit 1).
+    expect(v.deficits[0].clave).toBe('c1-vias-energeticas');
+  });
+
+  it('un censo vacío no revienta: dice que falta todo', () => {
+    const v = diagnosticarViabilidad(BLUEPRINTS.final, []);
+    expect(v.viable).toBe(false);
+    expect(v.totalDisponible).toBe(0);
+    expect(v.faltan).toBe(100);
+  });
+
+  it('marca el veredicto como NO exacto si el blueprint filtra por tipo', () => {
+    // El diagnóstico del Paso 13 limita tipos y dificultades, y el censo cuenta
+    // ítems publicados, no elegibles: ahí el veredicto es una cota superior y
+    // hay que ampliar el censo. Que lo diga en vez de fingir precisión.
+    expect(diagnosticarViabilidad(BLUEPRINTS.diagnostico, CENSO_COMPLETO).exacto).toBe(false);
+    expect(diagnosticarViabilidad(BLUEPRINTS.final, CENSO_COMPLETO).exacto).toBe(true);
+  });
+
+  it('es coherente con lo que armarSimulacro entrega de verdad', () => {
+    // El vínculo entre el diagnóstico y la realidad: si dice inviable, armar
+    // devuelve MENOS ítems de los pedidos. Sin este test, `diagnosticarViabilidad`
+    // podría derivar de `armarSimulacro` sin que nada lo señale.
+    const v = diagnosticarViabilidad(BLUEPRINTS.final, CENSO_HOY);
+    expect(v.viable).toBe(false);
+    const armado = armarSimulacro(BLUEPRINTS.final, ITEMS, 42);
+    expect(armado.length).toBeLessThan(BLUEPRINTS.final.totalItems);
+    expect(armado.length).toBe(v.totalDisponible);
+  });
+
+  it('sin déficit, armarSimulacro sí entrega el examen completo y sin repetir', () => {
+    const banco: Item[] = MODULOS.flatMap((m) =>
+      Array.from({ length: 30 }, (_, i) => ({
+        ...ITEMS[i % ITEMS.length],
+        id: `${m.slug}-${String(i).padStart(3, '0')}`,
+        modulo: m.slug,
+        bloque: m.bloque,
+      })),
+    );
+    const v = diagnosticarViabilidad(BLUEPRINTS.final, CENSO_COMPLETO);
+    expect(v.viable).toBe(true);
+    const armado = armarSimulacro(BLUEPRINTS.final, banco, 7);
+    expect(armado.length).toBe(100);
+    expect(new Set(armado.map((it) => it.id)).size).toBe(100);
+  });
+});
+
+/* ── El contrato de `exacto`, fijado hoy y no dentro de dos pasos ──── */
+
+describe('Viabilidad.exacto — contrato para el Paso 13', () => {
+  const CENSO: CensoModulo[] = MODULOS.map((m) => ({
+    slug: m.slug,
+    bloque: m.bloque,
+    disponibles: 30,
+  }));
+
+  it('es false en cuanto el blueprint filtra por tipo O por dificultad', () => {
+    // Cota superior: el censo cuenta ítems PUBLICADOS, no ELEGIBLES, así que
+    // con filtros el veredicto puede decir «viable» y no serlo. La UI lo trata
+    // como «no se puede preparar» en vez de fiarse.
+    const soloTipos: BlueprintExamen = { ...BLUEPRINTS.final, tiposPermitidos: ['unica'] };
+    const soloDificultad: BlueprintExamen = { ...BLUEPRINTS.final, dificultadesPermitidas: [1] };
+    expect(diagnosticarViabilidad(soloTipos, CENSO).exacto).toBe(false);
+    expect(diagnosticarViabilidad(soloDificultad, CENSO).exacto).toBe(false);
+  });
+
+  it('el diagnóstico del Paso 13 caerá en ese caso, y por eso está fijado aquí', () => {
+    expect(BLUEPRINTS.diagnostico.tiposPermitidos).toBeDefined();
+    expect(diagnosticarViabilidad(BLUEPRINTS.diagnostico, CENSO).exacto).toBe(false);
+  });
+
+  it('los dos simulacros que este paso entrega SÍ son exactos', () => {
+    expect(diagnosticarViabilidad(BLUEPRINTS.final, CENSO).exacto).toBe(true);
+    expect(diagnosticarViabilidad(BLUEPRINTS['bloque-C'], CENSO).exacto).toBe(true);
   });
 });

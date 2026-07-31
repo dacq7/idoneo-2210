@@ -278,6 +278,21 @@
   .pb-nav {
     padding-bottom: calc(4rem + env(safe-area-inset-bottom));
   }
+
+  /* [A-29 · 2.4.11 Focus Not Obscured (Minimum), AA] La barra inferior es
+     `fixed`, así que TAPA el elemento que acaba de recibir el foco cuando el
+     navegador lo desplaza a la vista: medido a 375×667, 14 de las 28 celdas del
+     panel de navegación del simulacro quedaban completamente ocultas al
+     enfocarlas, y con 100 ítems empeora.
+
+     `.pb-nav` no lo arregla: rellena el final de la columna, no la ventana de
+     desplazamiento. Esto sí, y es la línea que faltaba — el desplazamiento por
+     foco deja de terminar debajo de la barra.
+
+     Va en `html` y no en un contenedor: el que desplaza es el documento. */
+  html {
+    scroll-padding-bottom: calc(4rem + env(safe-area-inset-bottom) + 0.5rem);
+  }
 }
 
 /* ══════════════════════════════════════════════════════════════════

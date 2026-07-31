@@ -8,7 +8,23 @@
 //   · ADR-008 — `escribirCrudo` degrada a memoria cuando la escritura falla.
 // Van marcadas con [ADR-008].
 
-import { esqEstadoProgreso } from './esquemas';
+// [ADR-021] Del archivo de progreso, NO de `./esquemas`: importar el barril
+// metería los siete esquemas de ítem —y tarjetas, glosario y datos duros— en el
+// bundle del navegador, donde no los usa nadie. Y desde este paso
+// `almacenamiento.ts` está en el grafo del layout raíz, así que ese peso lo
+// pagarían TODAS las rutas.
+import { esqEstadoProgreso, esqSesionCronometro } from './esquemas-progreso';
+// [ADR-021] El acceso crudo y el canal de la sesión viven aparte para que un
+// consumidor que solo pregunta «¿hay simulacro en curso?» no arrastre Zod.
+import {
+  borrarCrudo,
+  CLAVE_ESTADO,
+  CLAVE_ILEGIBLE,
+  CLAVE_SESION,
+  escribirCrudo,
+  leerCrudo,
+} from './almacenamiento-crudo';
+import { notificarSesion } from './sesion-activa';
 import type {
   EstadoModulo,
   EstadoProgreso,
@@ -17,73 +33,10 @@ import type {
   TarjetaSRS,
 } from './tipos';
 
-const CLAVE_ESTADO = 'idoneo2210:estado';
-const CLAVE_SESION = 'idoneo2210:sesion';
-/** [ADR-008] Tercera clave: el payload que no se pudo leer, apartado. */
-const CLAVE_ILEGIBLE = 'idoneo2210:estado-ilegible';
 export const VERSION_ESQUEMA = 1 as const;
 
 /** Máximo de intentos que se conservan. FIFO: se descartan los más viejos. */
 const MAX_INTENTOS = 30;
-
-/* ─── Acceso crudo con degradación elegante ───────────────────────── */
-
-/** Respaldo en memoria: modo incógnito de Safari lanza al escribir. */
-const memoria = new Map<string, string>();
-let localStorageUsable: boolean | null = null;
-
-function hayLocalStorage(): boolean {
-  if (typeof window === 'undefined') return false;
-  if (localStorageUsable !== null) return localStorageUsable;
-  try {
-    const prueba = '__idoneo_prueba__';
-    window.localStorage.setItem(prueba, '1');
-    window.localStorage.removeItem(prueba);
-    localStorageUsable = true;
-  } catch {
-    localStorageUsable = false;
-  }
-  return localStorageUsable;
-}
-
-function leerCrudo(clave: string): string | null {
-  if (typeof window === 'undefined') return null;
-  if (!hayLocalStorage()) return memoria.get(clave) ?? null;
-  try {
-    return window.localStorage.getItem(clave);
-  } catch {
-    return memoria.get(clave) ?? null;
-  }
-}
-
-function escribirCrudo(clave: string, valor: string): void {
-  if (typeof window === 'undefined') return;
-  memoria.set(clave, valor);
-  if (!hayLocalStorage()) return;
-  try {
-    window.localStorage.setItem(clave, valor);
-  } catch (error) {
-    // [ADR-008] QuotaExceededError: la sonda de 1 byte de hayLocalStorage()
-    // pasa con el disco casi lleno, así que sin esta línea `localStorageUsable`
-    // se quedaría en true y `leerCrudo` seguiría leyendo de localStorage,
-    // devolviendo el valor VIEJO y pisando en silencio lo que sí está en
-    // memoria. En un simulacro eso es reanudar perdiendo respuestas.
-    // Se degrada a memoria para el resto de la sesión; el precio es perder la
-    // sincronización entre pestañas, que con el disco lleno ya estaba roto.
-    localStorageUsable = false;
-    console.warn('[almacenamiento] no se pudo escribir en localStorage:', error);
-  }
-}
-
-function borrarCrudo(clave: string): void {
-  memoria.delete(clave);
-  if (typeof window === 'undefined' || !hayLocalStorage()) return;
-  try {
-    window.localStorage.removeItem(clave);
-  } catch {
-    /* sin acción */
-  }
-}
 
 /* ─── Estado inicial y migraciones ────────────────────────────────── */
 
@@ -398,24 +351,55 @@ export function tocarRacha(hoy: string, ayer: string, ahoraISO: string): void {
 
 /* ─── Sesión cronometrada ─────────────────────────────────────────── */
 
+/**
+ * [ADR-019] §6 hacía `JSON.parse(crudo) as SesionCronometro` sin validar. El
+ * cast es una promesa que nadie comprobaba: un payload sin `duracionSegundos`
+ * dejaba `restantes()` en `NaN` y `seAcabo()` en `false` para siempre, con lo
+ * que el simulacro no se auto-enviaba nunca. Ahora pasa por Zod.
+ *
+ * **No es libre de efectos**: se autolimpia si el payload es ilegible. Llamarla
+ * desde un efecto o un handler, nunca en el cuerpo de un render.
+ *
+ * Una sesión ilegible **no va a cuarentena** (ADR-008), a diferencia del
+ * progreso: lo que se pierde es un simulacro en curso que ya no se puede
+ * reconstruir, no el historial del usuario, que vive en otra clave y no se toca.
+ */
 export function leerSesion(): SesionCronometro | null {
   const crudo = leerCrudo(CLAVE_SESION);
   if (!crudo) return null;
+  let bruto: unknown;
   try {
-    return JSON.parse(crudo) as SesionCronometro;
+    bruto = JSON.parse(crudo);
   } catch {
     borrarCrudo(CLAVE_SESION);
+    notificarSesion();
     return null;
   }
+  const validado = esqSesionCronometro.safeParse(bruto);
+  if (!validado.success) {
+    console.warn('[almacenamiento] sesión ilegible, se descarta:', validado.error.issues);
+    borrarCrudo(CLAVE_SESION);
+    notificarSesion();
+    return null;
+  }
+  return validado.data as SesionCronometro;
 }
 
 export function guardarSesion(sesion: SesionCronometro): void {
   escribirCrudo(CLAVE_SESION, JSON.stringify(sesion));
+  notificarSesion();
 }
 
 export function borrarSesion(): void {
   borrarCrudo(CLAVE_SESION);
+  notificarSesion();
 }
+
+/* ─── Suscripción a la clave de sesión ────────────────────────────── */
+//
+// Implementadas en `sesion-activa.ts` (sin Zod) y re-exportadas aquí para que
+// el resto del código siga teniendo un único sitio al que mirar. Ver ADR-021.
+export { haySesionEnCurso, haySesionEnCursoServidor, suscribirSesion } from './sesion-activa';
 
 /* ─── Exportar / importar ─────────────────────────────────────────── */
 

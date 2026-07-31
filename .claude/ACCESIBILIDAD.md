@@ -90,6 +90,14 @@ y la de después. El historial es lo que evita que vuelva.
 | A-26 | Serio | **arreglado 2026-07-30** (Paso 9) — el campo de `calculo` nunca anunciaba su unidad, y ningún enunciado de C5 la menciona |
 | A-27 | Menor | **arreglado 2026-07-30** (Paso 9) — ocho landmarks `region` idénticos «Explicación de la respuesta» en el resumen. Estirpe de A-09 |
 | A-28 | Menor | **abierto** (Paso 9) — el `<h2>` del resumen recibe el foco y no se ve. No incumple 2.4.7; decide `ui-designer` |
+| A-29 | **Serio** | **abierto** (Paso 11) — 14 de 28 celdas del panel quedan totalmente tapadas por la barra inferior al recibir el foco (2.4.11). Con 100 ítems, peor |
+| A-30 | Moderado | **abierto** (Paso 11) — `text-aviso` sobre `--accent` (hover de la ficha) = **4,01:1** en claro |
+| A-31 | Moderado | **abierto** (Paso 11) — al cerrar un simulacro la pantalla dice «Terminaste la práctica» y oculta el puntaje |
+| A-32 | Moderado | **abierto** (Paso 11) — el foco cae al `<body>` al entrar en el simulacro. Mejora, no incumplimiento |
+| A-33 | Menor | **abierto** (Paso 11) — la región `status` del contador de ítem no tiene nombre; la posición se anuncia dos veces |
+| A-34 | Menor | **abierto** (Paso 11) — «respondida» y «marcada» son el mismo relleno en gris (1,04:1); las separa un punto de 4 px |
+| A-35 | Menor | **abierto** (Paso 11) — `SimulacroSinRed` es el único estado sin encabezado. No ejercitado en runtime |
+| A-36 | Menor | **abierto** (Paso 11) — el cronómetro se mide sobre `--card` y se pinta sobre `--background`; más dos precisiones de documentación |
 
 ---
 
@@ -2273,3 +2281,354 @@ Guiones en el scratchpad de la sesión: `p9lib.py` (biblioteca de medición),
 extremos de `ordenar`), `p9-lector.py` (árbol, regiones vivas, axe),
 `p9-resumen.py` (resumen, zoom 200 %, movimiento reducido), `p9-despues.py`
 (medición posterior a los cuatro arreglos).
+
+---
+
+# Paso 11 — simulacro cronometrado (rama `paso-11-simulacro`, 2026-07-30)
+
+Alcance pedido: **el cronómetro y el panel de navegación**; el resto de la pantalla
+como contexto. Una sola pasada.
+
+## Cómo se provocó la pantalla en curso
+
+Hoy ningún simulacro es armable (solo C5, 28 ítems; el de bloque pide 40 y el final
+100), así que la portada siempre muestra «banco insuficiente». La pantalla en curso se
+alcanzó **sembrando `localStorage['idoneo2210:sesion']`** con una sesión válida de
+`tipo:'bloque' · ambito:'C'` y los 28 ids de C5, y entrando por «Continuar donde iba»:
+`continuar()` reconstruye la tanda sin comprobar viabilidad. **No se tocó ni el
+contenido ni el código.** Variando `iniciadoEnMs` se ejercitaron los tres estados del
+cronómetro (45 min · 9 min · 1,5 min) y el auto-envío.
+
+Se midió sobre **build de producción** (`next build` + `next start`): el servidor de
+desarrollo reventaba con `__webpack_modules__[moduleId] is not a function` al recargar
+sobre el `import()` dinámico del banco.
+
+**Sin ejercitar en runtime:** `simulacro-sin-red.tsx` (solo se alcanza si el `import()`
+del banco rechaza; con el chunk ya cacheado no se pudo forzar) — auditado por código.
+La cuadrícula de **100** celdas se midió clonando celdas en el DOM en vivo.
+
+## Cobertura por ruta
+
+| Ruta / pantalla | Teclado | Lector | Contraste claro | Contraste oscuro | 375 px | Zoom 200 % | Veredicto | Fecha |
+|---|---|---|---|---|---|---|---|---|
+| `/simulacros` (selector) | ✅ | ✅ | ⚠️ **A-30** en hover | ✅ | ✅ | ✅ | **PARCIAL** — 1 Moderado | 2026-07-30 |
+| `/simulacros/final` · portada «banco insuficiente» | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **APROBADA** | 2026-07-30 |
+| `/simulacros/bloque/[id]` · diálogo de reanudar | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **APROBADA** | 2026-07-30 |
+| Simulacro **en curso** (cronómetro + panel) | ⚠️ **A-29** | ⚠️ A-32 · A-33 | ✅ | ✅ | ✅ | ✅ | **PARCIAL** — 1 Serio | 2026-07-30 |
+| Cierre del simulacro (`resumen-sesion` con `clase='suelta'`) | ✅ | ⚠️ **A-31** | ✅ | ✅ | ✅ | ✅ | **PARCIAL** — 1 Moderado | 2026-07-30 |
+| `simulacro-sin-red.tsx` | ⏳ no ejercitado | ⚠️ A-35 (por código) | ✅ (estático) | ✅ (estático) | ⏳ | ⏳ | **SIN VERIFICAR** | 2026-07-30 |
+
+axe-core 4.x (`wcag2a, wcag2aa, wcag21a, wcag21aa, wcag22aa`): **0 violaciones** en las
+cuatro pantallas × los dos temas. Los ocho hallazgos de abajo los encontró la medición
+manual — es el techo del 30 % de lo automático, otra vez.
+
+## Hallazgos del Paso 11
+
+### A-29 · 14 de 28 celdas del panel quedan **totalmente tapadas** por la barra inferior al recibir el foco
+**Criterio:** 2.4.11 Focus Not Obscured (Minimum) — **AA, nueva en WCAG 2.2** · **Severidad: Serio**
+**Dónde:** `src/components/sesion/panel-navegacion.tsx` (la cuadrícula) × `src/components/layout/nav-inferior.tsx:24` (`fixed inset-x-0 bottom-0 z-50`, `h-16` + `env(safe-area-inset-bottom)`)
+**A quién afecta:** a quien recorre el panel con `Tab` en el celular. El foco está en una celda que no se ve por ninguna parte: no hay forma de saber a qué ítem se va a saltar.
+**Medición** (build de producción, `Tab` real, hit-test de 5 puntos con `elementFromPoint`, 130 ms de asentamiento):
+
+| Viewport | Enfocables con **0 de 5** puntos visibles |
+|---|---|
+| 375 × 667 (iPhone SE/6/7/8) | **14** — «Ítem 8» a «Ítem 21» |
+| 375 × 640 | **14** — los mismos |
+| 188 × 390 (375 px al 200 %) | **7** al 100 % + 6 al 55 % |
+| 375 × 780 | 0 al 100 %; «Salir sin terminar» al **98 %** (44 px de alto, 42 bajo la barra) |
+
+**Causa:** el desplazamiento que hace el navegador al tabular mete el elemento en el
+viewport de layout, pero la barra fija lo cubre. **No hay `scroll-padding` ni
+`scroll-margin` en todo `src/`** (verificado con grep). `.pb-nav` solo rellena el final
+de la columna: sirve para el último elemento del documento, no para los de en medio.
+**Con 100 ítems empeora**: la cuadrícula mide 652 px y 15 filas a 375 px (medido
+clonando celdas), así que la banda tapada intercepta más filas.
+**Arreglo:** una línea en `globals.css`, y arregla la app entera, no solo este panel:
+```css
+@layer base {
+  html { scroll-padding-bottom: calc(4rem + env(safe-area-inset-bottom) + 0.5rem); }
+  @media (width >= 64rem) { html { scroll-padding-bottom: 0; } }
+}
+```
+(La cabecera pegajosa de 60 px ya no tapa nada: el enlace de salto va a `z-50` sobre su
+`z-40`, comprobado por hit-test. Pero conviene añadir `scroll-padding-top: var(--alto-encabezado)` por el mismo motivo.)
+**Estado:** abierto
+
+### A-30 · `text-aviso` sobre `--accent`: 4,01:1 en tema claro
+**Criterio:** 1.4.3 Contrast (Minimum) — AA · **Severidad: Moderado**
+**Dónde:** `src/app/simulacros/page.tsx:170` — `<span className="font-medium text-aviso">faltan {n} ítems</span>` dentro de `FichaSimulacro`, que en `hover` pinta `bg-accent`.
+**A quién afecta:** a quien usa ratón o navega con foco+puntero; el texto que dice **cuánto falta** —la información que decide si merece la pena entrar— se aclara justo al apuntarlo.
+**Medición** (colores computados en el navegador, no estimados):
+
+| Estado | Color | Fondo | Ratio | 13 px / 500 ⇒ texto normal, umbral 4.5 |
+|---|---|---|---|---|
+| reposo, claro | `oklch(0.56 0.12 72)` #9f6700 | `--card` #ffffff | **4.77:1** | pasa |
+| **hover, claro** | igual | `--accent` `oklch(0.94 0.022 250)` | **4.01:1** | **FALLA** |
+| reposo, oscuro | `oklch(0.78 0.14 76)` | `--card` | 8.53:1 | pasa |
+| hover, oscuro | igual | `--accent` | 6.68:1 | pasa |
+
+**Por qué se escapó:** la ficha ya subía `hover:text-foreground` para salvar
+`text-muted-foreground` (lo dice su propio comentario en las líneas 141-143), pero eso
+se hereda y **este `<span>` fija su color explícitamente**, así que no lo recibe.
+**Arreglo (sin tocar tokens):** que el estado también suba de color en hover —
+`className="font-medium text-aviso [a:hover_&]:text-foreground"`. El significado no se
+pierde: ya va escrito en palabras («faltan 72 ítems»), el ámbar solo acompaña
+(DISENO.md §1.2). Si `ui-designer` prefiere conservar el ámbar, la alternativa es
+oscurecer `--accent` en claro, y eso **sí** es cambio de token y hay que registrarlo en
+`DISENO.md`.
+**Estado:** abierto — **avisar a `ui-designer`** solo si se elige la vía del token.
+
+### A-31 · Al terminar un simulacro cronometrado, la pantalla dice «Terminaste la práctica»
+**Criterio:** 2.4.6 Headings and Labels — AA · **Severidad: Moderado**
+**Dónde:** `src/components/sesion/resumen-sesion.tsx:65, 89, 95`. `ControladorSimulacro` monta `ResumenSesion` con `clase="suelta"` (`controlador-simulacro.tsx:352`), y las tres condiciones son `clase === 'quiz' ? … : …`, así que `'suelta'` cae en la rama de **práctica**.
+**A quién afecta:** a todo el mundo, y con dureza a quien usa lector: ese `<h2>` es
+**el elemento que recibe el foco** al cerrar el intento (y en el auto-envío es lo único
+que se anuncia). Después de 50 o 120 minutos de examen cronometrado, lo primero que se
+oye es «Terminaste la práctica», y el botón ofrece «Repetir la práctica».
+**Además**, el puntaje solo se renderiza con `clase === 'quiz'`: el simulacro cierra
+sin decir su porcentaje, que es justamente lo que el usuario fue a buscar.
+**Medición:** auto-envío provocado con `iniciadoEnMs` a ~5 s del final. Encabezados
+tras el cierre: `H1: Simulacro del bloque C` · `H2: Terminaste la práctica` ·
+`H2: Revisión, ítem por ítem`. Foco en el `<h2>`, `tabindex="-1"`, contorno 2 px
+`oklch(0.48 0.12 250)` visible.
+**Arreglo:** ampliar `clase` a `'simulacro'` (o tratar `'suelta'` como tal) con su
+propio texto —«Terminaste el simulacro» / «Repetir el simulacro»— y mostrar el puntaje,
+que en un simulacro es el dato principal.
+**Estado:** abierto
+
+### A-32 · El foco cae al `<body>` al entrar en el simulacro
+**Criterio:** ninguno de AA lo exige literalmente (2.4.3 habla del **orden**, no del destino tras un cambio de vista) · **Severidad: Moderado — mejora, no incumplimiento**
+**Dónde:** `src/components/sesion/controlador-simulacro.tsx` — transiciones `portada → sesion` y `reanudar → sesion`.
+**Medición:** tras pulsar «Continuar donde iba», `document.activeElement === document.body` → **true**.
+**A quién afecta:** el botón pulsado desaparece del DOM y nada anuncia que la pantalla
+cambió. Chromium conserva un *sequential focus navigation starting point* y el `Tab`
+siguiente continúa donde estaba el botón (medido: cae en la primera opción del ítem),
+pero Firefox y Safari reinician desde el principio del documento — con la barra de
+navegación, el enlace de salto y la cabecera por delante, con el reloj corriendo.
+**Es incoherente con el propio código:** `CierreSimulacro` (líneas 340-346) sí hace
+foco al `<h2>` «porque el botón que se pulsó desaparece del DOM». El mismo razonamiento
+vale para la entrada.
+**Arreglo:** un `<h2 tabIndex={-1}>` con el nombre del simulacro al principio de
+`SimulacroEnCurso`, enfocado al montar — que además cierra el hueco de encabezados
+(hoy la pantalla en curso solo tiene `H1: Simulacro del bloque C` y `H2: Tus respuestas`, y el ítem no tiene ninguno). Ojo con **A-28**: el contorno de un `<h2>` enfocado programáticamente no siempre se pinta.
+**Estado:** abierto
+
+### A-33 · La región `status` del contador de ítem no tiene nombre, y la posición se anuncia dos veces
+**Criterio:** 1.3.1 / 4.1.2 en el límite · **Severidad: Menor — verbosidad**
+**Dónde:** `src/components/sesion/simulacro-en-curso.tsx:143` — `<p role="status">Ítem {n} de {total}</p>`.
+**Medición:** la pantalla expone dos regiones `role="status"`. Una se llama «Avisos del
+tiempo»; **la otra no tiene nombre**. La petición era comprobar que fueran
+distinguibles: lo son a medias — quien navega por regiones oye una nombrada y otra sin
+nombre. Añadir `aria-label="Posición en el simulacro"` las separa del todo.
+Y en cada movimiento la posición se dice **dos veces**: la región emite «Ítem 5 de 28»
+y, al entrar el foco en el grupo de opciones, su `aria-label` la repite
+(medido: `Verdadero o falso. Ítem 4 de 28`). No es fallo; en 100 ítems son 100
+repeticiones.
+**Estado:** abierto
+
+### A-34 · «Respondida» y «marcada» son el mismo relleno en escala de grises; los separa un punto de 4 px
+**Criterio:** 1.4.1 Use of Color (A) — **pasa**; 1.4.11 al límite · **Severidad: Menor**
+**Dónde:** `src/components/sesion/panel-navegacion.tsx:103-116`.
+**Medición** (composición alfa sobre `--background`, luminancia relativa):
+
+| | claro | oscuro |
+|---|---|---|
+| sin responder (vacío) | #fbfcfd · L=0.973 | #0c1117 · L=0.005 |
+| respondida (`bg-primary/15`) | #d9e5ef · L=0.769 — **1,25:1** vs vacío | #172736 — 1,25:1 |
+| marcada (`bg-aviso/20`) | #e9decb · L=0.739 — **1,30:1** vs vacío | #392f1f — 1,45:1 |
+| **respondida vs marcada** | **1,04:1** | 1,16:1 |
+| punto (`bg-aviso`, `size-1` = 4×4 px) sobre su relleno | 3,59:1 | 6,42:1 |
+
+**Lectura:** el comentario del componente afirma que los tres estados «siguen siendo
+tres estados distintos en escala de grises» por el relleno. **Solo es cierto a medias**:
+el relleno separa «tocada» de «sin tocar» (y débilmente, 1,25-1,45:1), pero
+**respondida y marcada son indistinguibles sin color** (1,04:1 en claro). Lo único que
+las separa es un punto de **4 × 4 px** a 3,59:1. No incumple 1.4.1 —el punto es un
+medio no cromático y el `aria-label` lo dice— pero para el público real de la app
+(presbicia, sol directo, una mano) es un margen fino.
+**Los bordes ayudan poco:** `border-input` vs `border-primary` = 2,10:1;
+`border-primary` vs `border-aviso` = **1,37:1** en claro.
+**Arreglo sugerido:** subir el punto a `size-1.5` y bajarlo a `bottom-0.5`, o cambiar
+la marca por un glifo de bandera; cualquiera de los dos es cosmético. Y corregir el
+comentario, que hoy promete más de lo que mide.
+**Estado:** abierto — decide `ui-designer`
+
+### A-35 · `SimulacroSinRed` es el único estado sin encabezado
+**Criterio:** 2.4.6 Headings and Labels — AA (consistencia) · **Severidad: Menor**
+**Dónde:** `src/components/sesion/simulacro-sin-red.tsx:31-36`. La `<section>` se nombra
+con `aria-labelledby="titulo-sin-red"`, y ese id está en un `<span>` dentro de un `<p>`.
+**A quién afecta:** la portada y el diálogo de reanudar sí tienen `<h2>`. Quien navega
+por encabezados, al caer en el error de red, encuentra únicamente el `<h1>` de la ruta y
+ninguna pista de qué pasó.
+**Arreglo:** `<h2 id="titulo-sin-red">No se pudieron cargar las preguntas</h2>` con el
+icono al lado, igual que hacen las otras dos pantallas.
+**Estado:** abierto — **no ejercitado en runtime**, hallazgo por código
+
+### A-36 · El cronómetro no se pinta sobre `--card`, sino sobre `--background`
+**Criterio:** ninguno (documentación) · **Severidad: Menor**
+**Dónde:** `src/components/sesion/cronometro-visual.tsx:81` — «Medido AA sobre `--card`».
+**Medición:** el primer ancestro con fondo del `[role="timer"]` es el **`<body>`**:
+`oklch(0.991 0.002 250)` en claro, `oklch(0.175 0.014 255)` en oscuro. El cronómetro no
+va dentro de tarjeta. Cifras reales sobre la superficie que sí toca (todas **pasan**):
+
+| Estado | Token | claro s/ `--background` | oscuro s/ `--background` |
+|---|---|---|---|
+| normal | `--foreground` | 17,07:1 | 15,21:1 |
+| atención (≤10 min) | `--aviso` | **4,65:1** | 9,30:1 |
+| crítico (≤2 min) | `--destructive` | 5,16:1 | 5,61:1 |
+
+Sobre `--card` habrían sido 4,77 / 5,30. La diferencia es de 0,12 y no cambia el
+veredicto, pero **el margen de `--aviso` en claro es de 0,15 sobre el umbral**: si el
+token o el fondo se mueven un punto, esto cae, y conviene que el comentario nombre la
+superficie correcta.
+**Dos precisiones más, en la misma línea:**
+- El comentario dice que el cronómetro es «el consumidor real» de `text-aviso` como
+  texto. Correcto respecto de `<Ojo>` —ahí solo tiñe el `<Eye>`, `ojo.tsx:30`— pero **no
+  es el único**: `/simulacros/page.tsx:170` lo usa como texto en el mismo paso, y es el
+  que falla (A-30). `globals.css:57` también hay que actualizarlo.
+- `panel-navegacion.tsx` (cabecera) justifica D-8 diciendo que 2.5.8 «admite contar la
+  separación cuando el objetivo es menor». La celda mide **36 × 36 px medidos**, por
+  encima del mínimo de 24 × 24 de 2.5.8: **pasa de forma directa** y no necesita la
+  excepción de espaciado. El resultado es el mismo, el razonamiento sobra.
+**Estado:** abierto (documentación)
+
+## Contraste de tokens verificado — Paso 11
+
+Composición alfa en oklch, contrastada contra los colores computados en el navegador.
+
+| Token | Sobre | Claro | Oscuro | AA |
+|---|---|---|---|---|
+| `--foreground` (cronómetro normal) | `--background` | 17,07:1 | 15,21:1 | ✅ |
+| `--aviso` (cronómetro ≤10 min) | `--background` | 4,65:1 | 9,30:1 | ✅ |
+| `--destructive` (cronómetro ≤2 min) | `--background` | 5,16:1 | 5,61:1 | ✅ |
+| `--aviso` texto («faltan N ítems») | `--card` | 4,77:1 | 8,53:1 | ✅ |
+| `--aviso` texto («faltan N ítems») | `--accent` (hover) | **4,01:1** | 6,68:1 | ❌ **A-30** |
+| `--muted-foreground` (celda sin responder) | `--background` | 5,48:1 | 6,22:1 | ✅ |
+| `--foreground` (celda respondida) | `primary/15` s/ `--background` | 13,66:1 | 12,19:1 | ✅ |
+| `--foreground` (celda marcada) | `aviso/20` s/ `--background` | 13,16:1 | 10,49:1 | ✅ |
+| `--input` (borde celda sin responder) | `--background` | 3,03:1 | 3,30:1 | ✅ 1.4.11 |
+| `--primary` (borde celda respondida) | `--background` | 6,37:1 | 7,15:1 | ✅ 1.4.11 |
+| `--aviso` (borde celda marcada) | `--background` | 4,65:1 | 9,30:1 | ✅ 1.4.11 |
+| `--aviso` (punto de «marcada») | `aviso/20` s/ `--background` | 3,59:1 | 6,42:1 | ✅ 1.4.11 |
+| `--ring` (foco, 2 px) | `--background` | 6,37:1 | 7,15:1 | ✅ 1.4.11 |
+| `--ring` (foco, 2 px) | `--card` | 6,53:1 | 6,56:1 | ✅ 1.4.11 |
+| `--foreground` s/ franja de aviso | `aviso/10` s/ `--card` | 15,40:1 | 11,68:1 | ✅ |
+| `--foreground` s/ franja crítica | `destructive/10` s/ `--card` | 15,05:1 | 12,49:1 | ✅ |
+| `--destructive` («se acabó el tiempo») | `--card` | 5,30:1 | 5,14:1 | ✅ |
+
+**Falso positivo que conviene dejar anotado:** en una primera pasada el contorno de foco
+salía a `oklab(… / 0.5)` —**2,26:1 en claro**, un fallo de 1.4.11 de manual—. No lo es:
+los enfocables llevan `transition-colors duration-150`, que **también anima
+`outline-color`**, y la medición caía dentro de la transición desde el `outline-ring/50`
+del `*` de `@layer base`. Con 320 ms de espera el valor asentado es `--ring` **al 100 %**
+en los 40 enfocables de la pantalla, en los dos temas. **Toda medición de foco en esta
+app necesita esperar a que la transición acabe.**
+
+## Lo verificado y correcto — esto es lo que hay que conservar
+
+1. **El reparto del cronómetro funciona exactamente como se diseñó.** `role="timer"` +
+   `aria-live="off"`, con la cifra en un `<span aria-hidden>` y el nombre accesible por
+   `aria-label`. Medido: en 7 segundos la cifra pasó por `44:59 … 44:53` y el
+   `aria-label` **no se movió** de «Quedan 45 minutos». Cero anuncios por segundo.
+2. **Los avisos emiten una vez por umbral, y no hay doble anuncio.** Con un
+   `MutationObserver` sobre las dos regiones durante 12 s cruzando el umbral de 10 min:
+   **exactamente 2 mutaciones** — el `aria-label` del timer (mudo, `aria-live="off"`) y
+   **un** texto en «Avisos del tiempo». A 1,5 min se muestra solo el umbral de 120 s, no
+   se apilan los tres.
+3. **El pie oculto sale del orden de tabulación y del árbol.** `hidden` → `display:none`,
+   `offsetParent === null`, y en el recorrido de teclado el `Tab` va de «Salir sin
+   terminar» directo a la barra inferior: los 2 enlaces del pie **no aparecen**. Y
+   **reaparece al terminar**: tras el auto-envío el envoltorio ya no lleva `hidden`.
+4. **El estado de cada celda no viaja solo en color**: `aria-label="Ítem 7, sin responder"`,
+   y el recuento en texto («3 respondidas · 2 marcadas · 23 sin responder»). El ítem en
+   pantalla lleva `aria-current="true"` — verificado con la sesión reanudada, que abre en
+   el primer ítem sin responder y marca esa celda, no la primera.
+5. **Objetivo táctil del panel:** celda **36 × 36 px medidos**, `gap` de **8 px** en los
+   dos ejes, 7 por fila a 375 px. Pasa 2.5.8 (mínimo 24 × 24) **de forma directa**. La
+   válvula `data-compacto` está bien gastada: con 100 celdas la cuadrícula mide **652 px
+   y 15 filas**; con celdas de 44 px serían 6 por fila, 17 filas y ~876 px. Y la
+   navegación no depende del panel — «Anterior» y «Siguiente» miden 44 px.
+6. **Foco visible y orden de tabulación correctos:** contorno de 2 px sólido a `--ring`
+   completo con `outline-offset: 2px` en los 40 enfocables, en los dos temas, incluso
+   sobre los rellenos de color de las celdas. El orden sigue el orden visual sin saltos:
+   opciones → Anterior/Marcar/Siguiente → las 28 celdas → Salir sin terminar → barra.
+7. **`Escape` no rompe nada** en el panel de reanudar. La decisión de no hacerlo modal
+   está bien argumentada en el archivo y es defendible: sin modal no hay trampa de foco
+   que auditar, y `Escape` no queda sin destino porque no hay salida neutra.
+8. **`prefers-reduced-motion: reduce`** respetado: transiciones a `1e-05s`, **0**
+   animaciones activas en la pantalla.
+9. **Zoom al 200 %** (188 × 390): sin solape entre la etiqueta «TIEMPO RESTANTE» y la
+   cifra, y sin desbordamiento horizontal real (`scrollWidth` 189 vs `clientWidth` 188 —
+   1 px de redondeo subpíxel).
+10. **axe-core: 0 violaciones** en las cuatro pantallas × los dos temas.
+
+## Observación que no es hallazgo
+
+**El cronómetro se va de la pantalla al bajar al panel** (medido: con el panel centrado,
+`top = −162 px`). No es fallo AA —ningún criterio pide que un contador permanezca
+visible— pero en un examen de 120 minutos en un celular de 375 px, el instrumento que da
+nombre a la pantalla no se ve durante la mayor parte del uso. Si algún día se hace
+pegajoso, cuidado: sumaría una segunda banda tapada y agravaría **A-29**.
+
+---
+
+## Cierre de los hallazgos A-29 … A-36 — 2026-07-30, mismo día
+
+Los ocho se atendieron en el propio Paso 11. **Los tres incumplimientos AA están
+corregidos**; de las cinco mejoras se aplicaron las cinco.
+
+| # | Qué era | Qué se hizo |
+|---|---|---|
+| **A-29** · Serio · 2.4.11 | 14 de 28 celdas del panel **totalmente tapadas** por la barra inferior al enfocarlas a 375×667 | `html { scroll-padding-bottom: calc(4rem + env(safe-area-inset-bottom) + 0.5rem) }` en `globals.css`. `.pb-nav` no podía arreglarlo: rellena el final de la columna, no la ventana de desplazamiento |
+| **A-30** · Moderado · 1.4.3 | `text-aviso` sobre `--accent` = **4,01:1** en «faltan 72 ítems» al pasar el puntero | `[a:hover_&]:text-foreground` en ese span. La ficha ya subía el texto apagado, pero el span fija su color y no lo heredaba |
+| **A-31** · Moderado · 2.4.6 | Al cerrar un simulacro el `<h2>` decía **«Terminaste la práctica»**, el botón «Repetir la práctica», y **el puntaje no se renderizaba**. Ese `<h2>` es el que recibe el foco en el auto-envío | `TITULO` y `ETIQUETA_REPETIR` por clase, `mensajeSimulacro()` propio, y el puntaje se muestra en todo lo que **mide** — quiz y simulacro—, no solo en el quiz |
+| **A-32** · Moderado | El foco caía al `<body>` al entrar en el simulacro | El contenedor recibe `tabIndex={-1}` y el foco al montar, igual que ya hacía `CierreSimulacro` en la otra punta. Con test de regresión |
+| **A-33** · Menor | La región `role="status"` del contador no tenía nombre; solo la de avisos | `aria-label="Posición en el simulacro"` |
+| **A-34** · Menor | «respondida» y «marcada» miden **1,04:1 entre sí**; las separaba un punto de 4×4 px | La marca pasa a una barra de **10×3 px** a lo ancho de la celda |
+| **A-35** · Menor | `SimulacroSinRed` era el único estado sin encabezado (nombraba su `<section>` desde un `<span>`) | `<h2>` de verdad |
+| **A-36** · Documentación | El comentario decía «medido AA sobre `--card`» y la superficie real es **`--background`** | Corregido en el componente, con las cifras reales (4,65:1 claro · 9,30:1 oscuro) y el aviso de que el margen en claro es de **0,15** |
+
+**Dos precisiones del auditor que valía la pena incorporar, y se incorporaron:**
+
+- **El cronómetro no es el único consumidor nuevo de `text-aviso` como texto.**
+  `/simulacros/page.tsx` también lo usa, y era justamente el que fallaba (A-30).
+  La fila D-1 de `DISENO.md` nombra el cronómetro como consumidor de
+  referencia; lo sigue siendo, pero no es exclusivo.
+- **`panel-navegacion.tsx` invocaba una excepción de 2.5.8 que no necesita.**
+  El umbral de 2.5.8 son 24×24 px y **36×36 los pasa de forma directa**. Lo que
+  el `gap` sostiene es la desviación respecto al piso de **44 px del proyecto**
+  (`DISENO.md` §3), que es más exigente que la norma. El comentario se reescribió:
+  reclamar una excepción que no hace falta invita a que alguien la reutilice donde
+  sí haría falta.
+
+### Lo que queda abierto
+
+- **A-28 sigue vivo** (viene del Paso 9): no se sabe si el contorno de foco del
+  `<h2>` del resumen se pinta. Ahora importa algo más, porque ese `<h2>` es el
+  destino del foco tras el auto-envío de un examen de dos horas. Sigue siendo
+  decisión de aspecto del `ui-designer`.
+- **`SimulacroSinRed` no se ejercitó en runtime**: solo se alcanza si el
+  `import()` rechaza, y el chunk ya estaba cacheado. Auditado por código. Va a la
+  lista del 18.10, junto a `error.tsx`, que arrastra el mismo problema.
+- La cuadrícula de **100** celdas se midió clonando celdas en el DOM en vivo, no
+  con banco real. Cuando los pasos 15–17 hagan armable el simulacro final, hay
+  que volver a medir A-29 sobre la cuadrícula de verdad — el auditor avisó de que
+  con 100 ítems el problema **empeora** (652 px y 15 filas).
+
+### Método, para quien audite el próximo paso
+
+Dos cosas que costaron tiempo y conviene no repetir:
+
+1. **La pantalla de simulacro en curso se provoca sembrando
+   `localStorage['idoneo2210:sesion']`** y entrando por «Continuar donde iba».
+   `continuar()` no comprueba viabilidad, así que no hace falta tocar contenido
+   ni bajar cuotas. Variando `iniciadoEnMs` salen los tres estados del
+   cronómetro y el auto-envío.
+2. **Hay que medir sobre build de producción.** En `dev`, recargar sobre el
+   `import()` del banco revienta con `__webpack_modules__[moduleId] is not a
+   function`.
+3. **Toda medición de foco tiene que esperar a que termine la transición.** Los
+   enfocables llevan `transition-colors duration-150`, que también anima
+   `outline-color`: leer antes da `oklab(… / 0.5)` —2,26:1— y parece un fallo de
+   1.4.11 que no existe. Con 320 ms de espera el valor asentado es `--ring` al
+   100 %. El auditor lo cazó como falso positivo suyo y lo dejó escrito.

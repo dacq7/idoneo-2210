@@ -193,6 +193,114 @@ export function medirCobertura(bp: BlueprintExamen, items: readonly Item[]): Cob
   return { total: items.length, porUnidad, porNivel, porTipo };
 }
 
+/* ─── Viabilidad: ¿alcanza el banco para armar este examen? ───────── */
+
+/**
+ * Lo que el servidor sabe de un módulo sin mandar un solo ítem al cliente.
+ * Tres campos por módulo: 29 módulos son ~90 valores, frente a los ~750 ítems
+ * completos que costaría mandar el banco (ADR-010).
+ */
+export interface CensoModulo {
+  slug: string;
+  bloque: BloqueId;
+  /** Ítems publicados. 0 en un módulo `'en-preparacion'`. */
+  disponibles: number;
+}
+
+export interface DeficitUnidad {
+  /** Slug del módulo o id del bloque, según el reparto del blueprint. */
+  clave: string;
+  cuota: number;
+  disponibles: number;
+}
+
+export interface Viabilidad {
+  /** `false` ⇒ el examen NO se puede armar completo. La UI no debe ofrecerlo. */
+  viable: boolean;
+  totalRequerido: number;
+  totalDisponible: number;
+  /** Cuántos ítems faltan para poder armarlo. 0 si es viable. */
+  faltan: number;
+  /** Unidades del reparto que no llegan a su cuota, de mayor a menor déficit. */
+  deficits: DeficitUnidad[];
+  /**
+   * `true` cuando hay ítems de sobra en total pero alguna unidad queda corta: el
+   * examen se arma —el relleno de `armarSimulacro` lo completa— pero **no**
+   * respeta el reparto del blueprint. Es una advertencia, no un bloqueo.
+   */
+  repartoIncumplido: boolean;
+  /**
+   * `false` si el blueprint filtra por tipo o dificultad. El censo cuenta ítems
+   * publicados, no ítems *elegibles*, así que en ese caso el veredicto es una
+   * **cota superior**: puede decir «viable» y no serlo.
+   *
+   * Hoy no afecta a nadie: ni el simulacro final ni el de bloque filtran. El
+   * primero que lo hará es el diagnóstico del Paso 13
+   * (`tiposPermitidos: ['unica','emparejar','caso']`, dificultades 1 y 2), y ahí
+   * hay que ampliar el censo con la distribución conjunta tipo × dificultad —no
+   * sirven las marginales— o cargar el banco en el servidor y contar de verdad.
+   */
+  exacto: boolean;
+}
+
+/**
+ * Decide, **antes de armar nada**, si el banco alcanza para este blueprint.
+ *
+ * Existe porque `armarSimulacro` no puede responder esta pregunta: su relleno
+ * está diseñado para completar desde el pool global cuando un módulo se queda
+ * corto —que es lo correcto mientras el contenido se escribe—, y con el banco de
+ * hoy eso significa que un «simulacro final de 100 ítems» devolvería 28 ítems de
+ * C5 repetidos por los cuatro bloques y **se presentaría como el examen real**.
+ * Un examen de 28 ítems etiquetado como el simulacro de 100 no mide nada y
+ * miente sobre el resultado, que es lo contrario de lo que la app promete
+ * (§22 regla 11: retroalimentación honesta).
+ *
+ * Función pura sobre el censo. No carga contenido y no conoce el reloj.
+ */
+export function diagnosticarViabilidad(
+  bp: BlueprintExamen,
+  censo: readonly CensoModulo[],
+): Viabilidad {
+  const cuotas = bp.reparto.cuotas as Record<string, number>;
+
+  const disponiblesDe = (clave: string): number =>
+    censo
+      .filter((m) => (bp.reparto.tipo === 'modulo' ? m.slug === clave : m.bloque === clave))
+      .reduce((suma, m) => suma + m.disponibles, 0);
+
+  const deficits: DeficitUnidad[] = [];
+  for (const [clave, cuota] of Object.entries(cuotas)) {
+    const disponibles = disponiblesDe(clave);
+    if (disponibles < cuota) deficits.push({ clave, cuota, disponibles });
+  }
+  deficits.sort(
+    (a, b) => b.cuota - b.disponibles - (a.cuota - a.disponibles) || a.clave.localeCompare(b.clave),
+  );
+
+  // El pool del que sale el relleno son SOLO las unidades del reparto: un
+  // simulacro del bloque C no se rellena con ítems del bloque A. Contar el banco
+  // entero aquí daría un «viable» falso en cuanto haya contenido de otros
+  // bloques, que es exactamente el escenario de los pasos 15–17.
+  const claves = Object.keys(cuotas);
+  const totalDisponible = censo
+    .filter((m) =>
+      bp.reparto.tipo === 'modulo' ? claves.includes(m.slug) : claves.includes(m.bloque),
+    )
+    .reduce((suma, m) => suma + m.disponibles, 0);
+
+  const totalRequerido = bp.totalItems;
+
+  return {
+    viable: totalDisponible >= totalRequerido,
+    totalRequerido,
+    totalDisponible,
+    faltan: Math.max(0, totalRequerido - totalDisponible),
+    deficits,
+    repartoIncumplido: totalDisponible >= totalRequerido && deficits.length > 0,
+    exacto: bp.tiposPermitidos === undefined && bp.dificultadesPermitidas === undefined,
+  };
+}
+
 /* ─── Presentación (barajado de opciones) ─────────────────────────── */
 
 /**

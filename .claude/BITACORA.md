@@ -1858,3 +1858,195 @@ Decisión de producto del usuario, cerrada: **la app no documenta los errores de
 **Verificación:** `typecheck` ✅ · `lint` ✅ · **456 tests** en 12 archivos (443 → 456) ✅ · `validar` ✅ 0 errores · `build` ✅ · `canario` ✅. Los dos arreglos, verificados por mutación.
 
 **Peso:** `/layout` **132.0 kB js gz** (+86 B de churn de hash) · `/repaso` **144.5** · práctica y quiz **145.1** (+1.6, por el resplit del chunk compartido: gzip comprime peor dos archivos que uno, y a cambio `/repaso` no duplica el sistema de ítems).
+
+---
+
+## Paso 11 — Motor de simulacro, cronómetro y auto-envío — 2026-07-30
+
+**Estado:** ✅ Completado
+**Rama:** `paso-11-simulacro`
+
+**Archivos creados**
+
+| Archivo | Qué es |
+|---|---|
+| `src/lib/cronometro.ts` | §7.4 con desviaciones (ADR-019) |
+| `src/hooks/usar-cronometro.ts` | `useCronometro`: el único sitio que lee el reloj para el cronómetro |
+| `src/lib/esquemas-progreso.ts` | partición de §5 por consumidor (ADR-021) · `esqSesionCronometro` nuevo |
+| `src/lib/almacenamiento-crudo.ts` | acceso de bajo nivel + claves (ADR-021) |
+| `src/lib/sesion-activa.ts` | «¿hay simulacro en curso?» sin Zod (ADR-021) |
+| `src/lib/censo.ts` | helper de servidor: conteos por módulo |
+| `src/components/layout/oculta-en-simulacro.tsx` | oculta el pie sin desmontarlo (ADR-001) |
+| `src/components/sesion/controlador-simulacro.tsx` | orquesta viabilidad → carga → reanudación → tanda → cierre (ADR-020) |
+| `src/components/sesion/simulacro-en-curso.tsx` | la tanda cronometrada, con persistencia por respuesta |
+| `src/components/sesion/cronometro-visual.tsx` | cifra + avisos, con los dos canales separados |
+| `src/components/sesion/panel-navegacion.tsx` | cuadrícula de ítems · estrena `data-compacto` (D-8) |
+| `src/components/sesion/dialogo-reanudar.tsx` | «tienes un simulacro a medias» |
+| `src/components/sesion/portada-simulacro.tsx` | la pantalla que puede **negarse a empezar** |
+| `src/components/sesion/simulacro-sin-red.tsx` | el `import()` puede rechazar |
+| `src/app/simulacros/page.tsx` · `final/page.tsx` · `bloque/[bloqueId]/page.tsx` | las tres rutas |
+| `src/lib/__tests__/cronometro.test.ts` · `src/components/sesion/__tests__/simulacro-en-curso.test.tsx` | 32 + 15 tests |
+
+**Modificados:** `src/lib/simulacro.ts` (+`diagnosticarViabilidad`, `CensoModulo`), `src/lib/esquemas.ts` (partición + re-export), `src/lib/almacenamiento.ts` (`leerSesion` valida; partición), `src/hooks/usar-sesion.ts` (+`SesionInicial`, +`irA`), `src/components/layout/shell.tsx`, `content/banco/indice.ts` (+`censarBanco`), tests de simulacro y almacenamiento.
+
+**Verificación**
+
+Cuatro compuertas en verde: `typecheck` · `lint` (0 warnings) · `test` **527 pasando** (456 → 527, +71) · `build` (133 páginas estáticas). `npm run canario` tras el build: frontera intacta.
+
+**Campaña de mutación — 6 mutantes, 6 muertos.** Un test que no mata a su mutante no cuenta:
+
+| Mutante | Tests que caen |
+|---|---|
+| `restantes()` deja pasar una duración no finita (el §7.4 literal) | 2 |
+| `useSesion` ignora el estado inicial (reanudar arranca en blanco) | 3 |
+| `leerSesion` vuelve al cast sin validar (el §6 literal) | 4 |
+| viabilidad cuenta el banco entero, no las unidades del reparto | 1 |
+| el cronómetro pasa a `aria-live="polite"` | 1 |
+| los avisos no se persisten en `avisosVistos` | 1 |
+
+**Los invariantes del paso, comprobados**
+
+- **Cerrar la pestaña no regala tiempo.** No hay contador en memoria: cada tick recalcula desde `iniciadoEnMs` contra el reloj real. Test: montar con el reloj 119 min por delante da `01:00`, no `2:00:00`.
+- **Reanudar no pierde respuestas.** Se persiste tras **cada** respuesta —no cada 30 s— precisamente por el defecto de ADR-008: la sonda de 1 byte pasa con el disco casi lleno y `leerSesion()` devolvía la sesión vieja con cero respuestas. Un guardado periódico encima de eso habría hecho el fallo intermitente.
+- **Auto-envío al llegar a 0**, exactamente una vez, y también si el tiempo se agotó con la pestaña cerrada.
+- **Avisos persistidos**: el test los emite, desmonta, vuelve a montar desde el disco y comprueba que la región viva sale vacía.
+- **El cronómetro no habla cada segundo**: `role="timer"` + `aria-live="off"`, `aria-label` recalculado por **minuto**, y una región `role="status"` aparte que solo emite en los tres umbrales. Tres anuncios por sesión en vez de 7200.
+
+**La decisión de producto del paso: la app se niega a armar un examen mentiroso**
+
+`armarSimulacro` no falla cuando falta contenido: rellena desde el pool y devuelve lo que haya. Correcto mientras se escribe contenido, **inaceptable en el instrumento de medida**. Con el banco de hoy, «simulacro final · 100 ítems» habría producido 28 ítems de C5 presentados como el examen completo, y un porcentaje sobre ellos presentado como el pronóstico del usuario.
+
+`diagnosticarViabilidad` (función pura sobre un censo de conteos) responde **antes** de cargar nada. Hoy declara inviables los cinco simulacros y la portada dice qué falta con cifras: «hacen falta 100 ítems y hay 28: faltan 72», más por qué no se ofrece uno más corto y qué sí se puede hacer hoy. Un test ata el diagnóstico a la realidad: si dice inviable, `armarSimulacro` devuelve menos ítems de los pedidos.
+
+**Peso — js gz por ruta**, con el comando oficial de `COMPONENTES.md`:
+
+| Ruta | Antes | Después | Δ |
+|---|---|---|---|
+| `/layout` | 132.0 | **132.5** | +0.5 |
+| `/page` | 102.9 | 102.9 | — |
+| `/modulos/[slug]` | 134.2 | **133.0** | −1.2 |
+| `/modulos/[slug]/tarjetas` | 136.7 | **135.6** | −1.1 |
+| `/modulos/[slug]/practica` · `/quiz` | 145.1 | 145.1 | — |
+| `/repaso` | 144.5 | **143.7** | −0.8 |
+| `/simulacros` | — | **107.0** | nueva |
+| `/simulacros/bloque/[bloqueId]` · `/final` | — | **147.7** | nuevas |
+
+El dato que importa no es ninguno de esos: es el que **no** ocurrió. `OcultaEnSimulacro` vive en `Shell`, así que metió `almacenamiento.ts` en el grafo del layout raíz y `/layout` subió a **148.4 kB gz** (+16.4 en **todas** las rutas, incluida la portada). Diagnosticado con sondas —`grep "exactamente 4 opciones"` y `grep "ZodError"` sobre los chunks de carga ansiosa— y resuelto partiendo por consumidor (ADR-021): queda en +0.5. Era exactamente la deuda que `PENDIENTES.md` había aplazado hasta este paso.
+
+**El banco NO viaja en la carga útil RSC.** `/simulacros/final` sirve 34.9 kB de HTML y **cero** cadenas del banco: se carga con `import()` al pulsar «Empezar» (§2.2, permitido explícitamente por ADR-010). Comparar con `/practica`, que con **un** módulo ya pesaba 17.1 kB gz de HTML — con 29 módulos esa vía no escalaba.
+
+**Tres ADR nuevos:** ADR-019 (validar la sesión al leerla, y por qué aquí sí se descarta cuando ADR-017 decidió no hacerlo), ADR-020 (controlador de simulacro aparte), ADR-021 (partición por consumidor).
+
+**Pendiente, declarado y no oculto:** el simulacro **no persiste todavía su `IntentoSimulacro`**. Es la misma decisión que tomó el quiz en el Paso 9 y por el mismo motivo: `desglose` exige `calcularDesglose` de `src/lib/informe.ts`, que nace en el Paso 12. Hoy el intento se cierra, se califica en pantalla y la sesión se borra; falta persistirlo y enlazar a `/resultados/[intentoId]`. Anotado en `PENDIENTES.md`.
+
+### Revisión del `code-reviewer` — mismo día
+
+**APROBADO CON RESERVAS**, sin bloqueantes. Detalle en `REVISIONES.md`. Se aplicaron cuatro arreglos a raíz de sus hallazgos:
+
+- **R1** — un reloj hacia atrás o un `iniciadoEnMs` **futuro** congelaban el auto-envío: la sesión pasaba Zod y `seAcabo()` devolvía `false` indefinidamente. Es la misma clase de fallo que ADR-019 cierra, por una puerta que la campaña de mutación no cubría. Cerrado con `inicioCoherente()`, aplicada en la reanudación.
+- **R2** — `Viabilidad.exacto` no lo consumía nadie. Ahora la portada no ofrece empezar con `exacto === false`, y tres tests fijan el contrato para el Paso 13.
+- **R3** — dos simulacros seguidos repetían **5 de 10** ítems: `itemsRecientes` estaba en la firma del motor y no lo llamaba nadie. Cableado.
+- **M2** — `empezar()` revalida la viabilidad, alcanzable desde el diálogo de reanudar.
+
+Suite 529 → **536**. Los dos mutantes de los arreglos nuevos mueren (1 y 3 tests).
+
+**Lección de proceso, anotada porque costó tiempo al revisor:** la rama no tenía commits y editué `simulacro-en-curso.tsx` a mitad de su revisión, así que tuvo que descartar una tanda de compuertas y repetirlas. **El próximo paso se comitea antes de pedir revisión.**
+
+---
+
+## [2026-07-30 23:40] · accessibility-auditor · Paso 11
+
+**Qué audité:** el cronómetro y el panel de navegación del simulacro, con el resto de
+la pantalla como contexto — `cronometro-visual.tsx`, `panel-navegacion.tsx`,
+`simulacro-en-curso.tsx`, `portada-simulacro.tsx`, `dialogo-reanudar.tsx`,
+`simulacro-sin-red.tsx`, `oculta-en-simulacro.tsx` y las tres rutas de `/simulacros`.
+
+**Cómo lo probé:** Playwright + Chromium sobre **build de producción** en :3210 (el
+`dev` reventaba con `__webpack_modules__ is not a function` al recargar sobre el
+`import()` del banco). axe-core 4.x (wcag2a/2aa/21a/21aa/22aa) en 4 pantallas × 2 temas
+= **0 violaciones**. Recorrido de teclado real con `Tab` y **espera de 320 ms** para
+leer el foco ya asentado. Anchos 375×780, 375×667, 375×640 y 188×390 (375 px al 200 %).
+Contraste por composición alfa en oklch, contrastado contra los colores computados en
+el navegador. `prefers-reduced-motion: reduce`.
+
+**Cómo provoqué la pantalla en curso** (hoy ningún simulacro es armable): **sembrando
+`localStorage['idoneo2210:sesion']`** con una sesión de `tipo:'bloque', ambito:'C'` y
+los 28 ids de C5, y entrando por «Continuar donde iba». La vía `continuar()` no
+comprueba viabilidad, así que **no hizo falta tocar ni contenido ni código**. Variando
+`iniciadoEnMs` se ejercitaron los tres estados del cronómetro y el auto-envío.
+
+**Hallazgos:** Crítico 0 · Serio 1 · Moderado 3 · Menor 4.
+
+**Bloqueantes:** ninguno. El Serio (A-29) no impide terminar el simulacro: los botones
+«Anterior/Siguiente» llegan a cualquier ítem.
+
+**Contraste:** todos los tokens del cronómetro pasan AA en los dos temas sobre su
+superficie real, que es `--background` y no `--card` (A-36). Único fallo: `--aviso`
+como texto sobre `--accent` en tema claro, **4.01:1** (A-30), en la ficha de
+`/simulacros`, no en el cronómetro.
+
+**Pendiente:** `SimulacroSinRed` no se pudo ejercitar en runtime (solo se alcanza si el
+`import()` del banco rechaza, y el chunk ya estaba cacheado); auditado por código.
+La cuadrícula de 100 celdas se midió **clonando celdas en vivo**, no con un banco real.
+
+### Auditoría del `accessibility-auditor` — mismo día
+
+**axe-core: 0 violaciones** en 4 pantallas × 2 temas. Los ocho hallazgos salieron de medición manual, que es la única forma de encontrarlos.
+
+**Tres incumplimientos AA reales, los tres corregidos:**
+
+- **A-29 · 2.4.11** — a 375×667, **14 de las 28 celdas** del panel quedaban **totalmente tapadas** por la barra inferior fija al recibir el foco. Una línea de `scroll-padding-bottom` en `globals.css`. `.pb-nav` no podía arreglarlo: rellena el final de la columna, no la ventana de desplazamiento. Con 100 ítems empeoraría.
+- **A-30 · 1.4.3** — `text-aviso` sobre `--accent` mide 4,01:1 en el «faltan 72 ítems» de la ficha al pasar el puntero.
+- **A-31 · 2.4.6** — el peor de producto, no solo de accesibilidad: al cerrar un simulacro el titular decía **«Terminaste la práctica»**, el botón «Repetir la práctica», y **el puntaje no se mostraba**. `'suelta'` caía en la rama de la práctica. Y ese `<h2>` es el elemento que **recibe el foco en el auto-envío**: tras 120 minutos de examen era lo primero que oía quien usa lector, y el usuario cerraba sin saber su porcentaje.
+
+**Las cinco mejoras también se aplicaron**: foco al entrar (A-32), nombre para la segunda región viva (A-33), la marca del panel pasa de un punto de 4 px a una barra de 10×3 —«respondida» y «marcada» miden 1,04:1 **entre sí** en claro (A-34)—, encabezado real en `SimulacroSinRed` (A-35) y la superficie del cronómetro corregida a `--background` con sus cifras (A-36).
+
+**Los cuatro puntos que se le pidieron, respondidos con medición:**
+
+- **El reparto del cronómetro funciona.** `MutationObserver` durante 12 s cruzando el umbral de 10 min: **exactamente 2 mutaciones** —el `aria-label`, que es mudo, y **un** texto en la región de avisos—. Sin doble anuncio. En 7 s la cifra pasó por `44:59…44:53` y el label no se movió de «Quedan 45 minutos».
+- **Contraste**: los tres estados del cronómetro pasan AA en los dos temas. `text-aviso` como texto queda justificado; su único fallo estaba en otra superficie.
+- **Panel**: celda 36×36 medidos, `gap` 8 px, 7 por fila a 375 px. **D-8 está bien gastada**: 100 celdas son 652 px y 15 filas, contra ~876 px y 17 filas con celdas de 44.
+- **Teclado**: orden de foco = orden visual, sin trampas, contorno de 2 px sólido a `--ring` (6,37:1 claro · 7,15:1 oscuro) en los 40 enfocables. El pie oculto sale del recorrido de `Tab` **y reaparece al terminar**.
+
+**Un falso positivo que dejó documentado y vale para todo el proyecto:** midió el contorno de foco en 2,26:1 y no lo es — los enfocables llevan `transition-colors duration-150`, que **también anima `outline-color`**, y la lectura caía dentro de la transición. Con 320 ms de espera el valor asentado es `--ring` al 100 %. Toda medición de foco en esta app tiene que esperar a que la transición termine.
+
+Suite final **537**. Los tres mutantes de los arreglos (foco al entrar, `inicioCoherente`, `exacto`) mueren.
+
+---
+
+## [2026-07-30] · software-architect · Resolución del M1 del Paso 11 — la regla de las 300 líneas
+
+**Qué revisé:** `CLAUDE.md` §21 «Reglas de código» punto 1, su historial de aplicación en los pasos 9, 10 y 11, y la cita que hace de ella ADR-020. Sin tocar código: la intervención es documentación y una regla.
+
+**Veredicto:** APROBADO CON CAMBIOS — la regla se conserva con el mismo número y se le fija la unidad que le faltaba.
+
+**Desvíos detectados:**
+
+- **La unidad no estaba definida, y por eso la regla solo se podía invocar, nunca cumplir ni aplicar.** Tres mediciones honestas de `mazo-tarjetas.tsx` dieron 424 (`wc -l`), 300 (conteo a mano), 282 (`sed`/`awk`) y 294 (ESLint `max-lines`). Ese es el mecanismo de la queja del usuario, no el número.
+- **ADR-020 citó la regla en un sentido que su letra no soporta**: proyectó el tamaño del componente fusionado en líneas totales y lo comparó contra un límite que solo tiene sentido en líneas de código. Con la unidad fijada, el argumento y el resultado sí cierran (fusionado ~500 de código; las dos mitades en 271 y 259).
+- **La regla nunca decidió una partición de verdad.** Las dos que ocurrieron se decidieron por divergencia de ciclos de vida (ADR-020) y por peso medido del bundle (ADR-021). Queda escrito que el límite es un indicador que obliga a mirar el archivo, no un criterio de diseño.
+
+**Decisión (ADR-022):** el número sigue en **300** y la unidad pasa a ser **líneas de código**, `skipComments` + `skipBlankLines`, tal como las cuenta ESLint `max-lines`. Alcance `src/components/**` (salvo `ui/`), `src/hooks/**`, `src/app/**`; fuera `content/**` (datos: el banco de C5 son 594 líneas de código y 28 módulos van a copiar esa forma), `src/lib/**` (motores copiados por §22 regla 2 — `simulacro.ts` 306, `almacenamiento.ts` 298) y los tests (`simulacro.test.ts`, 925).
+
+**Por qué no se movió el número:** medido bien, ya era el correcto. El mayor archivo del alcance mide 414 y el segundo 294; **no hay nada entre medias**. Subirlo a 400 o 450 habría ratificado el statu quo con un número de aspecto técnico; contar líneas totales habría gravado el comentario, que es un rasgo cultivado del proyecto (`cronometro.ts`: 172 totales, 73 de código).
+
+**Verificación:** `npx eslint --rule '{"max-lines":["error",{"max":1,…}]}'` sobre todo el repositorio, que es también la herramienta que definirá la unidad. `npm run typecheck`, `npm run lint` y `npm test` en verde — el diff son cuatro archivos markdown, nada que compile.
+
+**Archivos:** `.claude/ARQUITECTURA.md` (ADR-022 nuevo + enmienda dentro de ADR-020), `CLAUDE.md` (línea 6350, sexta edición del blueprint, autorizada por el usuario), `.claude/PENDIENTES.md`, `.claude/BITACORA.md`.
+
+**Pendiente para el siguiente paso:**
+
+- **Paso 12 — `controlador-repaso.tsx` (414) es el único incumplidor y no se acepta con excusa.** Se extrae `SesionRepaso` (~250 líneas, ya separada por nombre dentro del archivo) y **acto seguido se enciende `max-lines` en `eslint.config.mjs`**. No se encendió ahora porque con 414 dejaría el lint rojo, y las dos salidas para evitarlo son las dos formas de recrear la enfermedad. **Hasta esa línea, la regla sigue siendo de honor.**
+- **Sin paso asignado — pregunta abierta al usuario:** la otra mitad de la regla 1, «un componente por archivo», tampoco describe la práctica (`repaso-vacio.tsx` exporta 7). No se decidió sin autorización.
+
+### Cierre de la regla 1 — 2026-07-31
+
+El usuario resolvió la mitad que ADR-022 había dejado abierta: **«un componente EXPORTADO por archivo»**, porque los auxiliares locales no son componentes públicos. `CLAUDE.md` §21 regla 1 editada con esa palabra.
+
+Es la lectura que hace la regla cierta *y* la única que la deja en pie: con la redacción vieja, cumplirla habría exigido partir en archivos sueltos los subcomponentes locales de `controlador-sesion.tsx` (define 5, exporta 1) y `mazo-tarjetas.tsx` (define 4, exporta 1) — empeorar el código para satisfacer la letra.
+
+**El barrido tras la edición encontró DOS incumplidores, no uno.** El `software-architect` había nombrado solo `repaso-vacio.tsx` (6 exportados); falta `items/opcion-unica.tsx` (2: `GrupoOpcionUnica` y `OpcionUnica`). Los dos suben a `PENDIENTES.md` como obligación del Paso 12, **sin prejuzgar el arreglo**: la pareja de `opcion-unica.tsx` es cohesiva y la consumen varios tipos de ítem, así que puede tocar partirla o puede merecer una excepción registrada. Eso se decide mirando el código.
+
+La compuerta de ESLint sigue apagada y el usuario lo ratificó con el argumento del arquitecto: subir el número o poner un `eslint-disable` serían las dos formas de recrear el problema recién cerrado. Se enciende en el Paso 12 con los tres incumplimientos resueltos. Y `max-lines` cubre **solo la primera mitad** de la regla: a la de «un componente exportado» no se le inventa una comprobación automática, porque distinguir un componente de un helper exportado exige criterio.
+
+**Paso 11 aprobado por el usuario.** Los dos aplazamientos quedan ratificados: persistir el `IntentoSimulacro` exige `informe.ts` del Paso 12, y `SimulacroSinRed` va al 18.10 junto a `error.tsx`.

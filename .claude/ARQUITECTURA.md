@@ -939,3 +939,226 @@ Había una guarda (`esRepaso`) pero solo cubría la pasada de falladas **dentro*
 **Arreglo: solo se programa lo que de verdad toca hoy.** Si la tarjeta ya tiene `proximaRevision > hoy`, no se re-registra. Es la semántica correcta del SRS —una tarjeta que no ha vencido no se revisa— y cubre las dos vías, la de dentro de la sesión y la de la segunda visita.
 
 **Quinta desviación del código literal del blueprint**, tras ADR-003, ADR-005, ADR-015 y ADR-017. `CLAUDE.md` §7.2 sigue documentando el `encolar` para las tarjetas y **no se editó**: es una nota en prosa, no código copiable, y el comportamiento correcto queda fijado por el comentario del enganche y por este ADR.
+
+---
+
+## ADR-019 · La sesión cronometrada se valida al leerla, y una sesión ilegible se descarta
+
+**Estado:** Aceptada
+**Fecha:** 2026-07-30 · **Autor:** Paso 11
+
+**Contexto.** `PENDIENTES.md` dejaba dos cosas anotadas para este paso, y resultaron ser la misma:
+
+1. §6 hace `JSON.parse(crudo) as SesionCronometro` **sin validar**, y no existía `esqSesionCronometro`.
+2. §7.4 llega aquí y «conviene ejercitarlo con sospecha», porque las cuatro desviaciones previas de `src/lib/` (ADR-003, ADR-005, ADR-015, ADR-017) comparten forma: **fallan en los bordes** y todas necesitaron lo mismo, normalizar la entrada y acotar la salida.
+
+**El defecto, que es el peor posible en este paso.** Con un payload como `{"foo":1}`, `leerSesion()` devolvía un objeto sin `duracionSegundos`. Entonces `restantes()` calcula `undefined - 0` → `NaN`, y **`NaN <= 0` es `false`**, así que `seAcabo()` responde «todavía no» **para siempre**. El simulacro no se auto-envía nunca: el usuario ve `--:--`, se queda sin cronómetro y su intento no se cierra. Nada en pantalla lo delata, que es la firma de todos los defectos de esta familia.
+
+**Decisión, en dos capas.**
+
+- **`esqSesionCronometro` en `esquemas-progreso.ts`.** `iniciadoEnMs` y `duracionSegundos` son `z.number().finite()`, que es exactamente lo que impide el `NaN`. La sesión que no valida se descarta y se limpia.
+- **El motor acota igual.** `restantes()` devuelve 0 ante una duración no finita y `transcurridos()` devuelve 0 ante un `iniciadoEnMs` corrupto. No sobra: la sesión también se construye en memoria, y un `duracionSegundos` derivado de un `blueprint.minutos` inesperado no pasa por Zod.
+
+**Y una decisión que va en sentido contrario a ADR-017, por la razón contraria.** ADR-017 decidió deliberadamente **no** poner un `.max()` a `intervaloDias`, porque `esqTarjetaSRS` se evalúa dentro de `esqEstadoProgreso` y un dato absurdo en una tarjeta suelta habría mandado a cuarentena **todo el progreso** del usuario. Aquí la situación es la inversa: `SesionCronometro` vive en su **propia clave**, así que rechazarla no toca ni un intento, ni la racha, ni la cola de repaso. Lo que se pierde es un simulacro en curso ya ilegible, y la alternativa —dejarlo pasar— es un cronómetro que no termina.
+
+Dicho de otra forma: **la regla no es «validar poco» ni «validar mucho», es validar en la capa cuyo radio de daño corresponde al dato.** ADR-017 y ADR-019 aplican el mismo criterio y salen distintas porque las claves son distintas.
+
+**Detalle de la salida acotada.** `marcarAvisoVisto` filtra `avisosVistos` a los tres umbrales conocidos. Sin eso, un valor heredado de un respaldo raro crecería en cada escritura, y esta es **la ruta que más escribe de toda la app**: una vez por respuesta durante 120 minutos.
+
+**Sexta desviación del código literal del blueprint.** `CLAUDE.md` §7.4 y §6 quedan desalineados y **no se editaron**: como en ADR-015 y ADR-017, el código no se replica —se copia una sola vez y ya está copiado— y los tests lo fijan. Anotado en `PENDIENTES.md`.
+
+**Verificado por mutación:** revertidos uno a uno, caen 2 tests (acotación del motor) y 4 (validación al leer). Suite 456 → 527.
+
+---
+
+## ADR-020 · El simulacro tiene su propio controlador, separado de práctica y quiz
+
+**Estado:** Aceptada
+**Fecha:** 2026-07-30 · **Autor:** Paso 11
+
+**Contexto.** §10.1 asigna un único `ControladorSesion` a las cinco sesiones del producto —práctica, quiz, diagnóstico y los dos simulacros—, y la cabecera del archivo del Paso 9 lo anticipaba así: «el cronómetro, el diálogo de reanudar y la escritura de `SesionCronometro` llegan con el Paso 11 y entran por aquí sin cambiar el contrato».
+
+No entraron. Al construirlo se ve por qué.
+
+**Decisión:** `controlador-simulacro.tsx` es un componente aparte. Dos razones, ninguna estética:
+
+- **Tamaño medido.** `controlador-sesion.tsx` ya ocupa 391 líneas. Sumarle cronómetro, persistencia por respuesta, reanudación, panel de navegación, auto-envío y carga diferida lo dejaría muy por encima de las 300 que fija la regla de código 1 de `CLAUDE.md`.
+- **Las responsabilidades divergen de verdad.** Práctica y quiz reciben su banco **por prop desde el servidor** y no persisten nada hasta el final. El simulacro **carga el banco con `import()` bajo interacción** y escribe tras cada respuesta. No es el mismo componente con un `if`: son dos ciclos de vida distintos.
+
+**Lo que sí se comparte, que es lo que importa:** `useSesion` (la máquina de estado de una tanda), `EnvoltorioItem`, `Boton` y `ResumenSesion`. **No hay una segunda implementación de la tanda**, que era el riesgo real de partir.
+
+`useSesion` gana dos cosas para esto, ambas aditivas y sin tocar a sus consumidores actuales: `SesionInicial` (reanudar con respuestas e índice) e `irA` (el salto del panel de navegación). El estado inicial se lee con un inicializador perezoso de `useState`, es decir **una sola vez al montar**: mirarlo en cada render haría que cada escritura en `localStorage` reinyectara el valor guardado y machacara lo que el usuario está tecleando.
+
+**Alternativas descartadas:**
+
+- **Ampliar `ControladorSesion` con banderas.** Es lo que decía el plan; produce un componente de ~700 líneas con dos modos que no comparten casi nada de su ciclo de vida.
+- **Extraer una base común y heredar.** La parte común ya está extraída y se llama `useSesion`. Una capa más sería abstracción sin segundo caso que la justifique.
+
+**Consecuencia:** `CLAUDE.md` §10.1 queda desalineado en una fila (la que asigna `ControladorSesion` a `/simulacros/*`) y **no se editó**, por el criterio de siempre: es una tabla descriptiva, no código copiable, y su instrucción literal no está en el camino de ejecución de ningún paso futuro.
+
+### Enmienda — 2026-07-30: la cita de la regla 1 mezclaba dos unidades. **ADR-022** la fija
+
+El `code-reviewer` levantó como M1 que este ADR **justifica una partición citando un límite que el resultado incumple**: dice que juntarlo todo quedaría «muy por encima de las 300 que fija la regla de código 1» y `controlador-simulacro.tsx` salió con 402 líneas. La contradicción era real, y su causa no era el razonamiento sino que **la regla no decía en qué unidad se cuenta** y este ADR usó dos sin darse cuenta: proyectó el tamaño del componente fusionado en líneas totales y lo comparó contra un límite que solo tiene sentido en líneas de código.
+
+Medido con la unidad que ADR-022 fija —líneas de código, `skipComments` + `skipBlankLines`— la aritmética cierra, y en el mismo sentido en que la escribió este ADR:
+
+| | Código | Contra el límite de 300 |
+|---|---|---|
+| `controlador-sesion.tsx` | 271 | dentro |
+| `controlador-simulacro.tsx` | 259 | dentro |
+| El componente fusionado que este ADR evitó | ~500 | **muy por encima** |
+
+Así que **el argumento se sostiene y el resultado también**: fusionar habría dado un componente de ~500 líneas de código, y la partición deja las dos mitades holgadamente dentro. Lo que no se sostenía era comparar 402 contra 300 sin decir que la primera cifra incluye comentarios y la segunda no. Se corrige también el dato de partida: donde dice «`controlador-sesion.tsx` ya ocupa 391 líneas», son 390 totales y **271 de código**.
+
+**Lo que no cambia, y conviene subrayarlo porque es lo que este episodio puso en riesgo:** la razón que sostiene esta decisión es la **segunda**, la divergencia real de ciclos de vida —práctica y quiz reciben el banco por prop y no persisten hasta el final; el simulacro carga con `import()` y escribe tras cada respuesta—. El tamaño era refuerzo, no criterio. ADR-022 lo deja escrito como regla general: **el límite de líneas es un indicador que obliga a mirar el archivo, no un criterio de diseño para decidir particiones.** Si mañana un ADR vuelve a apoyar una partición principalmente en el conteo de líneas, el argumento está mal construido aunque el número dé.
+
+---
+
+## ADR-021 · `esquemas.ts` y `almacenamiento.ts` se parten por consumidor, no por tema
+
+**Estado:** Aceptada
+**Fecha:** 2026-07-30 · **Autor:** Paso 11
+
+**Contexto.** `PENDIENTES.md` traía esta deuda desde el Paso 9, con la decisión aplazada expresamente «al Paso 11»: `src/lib/esquemas.ts` manda al navegador los siete esquemas de ítem, más tarjetas y glosario, **donde ninguno se usa**; en cliente solo hace falta `esqEstadoProgreso`, que `almacenamiento.ts` importa para validar el progreso al leerlo (§6). La nota decía que partirlo «sí es arquitectura y choca con §22 regla 2, así que se reportó en vez de hacerse».
+
+**Lo que forzó la decisión fue una medición de este paso, no una preferencia.** `OcultaEnSimulacro` (el envoltorio que oculta el pie durante un simulacro, ADR-001) vive en `Shell`, así que `almacenamiento.ts` pasó a estar en el grafo del **layout raíz**: su peso dejó de pagarlo una ruta para pagarlo **todas**, incluida la portada.
+
+| | `/layout` js gz |
+|---|---|
+| Antes del paso | 132.0 kB |
+| Con `OcultaEnSimulacro` importando `almacenamiento.ts` | **148.4 kB** (+16.4) |
+| Tras esta decisión | **132.5 kB** (+0.5) |
+
+Diagnosticado con sondas, no por deducción: `grep "exactamente 4 opciones"` encontraba los esquemas de ítem en un chunk de carga ansiosa del layout, y `grep "ZodError"` encontraba Zod.
+
+**Decisión: tres archivos nuevos, cero líneas de lógica tocadas.**
+
+| Archivo | Qué lleva | Quién lo importa |
+|---|---|---|
+| `src/lib/esquemas-progreso.ts` | progreso, intentos, cola SRS, `esqSesionCronometro` | `almacenamiento.ts` |
+| `src/lib/almacenamiento-crudo.ts` | claves, `memoria`, `localStorageUsable`, leer/escribir/borrar en crudo | `almacenamiento.ts`, `sesion-activa.ts` |
+| `src/lib/sesion-activa.ts` | `haySesionEnCurso`, `suscribirSesion`, `notificarSesion` — **sin Zod** | `OcultaEnSimulacro` |
+
+`esquemas.ts` re-exporta el archivo de progreso (`export * from './esquemas-progreso'`) y `almacenamiento.ts` re-exporta el canal de sesión, así que **ningún consumidor existente cambia**.
+
+**Por qué esto no choca con §22 regla 2** («copiar el código de §4 a §8 tal cual»). Los esquemas son byte-idénticos y sus exports siguen saliendo del mismo sitio: lo único que cambia es **qué archivo los hospeda**, que es una decisión de empaquetado y no de lógica. La regla existe para que nadie «mejore» un motor y le rompa un invariante; aquí no se tocó ni un `.min()`.
+
+**La línea de corte es el consumidor, no el tema.** Un `esquemas-contenido.ts` / `esquemas-progreso.ts` partido por asunto habría sido igual de bonito y no habría resuelto nada: lo que decide el peso del bundle es **quién importa qué**, y el corte tiene que caer ahí.
+
+**El estado degradado se comparte a propósito.** `memoria` y `localStorageUsable` viven en `almacenamiento-crudo.ts` y los dos módulos usan la misma instancia. Si `sesion-activa.ts` tuviera su copia, una escritura fallida por disco lleno degradaría un módulo y no el otro — y volveríamos al defecto de ADR-008 por otra puerta, que es exactamente el que este paso promete blindar.
+
+**§22 regla 4 sigue intacta:** «todo acceso a `localStorage` pasa por `lib/almacenamiento`». **Nadie fuera de `src/lib/` importa `almacenamiento-crudo.ts`**; los componentes siguen llamando a `almacenamiento.ts` o a `sesion-activa.ts`.
+
+**Efecto medido en el resto de rutas** (la partición de esquemas beneficia a todas las que tocan progreso):
+
+| Ruta | Antes | Después |
+|---|---|---|
+| `/modulos/[slug]` | 134.2 | **133.0** |
+| `/modulos/[slug]/tarjetas` | 136.7 | **135.6** |
+| `/repaso` | 144.5 | **143.7** |
+
+**Consecuencia para los pasos siguientes:** cualquier archivo nuevo de `src/lib/` que vaya a ser importado desde el layout raíz debe declarar qué arrastra. El canario de ADR-010 no cubre esto —vigila contenido, no dependencias—, así que la comprobación es la métrica de `/layout` js gz de `COMPONENTES.md`.
+
+---
+
+## ADR-022 · La regla de las 300 líneas se cuenta en código y la mide ESLint, no el ojo
+
+**Estado:** Aceptada
+**Fecha:** 2026-07-30 · **Autor:** software-architect
+
+**Contexto.** `CLAUDE.md` §21, «Reglas de código», punto 1: «Un componente por archivo, máximo 300 líneas.» En once pasos esa regla **no ha funcionado como compuerta ni una vez**. `controlador-sesion.tsx` (390 líneas) y `controlador-repaso.tsx` (594) se aprobaron en los pasos 9 y 10 sin que nadie la invocara. En el Paso 11 sí se invocó, y al revés: **ADR-020 justificó partir el controlador de simulacro diciendo que juntarlo todo «lo llevaría muy por encima de las 300 que fija la regla de código 1», y el resultado quedó en 402 líneas.** El `code-reviewer` lo levantó como M1 y lo derivó aquí porque implica enmendar una regla escrita.
+
+El diagnóstico del usuario es el correcto y conviene dejarlo textual: *«Una regla que nadie cumple ni aplica es peor que no tenerla, porque se invoca solo cuando conviene.»*
+
+**Lo que faltaba no era el número: era la unidad.** Tres mediciones honestas del mismo archivo, `mazo-tarjetas.tsx`, dieron tres resultados distintos:
+
+| Quien mide | `mazo-tarjetas.tsx` | `controlador-repaso.tsx` |
+|---|---|---|
+| `wc -l` (total) | 424 | 594 |
+| Conteo a mano del usuario (sin comentarios ni vacías) | 300 | 417 |
+| `sed`/`awk` de este ADR | 282 | 408 |
+| **ESLint `max-lines`** con `skipComments` + `skipBlankLines` | **294** | **414** |
+
+Una regla denominada en una unidad indefinida **no se puede cumplir ni aplicar; solo se puede invocar**. Ese es el mecanismo exacto de la queja, y por eso no basta con mover el número: hay que nombrar la herramienta que lo mide, o dentro de tres pasos el número nuevo estará en la misma situación que el viejo.
+
+**El proyecto cultiva la densidad de comentarios a propósito** —las cabeceras registran decisiones, alternativas descartadas y mediciones— así que contar líneas totales grava justo lo que el proyecto quiere fomentar. `src/lib/cronometro.ts` son 172 líneas totales y **73** de código: 58 % de comentario. Con `wc -l`, el archivo mejor documentado del repositorio es el que más se acerca al límite.
+
+**Decisión: el número sigue siendo 300 y la unidad pasa a ser líneas de código, tal como las cuenta ESLint `max-lines` con `skipComments: true` y `skipBlankLines: true`.**
+
+El número no se toca porque, **medido bien, ya era el correcto**. Esta es la distribución real del alcance de la regla:
+
+| Archivo | Código |
+|---|---|
+| `sesion/controlador-repaso.tsx` | **414** |
+| `modulo/mazo-tarjetas.tsx` | 294 |
+| `sesion/controlador-sesion.tsx` | 271 |
+| `sesion/controlador-simulacro.tsx` | 259 |
+| `sesion/repaso-vacio.tsx` | 227 |
+| `items/emparejar.tsx` | 214 |
+| `modulo/etapas-modulo.tsx` | 211 |
+| `app/modulos/[slug]/page.tsx` | 191 |
+| `sesion/simulacro-en-curso.tsx` | 172 |
+| `hooks/usar-sesion.ts` | 170 |
+
+**No hay nada entre 294 y 414.** El 300 cae en un hueco natural de la distribución: deja dentro los diez componentes que se aprobaron sin que nadie se quejara de su tamaño y deja fuera exactamente uno, que es el que el revisor lleva dos pasos nombrando. Inventar un 400 o un 450 habría sido ratificar el statu quo con un número de aspecto técnico.
+
+**Alcance, explícito.** La regla gobierna `src/components/**` (excepto `ui/`, que es código generado por el CLI de shadcn), `src/hooks/**` y `src/app/**`. Quedan fuera:
+
+- **`content/**`.** `content/banco/c5-umbrales-zonas.ts` son **594** líneas de código que son **datos**: 28 objetos de ítem con su explicación de ≥200 caracteres. Los otros 28 módulos van a copiar esa forma en los pasos 15–17. Cualquier regla de línea sobre `content/` nace muerta.
+- **`src/lib/**`.** `simulacro.ts` (306) y `almacenamiento.ts` (298) **están copiados literalmente del blueprint porque §22 regla 2 lo ordena**. Una regla que pone en incumplimiento código que otra regla manda copiar tal cual es incoherente. Además `src/lib/` ya tiene un criterio de partición mejor y medido: **ADR-021**, que parte por consumidor cuando el peso del bundle lo pide, en kB gz.
+- **Tests.** `src/lib/__tests__/simulacro.test.ts` son **925** líneas de código. Ahí el tamaño no es señal de diseño: es cobertura.
+
+**Alternativas descartadas:**
+
+- **Dejar la unidad en líneas totales (`wc -l`) y subir el número.** Es la opción cómoda: se mide con un comando y no hay ambigüedad. Se descarta porque **grava el comentario**, que es un rasgo cultivado del proyecto y no un defecto a controlar. Con líneas totales, la forma barata de cumplir la regla es borrar las cabeceras que explican por qué el código es como es — que es el peor incentivo que se le puede poner a este repositorio en particular.
+- **Subir el umbral a 400 o 450 en líneas de código.** Nada quedaría fuera: el mayor archivo del alcance mide 414 y el segundo 294. Una regla calibrada justo por encima del peor caso **no puede fallar nunca**, y una regla que no puede fallar es la que estamos retirando, con otro número. Además obliga a mover el número del blueprint sin evidencia que lo respalde.
+- **Retirar la regla.** Era la opción más defendible de las tres, y estuvo cerca. A su favor: en once pasos, **ninguna partición se decidió de verdad por tamaño**. Las dos que ocurrieron se decidieron por divergencia de responsabilidades (ADR-020) y por peso medido del bundle (ADR-021), que son criterios mejores y ya registrados; el conteo de líneas solo apareció como argumento de refuerzo, y mal citado. En contra, y es lo que decidió: **medida bien, la regla sí señala algo real.** El único archivo que deja fuera, `controlador-repaso.tsx`, no es un componente largo — es un archivo que hospeda tres responsabilidades con nombre propio (ver abajo). La regla acertó en el único sitio donde disparó. Retirarla habría sido tirar un indicador calibrado por culpa de una unidad mal escrita.
+- **Encender la compuerta de ESLint en este mismo cambio.** Con `max: 300` hoy, `npm run lint` queda **rojo** por `controlador-repaso.tsx`. Las dos salidas para evitarlo —subir el número hasta que nadie incumpla, o poner un `eslint-disable max-lines` en la cabecera del archivo— son precisamente las dos formas de recrear la enfermedad. La compuerta se enciende cuando el archivo baje de 300, y las dos cosas van juntas en la misma obligación del Paso 12.
+
+**Consecuencias:**
+
+**Un solo archivo queda en incumplimiento, y tiene nombre: `src/components/sesion/controlador-repaso.tsx`, 414 líneas de código contra un límite de 300.** No se acepta con una excusa: genera obligación en `PENDIENTES.md` para el **Paso 12**, junto con el encendido de la compuerta.
+
+Y el arreglo no es cortar por la línea 300. El archivo ya está partido por dentro, con nombres:
+
+| Símbolo | Qué es |
+|---|---|
+| `resolverElementos` | cargador: `import()` de los dos índices y resolución de la cola |
+| `ControladorRepaso` | contenedor: lee el estado, decide qué vista mostrar |
+| `SesionRepaso` (~250 líneas) | la vista de la sesión de repaso |
+| `Esqueleto`, `Tecla` | dos auxiliares de presentación |
+
+El conteo es el **síntoma** de una separación que ya existe; extraer `SesionRepaso` a su propio archivo lo deja holgadamente por debajo de 300 sin inventar una abstracción. Ese es el criterio general que hereda la regla: **superar el límite no se resuelve partiendo por tamaño, se resuelve extrayendo la responsabilidad que el archivo ya tiene con nombre aparte.**
+
+**La compuerta, cuando se encienda, es esta y no otra** (en `eslint.config.mjs`, sobre el alcance declarado arriba):
+
+```js
+'max-lines': ['error', { max: 300, skipComments: true, skipBlankLines: true }],
+```
+
+A partir de ahí la regla deja de depender de que un revisor se acuerde de invocarla: pasa o no pasa, y cualquier excepción tiene que ser un `eslint-disable` visible en la cabecera del archivo, con su razón, y localizable con un `grep`. **Mientras esa línea no exista, la regla sigue siendo de honor** — mejor que antes, porque ahora dos personas que midan obtienen el mismo número y solo hay un incumplidor conocido, pero de honor. Que nadie la dé por blindada hasta el Paso 12.
+
+**Queda una contradicción abierta en la misma regla 1, y no se toca aquí porque no fue lo que se autorizó.** La mitad «un componente por archivo» tampoco describe la práctica: los archivos del proyecto llevan **un componente exportado y varios auxiliares locales** —`controlador-sesion.tsx` define 5 y exporta 1, `mazo-tarjetas.tsx` define 4 y exporta 1—, y `repaso-vacio.tsx` **exporta 7**. O la regla quiere decir «un componente *exportado* por archivo» y hay que escribirlo así, o `repaso-vacio.tsx` incumple. Se registra en `PENDIENTES.md` como pregunta abierta al usuario, no se decide por iniciativa propia: es el mismo error que se está corrigiendo.
+
+**§21 del blueprint queda editado** (una línea, la 6350). Es la sexta vez que se toca `CLAUDE.md` y encaja en el criterio que fijaron las enmiendas de ADR-006 y ADR-007: **se corrige cuando su instrucción literal induce a error a un paso futuro y no deja rastro que apunte al ADR.** Es exactamente lo que pasó en el Paso 11, donde la regla se citó de buena fe en un sentido que su letra no soporta. Aquí hay además autorización explícita del usuario, que es quien pidió la decisión.
+
+### Enmienda a ADR-022 — 2026-07-31: la otra mitad de la regla 1, resuelta por el usuario
+
+ADR-022 fijó la unidad del **límite de líneas** y dejó abierta a propósito la otra mitad de la regla 1 —«un componente por archivo»—, que tampoco describía la práctica. La decisión la tomó el usuario, que es de quien depende cambiar una regla escrita:
+
+> **«Significa "un componente EXPORTADO por archivo". Escríbelo así, que es lo que la práctica ya hace y lo que tiene sentido: los auxiliares locales no son componentes públicos.»**
+
+`CLAUDE.md` §21 regla 1 queda editada con esa palabra. Es la lectura correcta y además la única que deja la regla en pie: los archivos de este proyecto definen un componente público y varios subcomponentes locales —`controlador-sesion.tsx` define 5 y exporta 1, `mazo-tarjetas.tsx` define 4 y exporta 1—, que es práctica sana de React. Con la redacción vieja, **cumplir la regla habría exigido partir cada uno de esos auxiliares en su propio archivo**, es decir, empeorar el código para satisfacer la letra.
+
+**Medido tras la edición, quedan DOS incumplidores, no uno.** El `software-architect` había nombrado solo `repaso-vacio.tsx`; el barrido completo del alcance encuentra otro:
+
+| Archivo | Componentes exportados | Cuáles |
+|---|---|---|
+| `sesion/repaso-vacio.tsx` | **6** | `AccionSiguiente`, `ColaSinEstrenar`, `NadaPendienteHoy`, `ColaSinContenido`, `RepasoSinRed`, `CierreRepaso` |
+| `items/opcion-unica.tsx` | **2** | `GrupoOpcionUnica`, `OpcionUnica` |
+
+(`siguienteSinDominar`, en `repaso-vacio.tsx`, es un helper y no un componente: no cuenta.)
+
+Los dos pasan a ser obligación del **Paso 12**, y van declarados en `PENDIENTES.md` en vez de resolverse por iniciativa propia — el usuario pidió expresamente anotarlos sin arreglarlos ahora. **No se prejuzga el arreglo**: `opcion-unica.tsx` exporta una pareja cohesiva que consumen varios tipos de ítem, así que puede que lo correcto sea partirlo o puede que merezca una excepción razonada. Esa es una decisión de diseño que el Paso 12 tomará mirando el código, no una que se pueda tomar contando exports.
+
+**La compuerta de ESLint sigue apagada, y el usuario lo ratificó** con el mismo argumento que dio el `software-architect`: *«subir el número o poner un eslint-disable serían las dos formas de recrear el problema que acabamos de cerrar.»* Se enciende en el Paso 12, cuando los tres incumplimientos —`controlador-repaso.tsx` por líneas, y estos dos por exports— estén resueltos. Nótese que `max-lines` cubre solo la primera mitad de la regla: **la de «un componente exportado» no tiene compuerta automática** y no se le inventa una, porque distinguir un componente de un helper exportado exige criterio, no una expresión regular.

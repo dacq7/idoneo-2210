@@ -820,3 +820,149 @@ describe('necesitaRespaldo', () => {
     expect(mod.necesitaRespaldo(intermitente, '2026-07-29', '2026-05-01')).toBe(false);
   });
 });
+
+/* ══════════════════════════════════════════════════════════════════
+   Sesión cronometrada — validación al leer (ADR-019)
+
+   §6 hacía `JSON.parse(crudo) as SesionCronometro` sin comprobar nada. El
+   cast es una promesa que nadie verificaba, y el precio no era un error
+   visible: era un simulacro cuyo cronómetro no terminaba nunca, porque
+   `restantes()` daba NaN y `NaN <= 0` es false.
+   ══════════════════════════════════════════════════════════════════ */
+
+describe('leerSesion — validación', () => {
+  it('devuelve la sesión cuando el payload es válido', async () => {
+    const guardada = sesion('abc', { 'C5-001': { valor: 3, segundos: 12, marcada: true } });
+    const { mod } = await cargar('ninguno', { [CLAVE_SESION]: JSON.stringify(guardada) });
+    expect(mod.leerSesion()).toEqual(guardada);
+  });
+
+  it('descarta —y limpia— un payload que no es una sesión', async () => {
+    const { mod, sonda } = await cargar('ninguno', { [CLAVE_SESION]: '{"foo":1}' });
+    expect(mod.leerSesion()).toBeNull();
+    expect(sonda.almacen.has(CLAVE_SESION)).toBe(false);
+  });
+
+  it('descarta una sesión SIN duracionSegundos, que es el caso que congelaba el cierre', async () => {
+    const incompleta: Partial<SesionCronometro> = { ...sesion('rota') };
+    delete incompleta.duracionSegundos;
+    const { mod } = await cargar('ninguno', { [CLAVE_SESION]: JSON.stringify(incompleta) });
+    expect(mod.leerSesion()).toBeNull();
+  });
+
+  it('descarta una sesión con duracionSegundos o iniciadoEnMs no finitos', async () => {
+    // `JSON.stringify(NaN)` produce `null`, así que este es el payload que de
+    // verdad llega al disco cuando algo va mal aguas arriba.
+    for (const roto of [
+      { ...sesion('a'), duracionSegundos: 'mucho' },
+      { ...sesion('b'), iniciadoEnMs: null },
+      { ...sesion('c'), duracionSegundos: -1 },
+    ]) {
+      const { mod } = await cargar('ninguno', { [CLAVE_SESION]: JSON.stringify(roto) });
+      expect(mod.leerSesion()).toBeNull();
+    }
+  });
+
+  it('descarta una sesión sin itemIds en vez de dejar que reviente al recorrerla', async () => {
+    const { mod } = await cargar('ninguno', { [CLAVE_SESION]: JSON.stringify({ ...sesion('x'), itemIds: [] }) });
+    expect(mod.leerSesion()).toBeNull();
+  });
+
+  it('acepta cualquier forma de `valor`: la califica el motor, no el esquema', async () => {
+    // Un ítem de emparejar responde con pares, uno de vf con un booleano y uno
+    // de única con 0. Validar esa tabla aquí duplicaría `calificar` y tiraría
+    // sesiones enteras por una respuesta rara en un solo ítem.
+    const rica = sesion('rica', {
+      'C5-001': { valor: [[0, 1], [1, 0]], segundos: 4, marcada: false },
+      'C5-002': { valor: false, segundos: 2, marcada: false },
+      'C5-003': { valor: 0, segundos: 1, marcada: false },
+    });
+    const { mod } = await cargar('ninguno', { [CLAVE_SESION]: JSON.stringify(rica) });
+    expect(mod.leerSesion()).toEqual(rica);
+  });
+
+  it('una sesión ilegible NO manda el progreso a cuarentena', async () => {
+    // La asimetría con ADR-008, y es deliberada: la sesión vive en su propia
+    // clave, así que descartarla no toca ni un intento, ni la racha, ni la cola
+    // de repaso. Lo que se pierde es un simulacro ya irreconstruible.
+    const { mod, sonda } = await cargar('ninguno', {
+      [CLAVE_SESION]: 'esto no es json',
+      [CLAVE_ESTADO]: JSON.stringify(estadoValido({ racha: { dias: 12, ultimoDiaActivo: '2026-07-29' } })),
+    });
+    expect(mod.leerSesion()).toBeNull();
+    expect(mod.obtenerSnapshot()?.racha.dias).toBe(12);
+    expect(sonda.almacen.has(CLAVE_ILEGIBLE)).toBe(false);
+  });
+
+  it('lo que guardarSesion escribe siempre se puede volver a leer', async () => {
+    // Cierra el círculo: si el esquema fuera más estricto que el escritor, el
+    // simulacro perdería la sesión en la primera recarga y nadie lo vería hasta
+    // que un usuario recargara a mitad de examen.
+    const { mod } = await cargar();
+    const original = sesion('ida-y-vuelta', { 'C5-001': { valor: 2, segundos: 9, marcada: true } });
+    mod.guardarSesion(original);
+    expect(mod.leerSesion()).toEqual(original);
+  });
+});
+
+describe('suscribirSesion y haySesionEnCurso', () => {
+  it('haySesionEnCurso refleja si hay sesión guardada', async () => {
+    const { mod } = await cargar();
+    expect(mod.haySesionEnCurso()).toBe(false);
+    mod.guardarSesion(sesion('a'));
+    expect(mod.haySesionEnCurso()).toBe(true);
+    mod.borrarSesion();
+    expect(mod.haySesionEnCurso()).toBe(false);
+  });
+
+  it('devuelve el MISMO booleano en lecturas seguidas', async () => {
+    // Requisito de useSyncExternalStore: un snapshot que cambia de identidad en
+    // cada lectura mete a React en un bucle infinito de renders. Por eso
+    // `haySesionEnCurso` devuelve un booleano y no la sesión parseada.
+    const { mod } = await cargar();
+    mod.guardarSesion(sesion('a'));
+    expect(mod.haySesionEnCurso()).toBe(mod.haySesionEnCurso());
+  });
+
+  it('el servidor siempre dice que no hay sesión', async () => {
+    const { mod } = await cargar();
+    expect(mod.haySesionEnCursoServidor()).toBe(false);
+  });
+
+  it('avisa a sus oyentes al guardar y al borrar', async () => {
+    const { mod } = await cargar();
+    const oyente = vi.fn();
+    const desuscribir = mod.suscribirSesion(oyente);
+
+    mod.guardarSesion(sesion('a'));
+    expect(oyente).toHaveBeenCalledTimes(1);
+    mod.borrarSesion();
+    expect(oyente).toHaveBeenCalledTimes(2);
+
+    desuscribir();
+    mod.guardarSesion(sesion('b'));
+    expect(oyente).toHaveBeenCalledTimes(2);
+  });
+
+  it('NO despierta a los oyentes del progreso', async () => {
+    // Los dos canales están separados a propósito: durante un simulacro la
+    // sesión se escribe una vez por respuesta, y si fueran uno solo cada
+    // respuesta re-renderizaría el resumen de la portada, la racha y las etapas
+    // sin que nada suyo haya cambiado.
+    const { mod } = await cargar();
+    const oyenteEstado = vi.fn();
+    mod.suscribir(oyenteEstado);
+    mod.guardarSesion(sesion('a'));
+    expect(oyenteEstado).not.toHaveBeenCalled();
+  });
+
+  it('reacciona al evento storage de otra pestaña', async () => {
+    const { mod, sonda } = await cargar();
+    const oyente = vi.fn();
+    mod.suscribirSesion(oyente);
+    sonda.disparar(CLAVE_SESION);
+    expect(oyente).toHaveBeenCalledTimes(1);
+    sonda.disparar(CLAVE_ESTADO);
+    expect(oyente).toHaveBeenCalledTimes(1);
+  });
+});

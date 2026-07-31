@@ -71,11 +71,12 @@ directiva. Verificado al cerrar el Paso 8: la lista real son **9 clientes** —l
   `<RotuloBloque bloque={…} />` encima de su `<h1>`. No es opcional y no es una
   tarea del Paso 7: aplica a toda ruta con bloque. Las rutas sin bloque no
   muestran nada, sin marcador de posición.
-- **El pie se oculta, no se desmonta,** durante un simulacro activo (Paso 11), y
-  **`Pie` sigue siendo Server Component**. El mecanismo que decía este archivo
-  —`hidden` sobre el `<Pie />` desde `Shell`— **es inviable**: `Shell` es servidor
-  y no puede leer `localStorage`. El contrato correcto es un envoltorio cliente
-  que reciba el pie como `children`:
+- **El pie se oculta, no se desmonta,** durante un simulacro activo. ✅
+  **CONSTRUIDO en el Paso 11** tal como se especificó aquí, y **`Pie` sigue
+  siendo Server Component**. El mecanismo que decía antes este archivo —`hidden`
+  sobre el `<Pie />` desde `Shell`— **era inviable**: `Shell` es servidor y no
+  puede leer `localStorage`. El contrato correcto es un envoltorio cliente que
+  recibe el pie como `children`:
 
   ```tsx
   // src/components/layout/oculta-en-simulacro.tsx  ·  'use client'  ·  Paso 11
@@ -93,8 +94,17 @@ directiva. Verificado al cerrar el Paso 8: la lista real son **9 clientes** —l
   es coste extra: el `DialogoReanudar` del Paso 11 responde la misma pregunta.
   **Descartado** mutar `document.body.dataset` desde un efecto y ocultar con CSS:
   exige limpieza al desmontar y se rompe en silencio si dos componentes compiten
-  por el atributo. **Y descartado** volver `Pie` cliente. El archivo aún no se
-  construye: es del Paso 11, y suma **una** alta a §10.3.
+  por el atributo. **Y descartado** volver `Pie` cliente. Suma **una** alta a
+  §10.3.
+
+  **Lo que el Paso 11 añadió al contrato, y no estaba previsto:** el envoltorio
+  importa `@/lib/sesion-activa`, **no** `@/lib/almacenamiento`. Vive en `Shell`,
+  o sea en el **layout raíz**, así que lo que importe lo descargan TODAS las
+  rutas: con el módulo grande, Zod y `esqEstadoProgreso` entraban en la primera
+  carga de la portada y `/layout` subía de 132.0 a **148.4 kB gz**. Con el módulo
+  pequeño, +0.5. Ver **ADR-021**. La lección es general: **antes de importar algo
+  desde un componente del layout raíz, mira qué arrastra** — el canario de
+  ADR-010 no lo detecta, porque vigila contenido y esto es una dependencia.
 - **Ningún Client Component importa `content/`.** Ni `estructura`,
   ni `glosario`, ni `datos-duros`, ni `blueprint-examen`, ni los índices de
   `banco/` y `tarjetas/`. Los datos entran **por prop desde un Server Component**,
@@ -1174,3 +1184,96 @@ note.
 - **El foco se funde con la lengüeta del destino activo** (A-04 de
   `ACCESIBILIDAD.md`): aceptado sin cambio de código, DISENO.md **§4.6**, con las
   tres condiciones que obligarían a reabrirlo.
+
+---
+
+## Simulacros (Paso 11)
+
+Contratos que un paso posterior necesita respetar. El razonamiento largo vive en
+las cabeceras de cada archivo y en ADR-019 a ADR-021.
+
+### La pantalla puede negarse a empezar
+
+`diagnosticarViabilidad(blueprint, censo)` responde **antes de cargar contenido**
+si el banco alcanza. Si no alcanza, `PortadaSimulacro` **no ofrece el botón**:
+dice qué falta con cifras y por qué no se arma uno más corto.
+
+No es una cortesía, es la diferencia entre un instrumento de medida y un número
+inventado: `armarSimulacro` rellena desde el pool cuando falta contenido, así que
+sin esta guarda un «final de 100 ítems» devolvería los 28 de C5 presentados como
+el examen completo. Los pasos 15–17 lo verán encenderse y apagarse solo.
+
+- El **censo** son tres campos por módulo (`slug`, `bloque`, `disponibles`) y lo
+  produce `src/lib/censo.ts` en el **servidor**. No es el banco: mandar el banco
+  por prop a esta ruta es justo lo que ADR-010 prohíbe.
+- `exacto: false` cuando el blueprint filtra por tipo o dificultad. Hoy no afecta
+  a nadie; el diagnóstico del Paso 13 será el primero, y ahí el veredicto sería
+  una **cota superior**. Está anotado en `PENDIENTES.md`.
+
+### El banco entra con `import()`, no por prop
+
+`/practica` y `/quiz` reciben su banco por prop porque conocen su slug. El
+simulacro **no**: carga con `import()` en el handler de «Empezar». Medido: el
+HTML de `/simulacros/final` no contiene ni una cadena del banco, frente a los
+17.1 kB gz de carga útil RSC que ya pesaba `/practica` con **un** módulo.
+
+### El cronómetro: dos canales, nunca uno
+
+**Regla dura: la cifra del cronómetro NO puede estar en una región `aria-live`.**
+Un lector de pantalla interrumpiría al usuario 120 veces por minuto durante dos
+horas, pisando la lectura del enunciado. El reparto correcto:
+
+| Canal | Marcado | Cuándo habla |
+|---|---|---|
+| La cifra | `role="timer"` + `aria-live="off"` | nunca sola; el usuario la consulta |
+| Los avisos | `role="status"` con `aria-label="Avisos del tiempo"` | 3 veces por sesión (20, 10 y 2 min) |
+
+El `aria-label` del `timer` va en **minutos**, no en `MM:SS`: algunos lectores
+releen el nombre accesible al recibir el foco, y con segundos dentro esa relectura
+sería distinta cada vez. El nombre lleva `aria-label` porque la pantalla tiene
+**otra** región `role="status"` —el «Ítem 3 de 100»— y sin nombre son
+indistinguibles al navegar por regiones.
+
+### Persistencia: tras cada respuesta, no cada N segundos
+
+`SesionCronometro` se reescribe en cada cambio, desde un **efecto** (no desde el
+handler: el estado de `useSesion` es asíncrono y el handler guardaría el valor
+anterior al clic). El motivo de no usar un guardado periódico es ADR-008: la
+sonda de 1 byte de `hayLocalStorage()` pasa con el disco casi lleno, y un
+guardado a intervalos encima de eso habría hecho la pérdida de respuestas
+intermitente e irreproducible.
+
+El tiempo restante **nunca** sale de un contador en memoria: se recalcula desde
+`iniciadoEnMs` contra el reloj real en cada tick, y también al volver de segundo
+plano (`visibilitychange` y `focus`, porque los timers se congelan en móvil).
+
+### Reanudar: reconstrucción fiel o nada
+
+`itemIds` guarda el orden exacto y `semilla` reproduce el barajado de opciones —
+no se vuelve a muestrear, porque el banco cambia entre los pasos 15 y 17. Si
+**algún** ítem guardado ya no existe en el banco publicado, `DialogoReanudar` no
+ofrece continuar: antes que calificar una tanda distinta de la que el usuario
+respondió, se dice la verdad y se descarta.
+
+`DialogoReanudar` **no es un modal** aunque §11.5 lo llame «diálogo»: es un panel
+en el flujo. Un modal exigiría trampa de foco y un destino para `Escape`, y aquí
+no hay opción neutra — las dos salidas son irreversibles.
+
+### El panel de navegación y la válvula `data-compacto` (D-8)
+
+Es el único consumidor de D-8 junto con los `TabsTrigger`, y la pantalla para la
+que se aprobó en el Paso 5. Celdas de **36 px** con `gap-2`, o sea **44 px de
+objetivo efectivo** contando la mitad del hueco a cada lado — que es el criterio
+con el que D-8 se aprobó y lo que satisface el espaciado de objetivo de 2.5.8.
+
+Las dos condiciones que lo legitiman, y que un paso futuro no puede erosionar:
+
+1. **El panel es un atajo, no la única vía.** «Anterior» y «Siguiente» miden 44 px
+   y llegan a cualquier ítem.
+2. **Los tres estados se distinguen sin color**: vacío · relleno · relleno con
+   punto, además del `aria-label` («Ítem 7, marcada para revisar»). El recuento
+   va en texto encima de la cuadrícula.
+
+Con 100 ítems a 44 px la cuadrícula ocuparía ~900 px a 375 px de ancho: dos
+pantallas y media solo para el índice, que es justo lo que el panel existe para
+evitar.
