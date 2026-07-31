@@ -1141,3 +1141,24 @@ A partir de ahí la regla deja de depender de que un revisor se acuerde de invoc
 **Queda una contradicción abierta en la misma regla 1, y no se toca aquí porque no fue lo que se autorizó.** La mitad «un componente por archivo» tampoco describe la práctica: los archivos del proyecto llevan **un componente exportado y varios auxiliares locales** —`controlador-sesion.tsx` define 5 y exporta 1, `mazo-tarjetas.tsx` define 4 y exporta 1—, y `repaso-vacio.tsx` **exporta 7**. O la regla quiere decir «un componente *exportado* por archivo» y hay que escribirlo así, o `repaso-vacio.tsx` incumple. Se registra en `PENDIENTES.md` como pregunta abierta al usuario, no se decide por iniciativa propia: es el mismo error que se está corrigiendo.
 
 **§21 del blueprint queda editado** (una línea, la 6350). Es la sexta vez que se toca `CLAUDE.md` y encaja en el criterio que fijaron las enmiendas de ADR-006 y ADR-007: **se corrige cuando su instrucción literal induce a error a un paso futuro y no deja rastro que apunte al ADR.** Es exactamente lo que pasó en el Paso 11, donde la regla se citó de buena fe en un sentido que su letra no soporta. Aquí hay además autorización explícita del usuario, que es quien pidió la decisión.
+
+### Enmienda a ADR-022 — 2026-07-31: la otra mitad de la regla 1, resuelta por el usuario
+
+ADR-022 fijó la unidad del **límite de líneas** y dejó abierta a propósito la otra mitad de la regla 1 —«un componente por archivo»—, que tampoco describía la práctica. La decisión la tomó el usuario, que es de quien depende cambiar una regla escrita:
+
+> **«Significa "un componente EXPORTADO por archivo". Escríbelo así, que es lo que la práctica ya hace y lo que tiene sentido: los auxiliares locales no son componentes públicos.»**
+
+`CLAUDE.md` §21 regla 1 queda editada con esa palabra. Es la lectura correcta y además la única que deja la regla en pie: los archivos de este proyecto definen un componente público y varios subcomponentes locales —`controlador-sesion.tsx` define 5 y exporta 1, `mazo-tarjetas.tsx` define 4 y exporta 1—, que es práctica sana de React. Con la redacción vieja, **cumplir la regla habría exigido partir cada uno de esos auxiliares en su propio archivo**, es decir, empeorar el código para satisfacer la letra.
+
+**Medido tras la edición, quedan DOS incumplidores, no uno.** El `software-architect` había nombrado solo `repaso-vacio.tsx`; el barrido completo del alcance encuentra otro:
+
+| Archivo | Componentes exportados | Cuáles |
+|---|---|---|
+| `sesion/repaso-vacio.tsx` | **6** | `AccionSiguiente`, `ColaSinEstrenar`, `NadaPendienteHoy`, `ColaSinContenido`, `RepasoSinRed`, `CierreRepaso` |
+| `items/opcion-unica.tsx` | **2** | `GrupoOpcionUnica`, `OpcionUnica` |
+
+(`siguienteSinDominar`, en `repaso-vacio.tsx`, es un helper y no un componente: no cuenta.)
+
+Los dos pasan a ser obligación del **Paso 12**, y van declarados en `PENDIENTES.md` en vez de resolverse por iniciativa propia — el usuario pidió expresamente anotarlos sin arreglarlos ahora. **No se prejuzga el arreglo**: `opcion-unica.tsx` exporta una pareja cohesiva que consumen varios tipos de ítem, así que puede que lo correcto sea partirlo o puede que merezca una excepción razonada. Esa es una decisión de diseño que el Paso 12 tomará mirando el código, no una que se pueda tomar contando exports.
+
+**La compuerta de ESLint sigue apagada, y el usuario lo ratificó** con el mismo argumento que dio el `software-architect`: *«subir el número o poner un eslint-disable serían las dos formas de recrear el problema que acabamos de cerrar.»* Se enciende en el Paso 12, cuando los tres incumplimientos —`controlador-repaso.tsx` por líneas, y estos dos por exports— estén resueltos. Nótese que `max-lines` cubre solo la primera mitad de la regla: **la de «un componente exportado» no tiene compuerta automática** y no se le inventa una, porque distinguir un componente de un helper exportado exige criterio, no una expresión regular.

@@ -83,7 +83,18 @@ Se cerraron las siete obligaciones que este paso heredaba. Resumen de qué pasó
 - **Riesgo con crash reproducido** (ADR-008): `esqIntento.desglose.porBloque` es `z.record(esqConteo)`, así que un intento **sin** los bloques B/C/D pasa Zod, pero el cast afirma `Record<BloqueId, …>` con las cuatro claves. `construirInforme` de §7.5 hace `porBloque[b.id].total` y revienta con `Cannot read properties of undefined`. Vía de entrada real: `importarJSON` acepta ese respaldo como válido en /ajustes.
   Arreglo: endurecer `desglose` en `src/lib/esquemas.ts` para exigir las 4 claves de bloque y las 3 de nivel. Toca un archivo del Paso 2, así que se decide aquí.
 
-- **Bajar `src/components/sesion/controlador-repaso.tsx` de 300 líneas de código y encender la compuerta. Las dos cosas, en este orden y en este paso** (ADR-022). Hoy mide **414** y es el **único** archivo del proyecto que incumple la regla 1 con su unidad ya fijada.
+- **Bajar `src/components/sesion/controlador-repaso.tsx` de 300 líneas de código y encender la compuerta. Las dos cosas, en este orden y en este paso** (ADR-022). Hoy mide **414** y es el único archivo que incumple la **primera** mitad de la regla 1.
+
+- **Y resolver los dos incumplimientos de la SEGUNDA mitad de la regla 1** —«un componente **exportado** por archivo», redacción fijada por el usuario el 2026-07-31, ver la enmienda a ADR-022—. Medido tras esa edición:
+
+  | Archivo | Exportados | Cuáles |
+  |---|---|---|
+  | `src/components/sesion/repaso-vacio.tsx` | **6** | `AccionSiguiente`, `ColaSinEstrenar`, `NadaPendienteHoy`, `ColaSinContenido`, `RepasoSinRed`, `CierreRepaso` |
+  | `src/components/items/opcion-unica.tsx` | **2** | `GrupoOpcionUnica`, `OpcionUnica` |
+
+  **El arreglo no está prejuzgado.** `opcion-unica.tsx` exporta una pareja cohesiva que consumen varios tipos de ítem: puede que toque partirlo, o puede que merezca una excepción razonada y registrada. Se decide mirando el código, no contando exports. Lo que **no** vale es dejarlo sin decidir: la regla ya está escrita en su forma correcta y estos dos archivos la incumplen hoy.
+
+  Ojo con lo que la compuerta cubre: `max-lines` vigila **solo la primera mitad**. La de «un componente exportado» no tiene comprobación automática y **no se le inventa una** — distinguir un componente de un helper exportado exige criterio, no una expresión regular.
   El arreglo no es cortar por la línea 300: el archivo ya está separado por dentro y con nombres — `resolverElementos` (cargador), `ControladorRepaso` (contenedor), **`SesionRepaso` (~250 líneas, la vista de la sesión)** y dos auxiliares. Extraer `SesionRepaso` a su propio archivo lo deja holgadamente dentro sin inventar ninguna abstracción.
   Hecho eso, se añade a `eslint.config.mjs`, sobre el alcance declarado en ADR-022:
   ```js
@@ -140,7 +151,4 @@ Se cerraron las siete obligaciones que este paso heredaba. Resumen de qué pasó
 
 - ~~**`CLAUDE.md` sostiene entero el sistema de erratas que ADR-014 eliminó.**~~ **Editado el 2026-07-30** (enmienda a ADR-014): once secciones limpias, 366 líneas fuera. §1 **sustituye** el diferenciador en vez de borrarlo. Y **§21 y §22 ganan una regla 15** que dice por qué el documento está limpio, para que una copia vieja no reintroduzca el sistema en silencio.
 
-- **Pregunta abierta al usuario — la otra mitad de la regla 1 tampoco describe la práctica.** ADR-022 fijó «máximo 300 líneas» pero **no tocó «un componente por archivo»**, porque no fue lo que se autorizó. Y esa mitad también está desalineada: los archivos del proyecto llevan **un componente exportado y varios auxiliares locales** (`controlador-sesion.tsx` define 5 y exporta 1; `mazo-tarjetas.tsx` define 4 y exporta 1), lo cual es práctica sana de React, pero **`repaso-vacio.tsx` exporta 7**. O la regla quiere decir «un componente **exportado** por archivo» y hay que escribirlo así, o `repaso-vacio.tsx` incumple y hay que partirlo. No se decidió por iniciativa propia: decidir sin autorización una regla escrita es el mismo error que ADR-022 corrige.
-- **ADR-008 pendiente de ratificación** por el `software-architect`: añade una tercera clave de `localStorage` donde §6 dice "dos claves, deliberadamente separadas", más API pública nueva. El `code-reviewer` no lo bloqueó — corrige que §6 destruyera el progreso y restaura un invariante en vez de romperlo.
-- Dos verrugas cosméticas del validador que se dejaron a propósito: el resumen cuenta `items` **antes** de validar mientras las cuotas juzgan solo los válidos (la cabecera puede decir 27 y la cuota 25), y `conteoPorModulo` conserva ese mismo conteo. Inofensivas; revisar solo si estorban en los pasos 15–17.
-- Los guards de versión de `intentarMigrar` son **redundantes hoy** (`esqEstadoProgreso.version` es `z.literal(1)` y Zod ya rechaza ambos casos). Con la v2 del esquema pasan a ser portantes y necesitarán test propio.
+- ~~**Pregunta abierta al usuario — la otra mitad de la regla 1 tampoco describe la práctica.**~~ **Resuelta el 2026-07-31 por el usuario:** la regla dice «un componente **exportado** por archivo», porque los auxiliares locales no son componentes públicos. `CLAUDE.md` §21 regla 1 editada; ver la enmienda a ADR-022. Deja **dos** incumplidores, que suben como obligación del Paso 12 (arriba).

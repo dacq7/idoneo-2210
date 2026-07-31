@@ -2038,3 +2038,15 @@ Suite final **537**. Los tres mutantes de los arreglos (foco al entrar, `inicioC
 
 - **Paso 12 — `controlador-repaso.tsx` (414) es el único incumplidor y no se acepta con excusa.** Se extrae `SesionRepaso` (~250 líneas, ya separada por nombre dentro del archivo) y **acto seguido se enciende `max-lines` en `eslint.config.mjs`**. No se encendió ahora porque con 414 dejaría el lint rojo, y las dos salidas para evitarlo son las dos formas de recrear la enfermedad. **Hasta esa línea, la regla sigue siendo de honor.**
 - **Sin paso asignado — pregunta abierta al usuario:** la otra mitad de la regla 1, «un componente por archivo», tampoco describe la práctica (`repaso-vacio.tsx` exporta 7). No se decidió sin autorización.
+
+### Cierre de la regla 1 — 2026-07-31
+
+El usuario resolvió la mitad que ADR-022 había dejado abierta: **«un componente EXPORTADO por archivo»**, porque los auxiliares locales no son componentes públicos. `CLAUDE.md` §21 regla 1 editada con esa palabra.
+
+Es la lectura que hace la regla cierta *y* la única que la deja en pie: con la redacción vieja, cumplirla habría exigido partir en archivos sueltos los subcomponentes locales de `controlador-sesion.tsx` (define 5, exporta 1) y `mazo-tarjetas.tsx` (define 4, exporta 1) — empeorar el código para satisfacer la letra.
+
+**El barrido tras la edición encontró DOS incumplidores, no uno.** El `software-architect` había nombrado solo `repaso-vacio.tsx` (6 exportados); falta `items/opcion-unica.tsx` (2: `GrupoOpcionUnica` y `OpcionUnica`). Los dos suben a `PENDIENTES.md` como obligación del Paso 12, **sin prejuzgar el arreglo**: la pareja de `opcion-unica.tsx` es cohesiva y la consumen varios tipos de ítem, así que puede tocar partirla o puede merecer una excepción registrada. Eso se decide mirando el código.
+
+La compuerta de ESLint sigue apagada y el usuario lo ratificó con el argumento del arquitecto: subir el número o poner un `eslint-disable` serían las dos formas de recrear el problema recién cerrado. Se enciende en el Paso 12 con los tres incumplimientos resueltos. Y `max-lines` cubre **solo la primera mitad** de la regla: a la de «un componente exportado» no se le inventa una comprobación automática, porque distinguir un componente de un helper exportado exige criterio.
+
+**Paso 11 aprobado por el usuario.** Los dos aplazamientos quedan ratificados: persistir el `IntentoSimulacro` exige `informe.ts` del Paso 12, y `SimulacroSinRed` va al 18.10 junto a `error.tsx`.
