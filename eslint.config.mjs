@@ -18,6 +18,11 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
+      // [Paso 18.1] Artefactos de Serwist: los escribe `next build` en public/,
+      // están en .gitignore y son bundles minificados. Lintarlos daba 85 avisos
+      // y un error por código que nadie escribió ni puede arreglar.
+      "public/sw.js",
+      "public/swe-worker-*.js",
     ],
   },
   {

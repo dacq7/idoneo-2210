@@ -35,15 +35,16 @@
 // fija que las dos barras nunca llevan contenido distinto.
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
 import { useEstado } from '@/hooks/usar-estado';
 import { leerSesion, tocarRacha } from '@/lib/almacenamiento';
-import { fechaLocalDe, sumarDias } from '@/lib/fechas';
+import { diasEntre, fechaLocalDe, sumarDias } from '@/lib/fechas';
 import { generarPlan, type BloqueDelPlan, type ModuloDelPlan } from '@/lib/plan';
 import { restantes } from '@/lib/cronometro';
 import { colaDelDia } from '@/lib/srs';
 import type { SesionCronometro } from '@/lib/tipos';
+import { AvisoInstalar } from '@/components/pwa/aviso-instalar';
+import { ConsultaRapida } from './consulta-rapida';
+import { EnlaceDestino } from './enlace-destino';
 import { Racha } from './racha';
 import { ResumenInicio, type DatosResumen } from './resumen-inicio';
 import { TarjetaContinuar, type AccionPrincipal } from './tarjeta-continuar';
@@ -56,9 +57,14 @@ export interface ModuloDeInicio extends ModuloDelPlan {
 interface Props {
   modulos: readonly ModuloDeInicio[];
   bloques: readonly BloqueDelPlan[];
+  /** Cuentas del catálogo para la sección de consulta rápida. Llegan por prop
+   *  —dos números, no dos listas— porque esta ruta es cliente y no puede
+   *  importar `content/` (ADR-010), y escribirlas a mano las deja caducar. */
+  totalGlosario: number;
+  totalDatosDuros: number;
 }
 
-export function PanelInicio({ modulos, bloques }: Props) {
+export function PanelInicio({ modulos, bloques, totalGlosario, totalDatosDuros }: Props) {
   const estado = useEstado();
   const [hoy, setHoy] = useState<string | null>(null);
   // El instante del montaje. `elegirAccion` lo necesita para saber si la sesión
@@ -97,6 +103,13 @@ export function PanelInicio({ modulos, bloques }: Props) {
   const pendientesHoy = useMemo(
     () => (hoy === null ? 0 : colaDelDia(estado?.colaRepaso ?? {}, hoy).length),
     [estado, hoy],
+  );
+
+  // Días que faltan para el examen, o null si no hay fecha puesta. Solo se usa
+  // para elegir el texto de «Última noche»: no decide nada más.
+  const diasHastaExamen = useMemo(
+    () => (hoy === null || !estado?.fechaExamen ? null : diasEntre(hoy, estado.fechaExamen)),
+    [hoy, estado?.fechaExamen],
   );
 
   const accion = useMemo<AccionPrincipal | null>(() => {
@@ -149,6 +162,12 @@ export function PanelInicio({ modulos, bloques }: Props) {
 
       <TarjetaContinuar accion={accion} />
 
+      {/* [18.1] El aviso de instalación vive aquí y no en `Shell`: montarlo en
+          el armazón lo pondría en las 20 rutas y devolvería `almacenamiento.ts`
+          al grafo del layout raíz, que es el coste de 16 kB gz que ADR-021
+          quitó. Se muestra solo desde el tercer día de racha. */}
+      <AvisoInstalar diasDeRacha={estado?.racha.dias ?? 0} />
+
       <ResumenInicio datos={resumen} />
 
       {/* Los dos destinos que no caben en la barra (A-01). Van juntos y con
@@ -187,6 +206,14 @@ export function PanelInicio({ modulos, bloques }: Props) {
           ) : null}
         </ul>
       </section>
+
+      {/* [18.2–18.4] Las tres rutas nuevas del Paso 18. Entran por aquí y no
+          por la barra, que sigue teniendo cinco destinos (§11.5 · A-01). */}
+      <ConsultaRapida
+        diasHastaExamen={diasHastaExamen}
+        totalGlosario={totalGlosario}
+        totalDatosDuros={totalDatosDuros}
+      />
     </div>
   );
 }
@@ -365,39 +392,6 @@ function elegirAccion(ctx: {
     accion: 'Ver la cola de repaso',
     clase: 'vacio',
   };
-}
-
-function EnlaceDestino({
-  href,
-  titulo,
-  detalle,
-}: {
-  href: string;
-  titulo: string;
-  detalle: string;
-}) {
-  return (
-    // [A-41 · 1.4.3] `group` + `group-hover` en el detalle. El `hover:text-foreground`
-    // del enlace no llegaba a este `<span>`, que declara su propio
-    // `text-muted-foreground` y gana sobre el color heredado: sobre `--accent`
-    // en tema oscuro el par mide **4,44:1** y se queda corto de AA.
-    //
-    // Es el mismo fallo que `nav-inferior.tsx` ya documentó y esquivó; allí
-    // bastaba con subir el color del enlace porque no había hijo con color
-    // propio.
-    <Link
-      href={href}
-      className="group flex min-h-11 items-center gap-3 px-3 py-3 transition-colors duration-150 ease-out hover:bg-accent hover:text-foreground"
-    >
-      <span className="min-w-0 grow space-y-0.5">
-        <span className="block font-medium">{titulo}</span>
-        <span className="block text-[0.8125rem] text-muted-foreground group-hover:text-foreground">
-          {detalle}
-        </span>
-      </span>
-      <ArrowRight className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-    </Link>
-  );
 }
 
 function Esqueleto() {

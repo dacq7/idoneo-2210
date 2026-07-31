@@ -16,6 +16,8 @@
 
 import type { Metadata } from 'next';
 import { BLOQUES, MODULOS } from '@/content/estructura';
+import { GLOSARIO } from '@/content/glosario';
+import { DATOS_DUROS } from '@/content/datos-duros';
 import { PanelInicio } from '@/components/inicio/panel-inicio';
 
 export const metadata: Metadata = {
@@ -28,6 +30,17 @@ export const metadata: Metadata = {
       'Estudio dirigido y simulacros cronometrados para la Evaluación de Idoneidad del Entrenador Deportivo (Ley 2210 de 2022).',
     locale: 'es_CO',
     type: 'website',
+    // [18.7] La imagen es lo que se ve al pegar el enlace en WhatsApp, que es
+    // literalmente cómo se comparte esta app (§1: «compartir la app es mandar
+    // un link»). La genera `scripts/generar-iconos.py`.
+    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'Idóneo 2210' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Idóneo 2210',
+    description:
+      'Estudio dirigido y simulacros cronometrados para la Evaluación de Idoneidad del Entrenador Deportivo.',
+    images: ['/og.png'],
   },
 };
 
@@ -56,6 +69,8 @@ export default function Inicio() {
           publicado: m.estadoContenido === 'completo',
         }))}
         bloques={BLOQUES.map((b) => ({ id: b.id, pesoExamen: b.pesoExamen }))}
+        totalGlosario={GLOSARIO.length}
+        totalDatosDuros={DATOS_DUROS.length}
       />
     </div>
   );

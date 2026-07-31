@@ -26,6 +26,17 @@ export const CLAVE_ESTADO = 'idoneo2210:estado';
 export const CLAVE_SESION = 'idoneo2210:sesion';
 /** [ADR-008] Tercera clave: el payload que no se pudo leer, apartado. */
 export const CLAVE_ILEGIBLE = 'idoneo2210:estado-ilegible';
+/**
+ * [Paso 18.1] Cuarta clave: si el usuario ya cerró el aviso de instalación.
+ *
+ * Vive fuera de `EstadoProgreso` a propósito. Es una preferencia de ESTE
+ * navegador —el usuario puede haber instalado la app en el móvil y no en el
+ * portátil— y meterla en el estado la haría viajar en el respaldo JSON, con lo
+ * que importar un respaldo del móvil escondería el aviso en el escritorio. Y
+ * además obligaría a subir `version` y a escribir una migración por un
+ * booleano.
+ */
+export const CLAVE_INSTALAR = 'idoneo2210:aviso-instalar';
 
 /* ─── Acceso crudo con degradación elegante ───────────────────────── */
 

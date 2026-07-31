@@ -759,16 +759,13 @@ describe('otros mutadores', () => {
   });
 });
 
-describe('necesitaRespaldo', () => {
-  it('es false sin intentos, aunque la racha ya pasara de 7', async () => {
-    // Con racha 30 la segunda rama daría true: así el test prueba el corte
-    // temprano por falta de intentos, y no pasa por la razón equivocada.
+describe('necesitaRespaldo — [ADR-030] el hueco del uso intermitente, cerrado', () => {
+  it('es false sin intentos, aunque haga meses del último respaldo', async () => {
+    // Corte temprano: sin intentos no hay progreso que perder. Se le da una
+    // fecha de creación antiquísima para que el test no pase por casualidad.
     const { mod } = await cargar();
-    const sinIntentos = estadoValido({
-      intentos: [],
-      racha: { dias: 30, ultimoDiaActivo: '2026-07-29' },
-    });
-    expect(mod.necesitaRespaldo(sinIntentos, '2026-07-29', '2026-07-22')).toBe(false);
+    const sinIntentos = estadoValido({ intentos: [], creadoEn: '2026-01-01T10:00:00.000Z' });
+    expect(mod.necesitaRespaldo(sinIntentos, '2026-07-22')).toBe(false);
   });
 
   it('la frontera de ultimoRespaldo es inclusiva', async () => {
@@ -776,48 +773,64 @@ describe('necesitaRespaldo', () => {
     const con = (ultimoRespaldo: string) =>
       estadoValido({
         intentos: [{}] as never,
-        racha: { dias: 3, ultimoDiaActivo: '2026-07-29' },
         preferencias: { tema: 'oscuro', sonido: false, ultimoRespaldo },
       });
-    // ultimoRespaldo === ayerHace7 → sí pide respaldo (comparación <=).
-    expect(mod.necesitaRespaldo(con('2026-07-22'), '2026-07-29', '2026-07-22')).toBe(true);
+    // ultimoRespaldo === hace7 → sí pide respaldo (comparación <=).
+    expect(mod.necesitaRespaldo(con('2026-07-22'), '2026-07-22')).toBe(true);
     // Un día después del corte → todavía no.
-    expect(mod.necesitaRespaldo(con('2026-07-23'), '2026-07-29', '2026-07-22')).toBe(false);
+    expect(mod.necesitaRespaldo(con('2026-07-23'), '2026-07-22')).toBe(false);
   });
 
-  it('sin respaldo previo, pide respaldo a los 7 días de racha', async () => {
-    const { mod } = await cargar();
-    const con = (dias: number) =>
-      estadoValido({ racha: { dias, ultimoDiaActivo: '2026-07-29' }, intentos: [{}] as never });
-    expect(mod.necesitaRespaldo(con(6), '2026-07-29', '2026-07-22')).toBe(false);
-    expect(mod.necesitaRespaldo(con(7), '2026-07-29', '2026-07-22')).toBe(true);
-  });
-
-  it('con respaldo viejo lo pide, pero solo si hoy hubo actividad', async () => {
-    const { mod } = await cargar();
-    const con = (ultimoRespaldo: string, ultimoDiaActivo: string) =>
-      estadoValido({
-        intentos: [{}] as never,
-        racha: { dias: 3, ultimoDiaActivo },
-        preferencias: { tema: 'oscuro', sonido: false, ultimoRespaldo },
-      });
-    expect(mod.necesitaRespaldo(con('2026-07-01', '2026-07-29'), '2026-07-29', '2026-07-22')).toBe(true);
-    expect(mod.necesitaRespaldo(con('2026-07-01', '2026-07-20'), '2026-07-29', '2026-07-22')).toBe(false);
-    expect(mod.necesitaRespaldo(con('2026-07-28', '2026-07-29'), '2026-07-29', '2026-07-22')).toBe(false);
-  });
-
-  it('DOCUMENTA UN HUECO: el uso intermitente nunca dispara el recordatorio', async () => {
-    // §18.5 dice "cada 7 días de uso", pero la rama sin `ultimoRespaldo` mira
-    // `racha.dias`, que son días CONSECUTIVOS y se reinicia a 1 al saltarse uno.
-    // Un entrenador que estudia 3 noches por semana durante dos meses nunca ve
-    // el recordatorio. Se copia §6 tal cual (el blueprint gana) y se deja el
-    // hueco visible para decidirlo en el Paso 18.5, que es donde está la UI.
+  it('EL HUECO CERRADO: el uso intermitente ya dispara el recordatorio', async () => {
+    // Este es el caso que la versión de §6 no veía nunca. La racha vale 3
+    // porque el usuario estudia tres noches por semana y se le rompe cada vez;
+    // lo que decide ahora es hace cuánto empezó, no cuántos días seguidos lleva.
     const { mod } = await cargar();
     const intermitente = estadoValido({
       racha: { dias: 3, ultimoDiaActivo: '2026-07-29' },
       intentos: [{}] as never,
+      creadoEn: '2026-05-01T10:00:00.000Z',
     });
-    expect(mod.necesitaRespaldo(intermitente, '2026-07-29', '2026-05-01')).toBe(false);
+    expect(mod.necesitaRespaldo(intermitente, '2026-07-22')).toBe(true);
+  });
+
+  it('sin respaldo previo, el reloj corre desde creadoEn y no desde la racha', async () => {
+    const { mod } = await cargar();
+    const creadoEl = (fecha: string) =>
+      estadoValido({
+        intentos: [{}] as never,
+        // Racha alta a propósito: si la función siguiera mirándola, el primer
+        // caso daría true y el test fallaría.
+        racha: { dias: 30, ultimoDiaActivo: '2026-07-29' },
+        creadoEn: `${fecha}T10:00:00.000Z`,
+      });
+    // Empezó hace 6 días: todavía no.
+    expect(mod.necesitaRespaldo(creadoEl('2026-07-23'), '2026-07-22')).toBe(false);
+    // Empezó hace 7 días justos: ahora sí.
+    expect(mod.necesitaRespaldo(creadoEl('2026-07-22'), '2026-07-22')).toBe(true);
+  });
+
+  it('ya no depende de que hoy haya habido actividad', async () => {
+    // La condición `racha.ultimoDiaActivo === hoy` de §6 dejaba el aviso
+    // invisible justo al entrar a /ajustes desde el pie sin pasar por la
+    // portada, que es la que escribe la racha.
+    const { mod } = await cargar();
+    const inactivoHoy = estadoValido({
+      intentos: [{}] as never,
+      racha: { dias: 1, ultimoDiaActivo: '2026-07-01' },
+      preferencias: { tema: 'oscuro', sonido: false, ultimoRespaldo: '2026-07-01' },
+    });
+    expect(mod.necesitaRespaldo(inactivoHoy, '2026-07-22')).toBe(true);
+  });
+
+  it('un respaldo reciente calla el aviso aunque la cuenta sea vieja', async () => {
+    const { mod } = await cargar();
+    const alDia = estadoValido({
+      intentos: [{}] as never,
+      creadoEn: '2026-01-01T10:00:00.000Z',
+      preferencias: { tema: 'oscuro', sonido: false, ultimoRespaldo: '2026-07-28' },
+    });
+    expect(mod.necesitaRespaldo(alDia, '2026-07-22')).toBe(false);
   });
 });
 

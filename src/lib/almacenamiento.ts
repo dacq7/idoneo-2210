@@ -20,10 +20,13 @@ import {
   borrarCrudo,
   CLAVE_ESTADO,
   CLAVE_ILEGIBLE,
+  CLAVE_INSTALAR,
   CLAVE_SESION,
   escribirCrudo,
+  hayLocalStorage,
   leerCrudo,
 } from './almacenamiento-crudo';
+import { soloFecha } from './fechas';
 import { notificarSesion } from './sesion-activa';
 import type {
   EstadoModulo,
@@ -437,9 +440,62 @@ export function importarJSON(texto: string): ResultadoImportacion {
   return { ok: true, estado: validado.data as EstadoProgreso };
 }
 
-/** Recordatorio de respaldo cada 7 días de uso. */
-export function necesitaRespaldo(estado: EstadoProgreso, hoy: string, ayerHace7: string): boolean {
+/**
+ * Recordatorio de respaldo cada 7 días de uso.
+ *
+ * ══ [ADR-030] LA VERSIÓN DE §6 TENÍA UN HUECO Y AQUÍ SE CIERRA ══
+ * El blueprint miraba `racha.dias` cuando no había respaldo previo, y la racha
+ * son días **consecutivos**: se reinicia a 1 en cuanto se salta uno. Un
+ * entrenador que estudia tres noches por semana durante dos meses nunca llegaba
+ * a 7 y **nunca veía el recordatorio**, que es justo el usuario que la app
+ * describe en §1. El Paso 10 lo dejó documentado con un test y lo mandó aquí,
+ * que es donde hay UI y contexto para decidirlo.
+ *
+ * La regla nueva es una sola y no depende de la constancia: **si hay progreso
+ * que perder y hace 7 días o más del último respaldo —o del día en que empezaste,
+ * si nunca hiciste uno— se avisa.**
+ *
+ * También cae la condición `racha.ultimoDiaActivo === hoy` de la segunda rama.
+ * Existía para avisar solo en días de uso, y era contraproducente: la racha la
+ * escribe la portada, así que entrar directo a /ajustes desde el pie dejaba el
+ * aviso invisible el mismo día en que el usuario estaba mirando la pantalla del
+ * respaldo. Quien lee /ajustes está usando la app, por definición.
+ *
+ * `hoy` desaparece de la firma porque ya no se usa: dejarlo sería mentir sobre
+ * lo que la función necesita.
+ */
+export function necesitaRespaldo(estado: EstadoProgreso, hace7: string): boolean {
+  // Sin intentos no hay nada que perder que no se recupere en cinco minutos.
   if (estado.intentos.length === 0) return false;
-  if (!estado.preferencias.ultimoRespaldo) return estado.racha.dias >= 7;
-  return estado.preferencias.ultimoRespaldo <= ayerHace7 && estado.racha.ultimoDiaActivo === hoy;
+  const referencia = estado.preferencias.ultimoRespaldo ?? soloFecha(estado.creadoEn);
+  return referencia <= hace7;
+}
+
+/* ─── [Paso 18.1] Aviso de instalación de la PWA ──────────────────── */
+
+/** true si el usuario ya cerró el aviso en ESTE navegador. Sin efectos. */
+export function avisoInstalarDescartado(): boolean {
+  return leerCrudo(CLAVE_INSTALAR) === '1';
+}
+
+export function descartarAvisoInstalar(): void {
+  escribirCrudo(CLAVE_INSTALAR, '1');
+}
+
+/* ─── [Paso 18.5] Salud del almacenamiento ────────────────────────── */
+
+/**
+ * true si `localStorage` NO está disponible y todo vive en el respaldo en
+ * memoria: modo incógnito de Safari, disco lleno, permisos bloqueados.
+ *
+ * En ese estado la app funciona pero **el progreso no sobrevive a un recargue**,
+ * y el usuario no tiene forma de saberlo si nadie se lo dice. `/ajustes` lo dice.
+ *
+ * NO es libre de efectos la primera vez que se llama: `hayLocalStorage()`
+ * escribe y borra una sonda de 1 byte para averiguarlo. Llamarla desde un
+ * efecto, nunca en render.
+ */
+export function almacenamientoDegradado(): boolean {
+  if (typeof window === 'undefined') return false;
+  return !hayLocalStorage();
 }

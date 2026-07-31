@@ -13,6 +13,8 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { BLOQUES, MODULOS } from '@/content/estructura';
+import { GLOSARIO } from '@/content/glosario';
+import { DATOS_DUROS } from '@/content/datos-duros';
 import {
   crearEstadoInicial,
   guardarEstado,
@@ -91,7 +93,12 @@ function sesionCronometro(tipo: SesionCronometro['tipo'], ambito: string): Sesio
 }
 
 function montar() {
-  return render(<PanelInicio modulos={MODULOS_PROPS} bloques={BLOQUES_PROPS} />);
+  return render(<PanelInicio
+      modulos={MODULOS_PROPS}
+      bloques={BLOQUES_PROPS}
+      totalGlosario={GLOSARIO.length}
+      totalDatosDuros={DATOS_DUROS.length}
+    />);
 }
 
 beforeEach(() => {
@@ -242,7 +249,12 @@ describe('PanelInicio — el resto de la pantalla', () => {
     // `tocarRacha` la pone a 1 al montar, así que el caso de 0 solo existe
     // antes del efecto. Lo que se comprueba es que el componente no pinta un
     // «0 días seguidos», que sería un reproche.
-    const { container } = render(<PanelInicio modulos={[]} bloques={BLOQUES_PROPS} />);
+    const { container } = render(<PanelInicio
+        modulos={[]}
+        bloques={BLOQUES_PROPS}
+        totalGlosario={GLOSARIO.length}
+        totalDatosDuros={DATOS_DUROS.length}
+      />);
     expect(container.textContent).not.toContain('0 días seguidos');
   });
 
@@ -256,6 +268,8 @@ describe('PanelInicio — el resto de la pantalla', () => {
       <PanelInicio
         modulos={MODULOS_PROPS.map((m) => ({ ...m, publicado: false }))}
         bloques={BLOQUES_PROPS}
+      totalGlosario={123}
+      totalDatosDuros={70}
       />,
     );
     await waitFor(() =>

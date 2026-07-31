@@ -491,3 +491,51 @@ Arreglado con un escalón nuevo en segunda posición, que distingue «hoy» de �
 | Paso | Fecha | typecheck | test | validar | build | Veredicto | Deuda abierta |
 |---|---|---|---|---|---|---|---|
 | 15 | 2026-07-31 | ✅ | ✅ 676 | ✅ 0 err | ❌ | RECHAZADO | 🔴 `max-lines` en `panel-inicio.test.tsx` (306/300) rompe lint y build — regresión, `main` pasa limpio · 🟡 sesgo de longitud: la correcta es la opción más larga en 80/128 (62 %) frente al 25 % de azar; deuda heredada de C5 (76 %), no introducida aquí |
+
+---
+
+## Paso 18 — Salida (PWA · glosario · herramientas · última noche · ajustes · SEO · README) — 2026-07-31
+
+| Paso | Fecha | typecheck | test | validar | build | Veredicto | Deuda abierta |
+|---|---|---|---|---|---|---|---|
+| 18 | 2026-07-31 | ✅ | ✅ 724 | ✅ 0 err · 0 avisos | ✅ | APROBADO CON CAMBIOS | 🔴 `new Date()` en cuerpo de render (`respaldo.tsx:79`) · 🔴 el código cita **ADR-030**, que no existe, para amparar un cambio de firma y comportamiento en código copiado de §6 · 🟡 `/layout` js gz 133.6 → **135.3 kB** (+1.7 en las 20 rutas, Serwist) sin registrar en `COMPONENTES.md`, que es lo que ADR-021 obliga a declarar |
+
+Compuertas corridas por código de salida, todas 0: `validar` (29 módulos, 752 ítems, 435 tarjetas,
+123 términos, sin avisos) · `typecheck` · `lint` · `test` (23 archivos, 724 pruebas) · `build` ·
+`canario` (41 chunks de carga ansiosa, 2 sondas, frontera intacta).
+
+**Invariantes verificados con comando, no de memoria.** `Math.random()`: 4 hits, los 4 en
+comentarios que explican por qué no se usa. `localStorage` fuera del wrapper: 0 (todos los hits
+son prosa). Reloj en `src/lib/`: solo `new Date(iso)` en `fechas.ts` e `informe.ts`, determinista.
+`tailwind.config.*`: no existe · `@tailwind ` en `globals.css`: 0 · `components.json` con
+`"config": ""`. ADR-022: los 31 archivos del alcance por debajo de 300 líneas de código (el mayor,
+`panel-inicio.tsx`, 266) y **un solo componente exportado en cada uno**.
+
+**La frontera de ADR-010/ADR-021 aguanta.** `/glosario` y `/ultima-noche` importan `content/` en la
+**página servidor**, proyectan a un subconjunto serializable y lo pasan por prop; ningún Client
+Component nuevo importa `content/`. El canario lo confirma. `/glosario` documenta además que los
+~40 kB del glosario **sí** viajan al cliente y por qué: filtrar en servidor sería una petición por
+tecla en una app que debe funcionar sin red.
+
+**Medición del armazón, con dos builds reales** (worktree de `main` + rama, mismo comando de
+`COMPONENTES.md`):
+
+| | `/layout` js gz | chunks |
+|---|---|---|
+| `main` | 133.6 kB | 8 |
+| `paso-18-salida` | **135.3 kB** | **9** |
+
+Causa identificada y legítima: el registro del service worker de Serwist
+(`grep -rl serwist .next/static/chunks/` lo encuentra en `2804-*.js`, chunk del layout, y en
+`main-*.js`). No es fuga de contenido. Es el precio de la PWA y hay que escribirlo, que es
+exactamente la consecuencia que ADR-021 dejó por escrito.
+
+**Lo que confirmó bien.** El flujo de importar respaldo **no tiene ningún camino que escriba antes
+de confirmar**: `elegirArchivo` valida con Zod y solo llena `pendiente`; la única escritura,
+`guardarEstado`, vive detrás del botón del paso 3. La cuarentena de ADR-008 cumple las tres
+obligaciones de `PENDIENTES.md` —avisar con el motivo traducido (`version-futura` → «viene de una
+versión más nueva», no «corrupto»), descargar y descartar con confirmación— y `leerIlegible()` se
+llama desde el efecto de montaje, no en render. Y **las diez fórmulas de `calculos.ts` cuadran con
+el banco**: cinco de FCmáx, reserva, Karvonen, gasto cardíaco, pulso→lpm, MET, densidad, IMC e ICC,
+contrastadas contra `datos-duros.ts` (DD-021…028, DD-030, DD-090) y `banco/c2-cardiovascular.ts`.
+Cero discrepancias.
