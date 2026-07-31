@@ -19,7 +19,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { useEstado } from '@/hooks/usar-estado';
-import { calcularVeredicto } from '@/lib/informe';
+import { calcularVeredicto, NOTA_VEREDICTO } from '@/lib/informe';
 import { formatearDuracion } from '@/lib/fechas';
 import { UMBRAL_DOMINIO } from '@/lib/almacenamiento';
 import type { IntentoSimulacro } from '@/lib/tipos';
@@ -140,6 +140,14 @@ export function PanelProgreso({ modulos }: { modulos: readonly ModuloDelProgreso
           <>
             <p className="text-muted-foreground">
               Del más reciente al más antiguo. Se conservan los 30 últimos.
+            </p>
+            {/* La nota va también AQUÍ, y no solo en el informe. §22 regla 11
+                dice que se muestra **siempre**, y esta pantalla está en la barra
+                de navegación: se llega sin pasar por ningún informe y se leen
+                hasta 30 filas seguidas diciendo «Sólido» o «Listo». Basta una
+                vez por página; repetirla por fila sería ruido. */}
+            <p className="text-[0.8125rem] leading-[1.45] text-muted-foreground">
+              {NOTA_VEREDICTO}
             </p>
             <ul className="space-y-2">
               {intentos.map((intento) => {

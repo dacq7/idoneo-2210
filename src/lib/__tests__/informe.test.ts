@@ -8,6 +8,7 @@ import {
   calcularVeredicto,
   compararConAnterior,
   construirInforme,
+  construirIntento,
   detectarPatrones,
   intentoAnteriorComparable,
   MIN_ITEMS_TEMA_PRIORITARIO,
@@ -488,5 +489,102 @@ describe('esqIntento — desglose completo (ADR-023)', () => {
       },
     };
     expect(esqIntento.safeParse(conModulos).success).toBe(true);
+  });
+});
+
+/* ══════════════════════════════════════════════════════════════════
+   construirIntento — lo que se PERSISTE
+
+   Su radio de daño es el estado entero: si lo que produce dejara de
+   satisfacer `esqIntento`, `esqEstadoProgreso` rechaza el estado completo
+   y se va a cuarentena (ADR-008 + ADR-023). El usuario perdería de vista
+   módulos, cola de repaso e historial — no un intento.
+   ══════════════════════════════════════════════════════════════════ */
+
+describe('construirIntento', () => {
+  const INICIO = 1_785_182_400_000;
+  const items = ITEMS.slice(0, 4);
+
+  const sesion = {
+    intentoId: String(INICIO),
+    tipo: 'final' as const,
+    ambito: 'global',
+    semilla: INICIO,
+    iniciadoEnMs: INICIO,
+    itemIds: items.map((it) => it.id),
+  };
+
+  const detalle = items.map((it, i) => ({
+    item: it,
+    valor: i,
+    correcta: i < 3,
+    segundos: 12,
+    marcada: false,
+  }));
+
+  it('produce un intento que PASA `esqIntento`', () => {
+    const intento = construirIntento(sesion, detalle, items.length, INICIO + 7_200_000);
+    expect(esqIntento.safeParse(intento).success).toBe(true);
+  });
+
+  it('sobrevive al viaje completo por JSON, que es como se guarda', () => {
+    // `localStorage` guarda texto: si algo no serializara —un `undefined`, un
+    // `NaN`— el intento volvería distinto y el estado iría a cuarentena.
+    const intento = construirIntento(sesion, detalle, items.length, INICIO + 7_200_000);
+    const ida = JSON.parse(JSON.stringify(intento));
+    expect(esqIntento.safeParse(ida).success).toBe(true);
+    expect(ida).toEqual(intento);
+  });
+
+  it('el id es la semilla en string, que es lo que direcciona /resultados', () => {
+    const intento = construirIntento(sesion, detalle, items.length, INICIO + 1000);
+    expect(intento.id).toBe(String(intento.semilla));
+  });
+
+  it('segundosUsados es tiempo REAL de reloj, no la suma por ítem', () => {
+    // La suma por ítem daría 48 s; el examen duró dos horas. En un cronometrado
+    // lo que cuenta es cuánto duró, incluidas las pausas.
+    const intento = construirIntento(sesion, detalle, items.length, INICIO + 7_200_000);
+    expect(intento.segundosUsados).toBe(7200);
+  });
+
+  it('no da segundos negativos si el reloj se movió hacia atrás', () => {
+    const intento = construirIntento(sesion, detalle, items.length, INICIO - 10_000);
+    expect(intento.segundosUsados).toBe(0);
+  });
+
+  it('el puntaje sale sobre el total presentado, no sobre lo respondido', () => {
+    const intento = construirIntento(sesion, detalle, 8, INICIO + 1000);
+    expect(intento.puntaje).toBe(38); // 3 de 8
+  });
+
+  it('el desglose que arma trae las 4 claves de bloque y las 3 de nivel', () => {
+    const intento = construirIntento(sesion, detalle, items.length, INICIO + 1000);
+    expect(Object.keys(intento.desglose.porBloque).sort()).toEqual(['A', 'B', 'C', 'D']);
+    expect(Object.keys(intento.desglose.porNivel).sort()).toEqual([
+      'aplicacion',
+      'comprension',
+      'recuerdo',
+    ]);
+  });
+
+  it('conserva itemIds sin aliasar el array de la sesión', () => {
+    // Si compartieran referencia, mutar la sesión mutaría un intento ya cerrado.
+    const intento = construirIntento(sesion, detalle, items.length, INICIO + 1000);
+    expect(intento.itemIds).toEqual(sesion.itemIds);
+    expect(intento.itemIds).not.toBe(sesion.itemIds);
+  });
+
+  it('un intento sin ninguna respuesta correcta sigue siendo válido', () => {
+    const enBlanco = items.map((it) => ({
+      item: it,
+      valor: null,
+      correcta: false,
+      segundos: 0,
+      marcada: false,
+    }));
+    const intento = construirIntento(sesion, enBlanco, items.length, INICIO + 100);
+    expect(intento.puntaje).toBe(0);
+    expect(esqIntento.safeParse(intento).success).toBe(true);
   });
 });

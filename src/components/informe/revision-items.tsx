@@ -12,6 +12,25 @@
 // barajado**, así que sin reproducir el barajado exacto señalaríamos otra
 // opción. Para eso el intento guarda su semilla (§2.2).
 //
+// ══ Y CUANDO NO SE PUEDE REPRODUCIR, NO SE FINGE ══
+// `presentarTanda` avanza **un solo rng ítem a ítem**, y cada tipo consume un
+// número distinto de llamadas (`unica` 3, `multiple` 4, `vf` y `calculo` 0…).
+// Si un ítem del intento ya no está publicado, no se puede saltar su consumo
+// —haría falta su tipo, que es justo lo que falta— y **todo lo que venía
+// después del hueco se baraja distinto**.
+//
+// Medido por el `code-reviewer` sobre C5: quitando un ítem de seis, 2 de los 5
+// restantes señalaban una opción que no era la que el usuario marcó, y el check
+// verde caía en una tercera. La pantalla se contradecía sola: «la acertaste»
+// —que viene del booleano guardado y sí es fiable— junto a un resaltado en la
+// opción equivocada.
+//
+// Así que en esa rama se **degrada a propósito**: las opciones se muestran en su
+// orden canónico, **no se marca cuál eligió el usuario** —ese índice ya no
+// significa nada— y se dice en pantalla. Lo que sí se conserva es todo lo que
+// sigue siendo verdad: si la acertó o no, la explicación y la referencia. Es
+// preferible a una revisión que enseña un error que el usuario no cometió.
+//
 // ══ POR QUÉ `<details>` Y NO UN ACORDEÓN DE LIBRERÍA ══
 // Cien ítems desplegados son una página inmanejable, así que van plegados. Se
 // usa `<details>`/`<summary>` nativo: es accesible por defecto —estado,
@@ -43,7 +62,11 @@ type Estado =
   | { fase: 'cargando' }
   | { fase: 'listo'; items: Item[] }
   | { fase: 'error' }
-  /** El contenido cambió y ya no están todos: se dice, no se disimula. */
+  /**
+   * El contenido cambió y ya no están todos. Los ítems van SIN barajar y sin
+   * señalar la respuesta elegida: el barajado no es reproducible con un hueco
+   * en medio. Ver la cabecera.
+   */
   | { fase: 'incompleto'; items: Item[]; faltan: number };
 
 export function RevisionItems({ itemIds, respuestas, semilla, slugs }: Props) {
@@ -59,12 +82,20 @@ export function RevisionItems({ itemIds, respuestas, semilla, slugs }: Props) {
         if (!vivo) return;
         const porId = new Map(tandas.flat().map((it) => [it.id, it]));
         const encontrados = itemIds.map((id) => porId.get(id)).filter((it) => it !== undefined);
-        // El barajado se reproduce sobre lo que HAY, en el orden guardado.
-        const items = presentarTanda(encontrados, semilla);
+        const completo = encontrados.length === itemIds.length;
         setEstado(
-          encontrados.length === itemIds.length
-            ? { fase: 'listo', items }
-            : { fase: 'incompleto', items, faltan: itemIds.length - encontrados.length },
+          completo
+            ? // Solo aquí el barajado es fiel: la tanda está entera y el rng
+              // avanza exactamente como avanzó en el examen.
+              { fase: 'listo', items: presentarTanda(encontrados, semilla) }
+            : // Con un hueco, `presentarTanda` produciría un orden DISTINTO del
+              // que vio el usuario para todo lo que venía después. Se dejan
+              // canónicos y se avisa.
+              {
+                fase: 'incompleto',
+                items: encontrados,
+                faltan: itemIds.length - encontrados.length,
+              },
         );
       } catch {
         if (vivo) setEstado({ fase: 'error' });
@@ -98,6 +129,8 @@ export function RevisionItems({ itemIds, respuestas, semilla, slugs }: Props) {
   }
 
   const porId = new Map(respuestas.map((r) => [r.itemId, r]));
+  /** `true` si la pantalla reproduce fielmente lo que vio el usuario. */
+  const fiel = estado.fase === 'listo';
   const visibles = soloFallados
     ? estado.items.filter((it) => porId.get(it.id)?.correcta !== true)
     : estado.items;
@@ -110,9 +143,14 @@ export function RevisionItems({ itemIds, respuestas, semilla, slugs }: Props) {
       {estado.fase === 'incompleto' ? (
         <p className="rounded-md border-l-4 border-aviso bg-aviso/10 p-3 text-[0.8125rem] leading-[1.45]">
           {estado.faltan === 1
-            ? 'Una pregunta de este intento ya no está publicada y no se puede mostrar.'
-            : `${estado.faltan} preguntas de este intento ya no están publicadas y no se pueden mostrar.`}{' '}
-          El resultado no cambia: se calculó cuando respondiste.
+            ? 'Una pregunta de este intento ya no está publicada.'
+            : `${estado.faltan} preguntas de este intento ya no están publicadas.`}{' '}
+          Por eso las demás se muestran con sus opciones en el orden original y{' '}
+          <strong className="font-semibold">no se señala cuál marcaste</strong>: sin la pregunta
+          que falta no se puede reconstruir el orden en que las viste, y señalar una opción al
+          azar sería peor que no señalar ninguna. Si acertaste o no, la explicación y la
+          referencia siguen siendo exactas — el resultado se calculó cuando respondiste y no
+          cambia.
         </p>
       ) : null}
 
@@ -194,7 +232,11 @@ export function RevisionItems({ itemIds, respuestas, semilla, slugs }: Props) {
                 <div className="space-y-4 border-t border-border p-3 sm:p-4">
                   <EnvoltorioItem
                     item={item}
-                    valor={respuesta?.respuesta ?? null}
+                    // Con la tanda incompleta el índice guardado ya no apunta a
+                    // la opción que el usuario marcó: se pasa `null` en vez de
+                    // señalar la equivocada. La correcta sí se marca — esa sale
+                    // del ítem, no del barajado.
+                    valor={fiel ? (respuesta?.respuesta ?? null) : null}
                     modo={correcta ? 'revision-correcta' : 'revision-incorrecta'}
                     onCambio={() => {
                       /* revisión: el ítem ya no admite respuesta */
@@ -202,7 +244,11 @@ export function RevisionItems({ itemIds, respuestas, semilla, slugs }: Props) {
                     numero={numero}
                     total={estado.items.length}
                   />
-                  <Retroalimentacion item={item} correcta={correcta} respondida={!enBlanco} />
+                  <Retroalimentacion
+                    item={item}
+                    correcta={correcta}
+                    respondida={fiel ? !enBlanco : false}
+                  />
                 </div>
               </details>
             </li>

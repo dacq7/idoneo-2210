@@ -332,6 +332,55 @@ export function construirInforme(
   };
 }
 
+/**
+ * Arma el `IntentoSimulacro` que se persiste al cerrar una sesión cronometrada.
+ *
+ * Vive aquí y no en el controlador por dos razones, y la segunda es la que
+ * importa: es una función pura y **su radio de daño es el estado entero**. Si
+ * lo que produce dejara de satisfacer `esqIntento`, `esqEstadoProgreso` rechaza
+ * el estado completo y se va a cuarentena (ADR-008) — el usuario perdería de
+ * vista módulos, cola de repaso e historial, no un intento. El endurecimiento
+ * de ADR-023 sube el precio de equivocarse aquí, así que esto necesita test
+ * propio, y desde el controlador no lo tenía.
+ *
+ * `segundosUsados` es el tiempo REAL de reloj, no la suma de segundos por ítem:
+ * en un examen cronometrado lo que cuenta es cuánto duró, incluidas las pausas
+ * y el rato con la pestaña cerrada. La suma por ítem sigue guardada en cada
+ * respuesta, que es donde sirve para la revisión.
+ */
+export function construirIntento(
+  sesion: Pick<
+    IntentoSimulacro,
+    'tipo' | 'ambito' | 'semilla'
+  > & { intentoId: string; iniciadoEnMs: number; itemIds: readonly string[] },
+  detalle: readonly { item: Item; valor: unknown; correcta: boolean; segundos: number; marcada: boolean }[],
+  total: number,
+  terminadoEnMs: number,
+): IntentoSimulacro {
+  const respuestas: RespuestaItem[] = detalle.map((d) => ({
+    itemId: d.item.id,
+    respuesta: d.valor,
+    correcta: d.correcta,
+    segundos: d.segundos,
+    marcada: d.marcada,
+  }));
+
+  return {
+    id: sesion.intentoId,
+    tipo: sesion.tipo,
+    ambito: sesion.ambito,
+    semilla: sesion.semilla,
+    iniciadoEn: new Date(sesion.iniciadoEnMs).toISOString(),
+    terminadoEn: new Date(terminadoEnMs).toISOString(),
+    segundosUsados: Math.max(0, Math.round((terminadoEnMs - sesion.iniciadoEnMs) / 1000)),
+    totalItems: total,
+    itemIds: [...sesion.itemIds],
+    respuestas,
+    puntaje: calcularPuntaje(respuestas, total),
+    desglose: calcularDesglose(detalle.map((d) => d.item), respuestas),
+  };
+}
+
 /** Último intento del mismo tipo y ámbito, excluyendo el actual. */
 export function intentoAnteriorComparable(
   intentos: readonly IntentoSimulacro[],

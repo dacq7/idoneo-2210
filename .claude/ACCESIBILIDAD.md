@@ -36,6 +36,7 @@ Solo existen dos rutas en este paso. Las demás llegan en pasos posteriores.
 | `/modulos/[slug]/practica` — 8 ítems, retroalimentación inmediata | ✅ | ✅ A-25 · A-26 · A-27 **arreglados** | ✅ | ✅ | ✅ A-24 **arreglado** | ✅ 188 px sin desbordamiento | **APROBADA** — axe 0 violaciones en los 4 cruces; queda A-28, Menor y no bloqueante | 2026-07-30 |
 | `/modulos/[slug]/quiz` — 10 ítems, retroalimentación al final | ✅ | ✅ (mismos componentes que práctica) | ✅ | ✅ | ✅ | ✅ | **APROBADA** — comparte controlador, envoltorio y los 7 tipos con práctica; la única diferencia es `feedbackInmediato` | 2026-07-30 |
 | Resumen de tanda (`resumen-sesion.tsx`) | ✅ | ✅ A-27 **arreglado** | ✅ | ✅ | ✅ A-24 **arreglado** | ✅ | **APROBADA con salvedad** — A-28 abierto | 2026-07-30 |
+| `/resultados/[intentoId]` — **solo** el dominio por bloque (`barras-dominio` · `grafica-dominio` · `tabla-dominio`) | ⚠️ ver A-37 | ✅ la gráfica no llega al árbol y la tabla lo expone todo | ✅ | ✅ | ⚠️ ver A-37 | n/e | **PARCIAL** — 1 Serio (A-37) · 1 Moderado (A-38). Contraste **todo AA en los dos temas**; ADR-024 **confirmado** | 2026-07-31 |
 
 Reverificación del 2026-07-30, con los cuatro arreglos aplicados:
 **axe-core 4.x — 0 violaciones y 0 incompletas en los dos temas**, en `/` y en el
@@ -2632,3 +2633,256 @@ Dos cosas que costaron tiempo y conviene no repetir:
    `outline-color`: leer antes da `oklab(… / 0.5)` —2,26:1— y parece un fallo de
    1.4.11 que no existe. Con 320 ms de espera el valor asentado es `--ring` al
    100 %. El auditor lo cazó como falso positivo suyo y lo dejó escrito.
+
+---
+
+## Paso 12 — auditoría acotada al dominio por bloque (2026-07-31)
+
+Alcance pedido por el usuario: **solo las gráficas de recharts** y lo que sea
+inseparable de ellas. El resto del informe (veredicto, patrones, temas
+prioritarios, dominio por módulo, revisión ítem por ítem) **no se auditó**.
+
+**Cómo se provocó la pantalla.** El informe vive en `localStorage` y hoy el banco
+solo tiene C5, así que con datos reales solo habría **una** barra. Se sembró un
+estado sintético con `page.addInitScript` (antes de que la app lea nada) con
+**dos** intentos `final`/`global`, elegidos para que los cuatro casos de la
+columna «Cambio» salgan a la vez en una sola pantalla:
+
+| Bloque | actual | anterior | delta que produce |
+|---|---|---|---|
+| A | 5/10 = 50 % | 2/10 = 20 % | `+30` verde |
+| B | 1/10 = 10 % | 5/10 = 50 % | `-40` rojo |
+| C | 8/10 = 80 % | 8/10 = 80 % | `0` gris |
+| D | 6/10 = 60 % | **0/0** | `—` gris (no comparable) |
+
+El estado pasa `esqEstadoProgreso` entero —incluidas las cuatro claves de bloque
+y las tres de nivel que **ADR-023** exige—, así que entra por la misma puerta que
+un respaldo importado y no por un atajo.
+
+**Sobre build de producción** (`npm run build` + `next start`), nunca en `dev`,
+por la razón que ya está en «Método»: recargar sobre el `import()` del banco
+revienta. El primer build falló con `ENOENT pages-manifest.json` por un `.next`
+viciado; se resolvió con `rm -rf .next`. Ruta medida: **145 kB gz**, que confirma
+la cifra de ADR-024.
+
+Cruces: claro × oscuro × 375 px × 1280 px, más `prefers-reduced-motion: reduce` y
+una corrida con el chunk de recharts **bloqueado a voluntad** (`page.route` con
+una promesa que se suelta a mano) para medir el antes y el después de la carga
+diferida. Toda lectura de color espera **1400 ms**, por encima de los 320 ms de
+`transition-colors` (lección del Paso 11).
+
+### Corrección de método: `getComputedStyle` devuelve `oklch()`, no `rgb()`
+
+La primera corrida dio ratios absurdos (1.03:1 en todo) porque el parser leía
+`oklch(0.535 0.115 72)` como si fuera `rgb(0.535, 0.115, 72)`. **Chromium
+devuelve el color en el espacio en que se declaró.** La corrida buena resuelve
+cada color rasterizándolo en un `<canvas>` de 1×1 y leyendo el píxel con
+`getImageData`, que devuelve RGBA real y de paso resuelve el alfa.
+
+Segundo fallo de la misma corrida: `document.querySelector('table')` cogía la
+tabla de **nivel cognitivo** de `PatronesInforme`, que va antes en el DOM. Todo
+lo de abajo está acotado con `section[aria-labelledby="titulo-bloques"]`.
+
+### Lo que quedó verificado y no genera hallazgo
+
+**ADR-024 se sostiene. El `aria-hidden` sobre el SVG es correcto.** Árbol de
+accesibilidad real de la sección: entre el `<p>` introductorio y la `table` **no
+hay nada** — ni `img`, ni `graphics-document`, ni texto suelto. El SVG contiene
+`"A B C D 50% 10% 80% 60%"` y ninguna de esas cadenas llega al lector. Cero
+enfocables dentro del SVG (`svgFoc = 0`), así que el `aria-hidden` tampoco crea
+el enfocable-oculto que sería un fallo de 4.1.2.
+
+**Ningún dato vive solo en la gráfica.** La tabla es un superconjunto estricto:
+
+| | gráfica | tabla |
+|---|---|---|
+| letra del bloque | sí (eje Y) | sí, **y el nombre escrito** |
+| porcentaje | sí | sí |
+| aciertos / total | **no** | sí (`5/10`) |
+| delta | **no** | sí, con `—` para «no comparable» |
+
+La columna «Cambio» se expone entera al lector: las celdas dan `+30`, `-40`, `0`
+y `—`. El `caption` la menciona solo cuando existe (`hayDelta`), y el `<p>` de
+arriba explica el guion largo antes de que aparezca. Eso está bien resuelto.
+
+**Contraste — todo AA en los dos temas.** La gráfica **no va sobre `--card`**: el
+primer ancestro con fondo opaco es el `<body>` (`#fbfcfd` claro, `#0c1117`
+oscuro). Medido sobre la superficie que realmente toca:
+
+| Elemento | claro | oscuro | umbral |
+|---|---|---|---|
+| barra A `--chart-1` | 5.15:1 | 8.70:1 | 3.0 (1.4.11) |
+| barra B `--chart-2` | 5.74:1 | 7.27:1 | 3.0 |
+| barra C `--chart-3` | **4.84:1** peor caso | 8.02:1 | 3.0 |
+| barra D `--chart-4` | 5.04:1 | 7.57:1 | 3.0 |
+| etiqueta de valor (`fill-foreground`, 12 px mono) | 17.03:1 | 15.22:1 | 4.5 |
+| tick del eje Y (`muted-foreground`, 12 px) | 5.49:1 | 6.18:1 | 4.5 |
+| letra de bloque en la tabla (14 px/600) | 4.84:1 (C) | 8.02:1 (C) | 4.5 |
+| `+30` `text-exito` | 5.03:1 | 6.95:1 | 4.5 |
+| `-40` `text-destructive` | 5.16:1 | 5.62:1 | 4.5 |
+| `0` y `—` `text-muted-foreground` | 5.49:1 | 6.18:1 | 4.5 |
+
+La etiqueta de valor se dibuja en `x + width + 6`, es decir **fuera** de la
+barra, sobre el fondo de página — nunca encima del color de bloque. Por eso da
+17:1 y no depende del bloque. Los cuatro tokens de bloque no se tocaron en este
+paso y siguen con los valores que §3.2 de `DISENO.md` fijó.
+
+*Proyección, por si alguien mueve la gráfica dentro de una tarjeta:* sobre
+`--card` los cuatro bloques dan 4.97–5.89:1 en claro y 6.65–7.96:1 en oscuro.
+Sigue pasando con holgura; el peor caso en oscuro baja de 8.02 a 7.33. No hay
+riesgo, pero conviene remedirlo si el envoltorio cambia.
+
+**Distinguir bloques sin color: basta.** La gráfica lleva la letra en el eje Y
+(5.49:1 / 6.18:1) y la tabla lleva letra **y nombre escrito**. `DISENO.md` §1.2
+se cumple en los dos sitios por separado, y además el color de la gráfica es
+irrelevante para el lector porque la gráfica no se anuncia. Los cuatro matices no
+necesitan ser distinguibles entre sí para que la información llegue.
+
+**El signo del delta hace todo el trabajo, el color solo acompaña.** `+30`, `-40`,
+`0` y `—` son portadores textuales completos; el árbol de accesibilidad los
+expone tal cual. Quien no distinga verde de rojo lee el signo. §1.2 cumplido.
+
+**`prefers-reduced-motion` respetado, y por partida doble.** Con
+`isAnimationActive={false}` el SVG no contiene **ningún** nodo `<animate>`,
+`<animateTransform>` ni `<set>` — medido en las seis corridas, también sin
+`reduce` activo. Es decir, la gráfica no anima nunca, no solo cuando se pide
+reducir. Además, con `reduce` la regla global de `globals.css` deja el
+`transition` computado de las barras en `1e-05s` (frente a `all` sin la
+preferencia). Confirmado en runtime, no por lectura de código.
+
+**axe-core 4.x** sobre la sección: **0 violaciones a 1280 px** en los dos temas;
+a 375 px sale 1 violación en los dos temas, que es A-37. Las 8 «incompletas» de
+`color-contrast` son los `<tspan>` del eje Y —axe dice «content is too short to
+determine if it is actual text»— y están **dentro del `aria-hidden`**, así que no
+aplican; medidas a mano igual, dan 5.49:1 y 6.18:1.
+
+---
+
+### A-37 · A 375 px la columna «Cambio» se recorta y no hay forma de llegar a ella con teclado
+**Criterio:** 2.1.1 Keyboard (**Nivel A**) · **Severidad: Serio** — incumplimiento real
+**Dónde:** `src/components/informe/tabla-dominio.tsx:46` — el envoltorio
+`<div className="overflow-x-auto rounded-lg border border-border">`.
+
+**Medición** (build de producción, 375 px, los dos temas):
+
+| | |
+|---|---|
+| `scrollWidth` del envoltorio | 360 px |
+| `clientWidth` | 341 px |
+| px ocultos | **19** |
+| `tabindex` | `null` |
+| enfocables dentro | **0** |
+| axe | `scrollable-region-focusable` [serious], claro y oscuro |
+
+La columna «Cambio» termina en x=377 y la caja en x=359: se pierden **18 px**.
+Como la celda es `text-right` con `px-3`, el `padding` absorbe 12 y el recorte se
+come el **final del número**. En la captura a 375 px se lee `Cambi`, `+3` y `-4`
+donde el dato real es `+30` y `-40`.
+
+**A quién afecta, y son dos grupos distintos:**
+
+1. **Quien navega con teclado** no puede desplazar el envoltorio: no tiene
+   `tabindex` y no contiene ningún elemento enfocable, así que el contenido
+   oculto es inalcanzable. Eso es 2.1.1 sin matices.
+2. **Quien lee en el celular** —el usuario objetivo de esta app— ve `+3` donde
+   dice `+30`. No es un dato ausente: es un dato **cambiado**, y `+3` es un
+   número perfectamente plausible como delta. Nada indica que la tabla se
+   desplace. Esto es peor que el problema de teclado.
+
+**Causa exacta, aislada.** El desborde lo produce **la cuarta columna y nada
+más**. Con un solo intento en `localStorage` la tabla cae a tres columnas
+(`hayDelta === false`) y **no desborda ni a 375 ni a 320 px** (`scrollWidth ===
+clientWidth`). A 1280 px tampoco desborda con las cuatro. Es decir: el fallo
+aparece justo cuando hay algo que comparar, que es cuando la columna importa.
+
+**Arreglo.** Dos capas, y hacen falta las dos:
+
+- **Que quepa** — es lo que arregla el problema real. `px-3` → `px-2` en las
+  celdas numéricas recupera ~16 px, casi todo el desborde; abreviar el
+  encabezado a `Δ` **no** sirve, porque el que se recorta es el dato, no el
+  título. La vía limpia es dar a la primera columna `w-full` y a las tres
+  numéricas `whitespace-nowrap`, para que el nombre del bloque ceda el ancho.
+- **Red de seguridad** — si aun así puede desbordar en algún ancho, el envoltorio
+  necesita ser alcanzable:
+  ```tsx
+  <div tabIndex={0} role="group" aria-label="Dominio por bloque, tabla desplazable"
+       className="overflow-x-auto rounded-lg border border-border focus-visible:outline-2 focus-visible:outline-ring">
+  ```
+  El `role` + `aria-label` son obligatorios: un `tabIndex={0}` sin nombre mete en
+  el recorrido una parada que el lector anuncia como «grupo» y nada más.
+
+**Estado:** abierto.
+
+---
+
+### A-38 · El «hueco reservado» de la gráfica no reserva nada: 216 px de salto al llegar recharts
+**Criterio:** ninguno de AA lo exige · **Severidad: Moderado — mejora, no incumplimiento**
+**Dónde:** `src/components/informe/barras-dominio.tsx:32-38` — `loading: () => null`.
+
+**El comentario del archivo y ADR-024 afirman que el hueco está reservado:** «el
+hueco reservado NO es un esqueleto que promete contenido: es espacio en blanco».
+La intención es correcta y está bien argumentada. **El código no la implementa:**
+`loading: () => null` ocupa **0 px**. La altura (`datos.length * 44 + 24`) vive
+dentro de `GraficaDominio`, así que solo existe **después** de que el chunk
+aterrice. No hay espacio en blanco reservado; hay ausencia, y luego una
+aparición.
+
+**Medición** (chunk `78.6a8eb9cf3616fa26.js`, 360 K, bloqueado con `page.route`
+hasta soltarlo a mano):
+
+| | antes | después |
+|---|---|---|
+| alto de la sección | 405 px | 621 px |
+| `top` de la tabla | 1145 px | 1361 px |
+| **desplazamiento** | | **+216 px** |
+| CLS a 375 px | | **0.393** |
+| CLS a 1280 px | | 0.173 |
+
+216 px = los 200 del contenedor (4 × 44 + 24) más los 16 de `space-y-4`. El
+`layout-shift` se registra a ~200 ms y su única fuente es el `DIV` sin clase, que
+es el contenedor `aria-hidden` de la gráfica. 0.393 está muy por encima del 0.1
+que se considera aceptable.
+
+**Lo que NO pasa, y conviene dejarlo escrito porque era la sospecha inicial: el
+foco no se desplaza.** Con el chunk bloqueado, el foco puesto en «Volver a los
+simulacros» (debajo de la gráfica) y la gráfica soltada después:
+
+- el elemento enfocado se movió **−6 px** en pantalla, no 216;
+- `document.activeElement` **siguió siendo el mismo enlace**;
+- `window.scrollY` pasó de 1469 a 1685, exactamente +216.
+
+Es el *scroll anchoring* de Chromium compensando la inserción. El usuario que ya
+está leyendo no pierde el sitio. El salto se cobra en la **carga inicial**, antes
+de que haya nada anclado.
+
+**Y la mitad buena de ADR-024 se confirma:** con el chunk bloqueado
+indefinidamente, la tabla renderiza **completa** —4 filas, las 4 columnas,
+`+30 / -40 / 0 / —` incluidos— y es perfectamente legible. Diferir recharts no
+esconde ningún dato. La decisión es correcta; lo único que falta es el hueco.
+
+**Arreglo.** Reservar la altura en el compositor, que es quien conoce `datos`, sin
+convertirla en esqueleto (sigue siendo espacio en blanco, que es lo que ADR-024
+quiere):
+
+```tsx
+// barras-dominio.tsx
+<div style={{ minHeight: datos.length * 44 + 24 }}>
+  <GraficaDominio datos={datos} />
+</div>
+```
+
+`loading` de `next/dynamic` no recibe props, así que la altura tiene que salir de
+aquí. La constante `44 + 24` queda duplicada entre los dos archivos: conviene
+exportarla desde `grafica-dominio.tsx` como `altoGrafica(n)` y que ambos la usen.
+
+**Estado:** abierto.
+
+---
+
+### Fuera de mi alcance, para el `ui-designer`
+
+`grafica-dominio.tsx:53` monta `<Bar radius={2}>`. `DISENO.md` §4.5 prohíbe
+literalmente «barras de recharts con esquinas redondeadas y degradado» y pide
+«barras rectas». No es accesibilidad y no lo cuento como hallazgo, pero el
+contraste de esa decisión con la prohibición es explícito y alguien debería
+resolverlo en un sentido o en el otro.

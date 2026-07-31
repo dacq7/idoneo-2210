@@ -55,7 +55,7 @@ import {
   leerEstado,
   leerSesion,
 } from '@/lib/almacenamiento';
-import { calcularDesglose, calcularPuntaje } from '@/lib/informe';
+import { construirIntento } from '@/lib/informe';
 import { inicioCoherente, restantes } from '@/lib/cronometro';
 import {
   armarSimulacro,
@@ -68,9 +68,7 @@ import type { ResumenSesion as DatosResumen } from '@/hooks/usar-sesion';
 import type {
   BlueprintExamen,
   BloqueId,
-  IntentoSimulacro,
   Item,
-  RespuestaItem,
   SesionCronometro,
   TipoIntento,
 } from '@/lib/tipos';
@@ -160,13 +158,11 @@ export function ControladorSimulacro({
         // el instante de arranque, y de ella salen las dos cosas aleatorias del
         // intento: qué ítems entran y en qué orden se presentan sus opciones.
         const semilla = Date.now();
-        // [R3 del `code-reviewer`] Los ítems de los dos últimos intentos se
-        // penalizan —no se prohíben— para que un segundo simulacro no sea el
-        // mismo examen. Hoy la lista sale VACÍA porque los intentos no se
-        // persisten hasta el Paso 12, y se cablea igual: dejarlo para entonces
-        // significa que nadie se acuerde y que el motor tenga un parámetro que
-        // nunca se usó. En cuanto `guardarIntento` empiece a escribir, esto
-        // funciona sin tocar una línea.
+        // Los ítems de los dos últimos intentos se penalizan —no se prohíben—
+        // para que un segundo simulacro no sea el mismo examen. Se cableó en el
+        // Paso 11 apuntando a una lista vacía, y desde el Paso 12 hay intentos
+        // persistidos que lo alimentan: medido, dos simulacros seguidos de 10
+        // ítems sobre C5 pasaron de repetir 5 a repetir 0.
         const recientes = itemsDeIntentosRecientes(leerEstado(new Date().toISOString()).intentos);
         const elegidos = armarSimulacro(blueprint, banco, semilla, recientes);
         const items = presentarTanda(elegidos, semilla);
@@ -240,38 +236,16 @@ export function ControladorSimulacro({
       // El Paso 11 lo dejó declarado como aplazamiento: `desglose` exige
       // `calcularDesglose`, que nace en `informe.ts` y no existía. Ahora sí.
       //
-      // El id es el `intentoId` de la sesión, que es la semilla en string
-      // (§4): eso hace que `/resultados/[intentoId]` sea direccionable y que
-      // el barajado de opciones se pueda reproducir al revisar el intento.
-      const respuestas: RespuestaItem[] = resumen.detalle.map((d) => ({
-        itemId: d.item.id,
-        respuesta: d.valor,
-        correcta: d.correcta,
-        segundos: d.segundos,
-        marcada: d.marcada,
-      }));
-
-      const intento: IntentoSimulacro = {
-        id: sesion.intentoId,
-        tipo: sesion.tipo,
-        ambito: sesion.ambito,
-        semilla: sesion.semilla,
-        iniciadoEn: new Date(sesion.iniciadoEnMs).toISOString(),
-        terminadoEn: ahora,
-        // El tiempo REAL de reloj, no la suma de segundos por ítem: en un
-        // examen cronometrado lo que cuenta es cuánto duró, incluidas las
-        // pausas y el rato con la pestaña cerrada. La suma por ítem sigue
-        // guardada en cada respuesta, que es donde sirve para la revisión.
-        segundosUsados: Math.max(0, Math.round((momento.getTime() - sesion.iniciadoEnMs) / 1000)),
-        totalItems: resumen.total,
-        itemIds: sesion.itemIds,
-        respuestas,
-        puntaje: calcularPuntaje(respuestas, resumen.total),
-        desglose: calcularDesglose(
-          resumen.detalle.map((d) => d.item),
-          respuestas,
-        ),
-      };
+      // Lo arma `construirIntento`, que es función pura de `informe.ts` y tiene
+      // test propio: si lo que produce dejara de satisfacer `esqIntento`, el
+      // estado ENTERO iría a cuarentena (ADR-008, ADR-023) y el usuario
+      // perdería de vista su historial, no un intento.
+      const intento = construirIntento(
+        sesion,
+        resumen.detalle,
+        resumen.total,
+        momento.getTime(),
+      );
       guardarIntento(intento, ahora);
 
       // SRS: todo ítem fallado entra en la cola, y también los que quedaron en

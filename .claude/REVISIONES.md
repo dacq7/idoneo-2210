@@ -398,3 +398,44 @@ se repitieron en verde después.
 - **M3 · un simulacro terminado se pierde al recargar.** Es el aplazamiento ya declarado: `IntentoSimulacro.desglose` exige `calcularDesglose` de `informe.ts`, que nace en el Paso 12. El revisor lo deja anotado «para que nadie lo dé por hecho», y tiene razón: hoy se pueden hacer 120 minutos y perder el resultado con F5 en la pantalla de resumen. Sigue siendo preferible a escribir intentos que el Paso 12 tendría que migrar.
 
 **Lo que confirmó bien resuelto:** el 🔴 del Paso 10 —`import()` sin `.catch()` dejando esqueleto eterno— se aplicó aquí en las tres cadenas de `cargarBanco`, con reintento. Y la partición de ADR-021 no es cosmética: verificó que ningún chunk de cliente lleva `COLEF` y que el canario sigue con la frontera intacta.
+
+---
+
+## Paso 12 — Informe diagnóstico — 2026-07-31
+
+**Veredicto del `code-reviewer`: APROBADO CON CAMBIOS.** Un bloqueante, cuatro relevantes, tres menores. Los ocho se atendieron.
+
+Compuertas repetidas por él en árbol limpio: typecheck · lint · 579 tests · build · canario.
+
+> **Nota de entorno que dejó anotada:** hay **dos `next start` de una sesión previa** (PIDs 3713748 / 3920890 / 3920902) con cwd en el proyecto sujetando `.next`, y por eso `rm -rf .next` fallaba con «directorio no vacío». No los mató; construyó en un worktree aislado. **Conviene cerrarlos.**
+
+### 🔴 El bloqueante
+
+**`/progreso` pintaba el veredicto y nunca mostraba `NOTA_VEREDICTO`.** Medido: la página renderiza «Sólido», «Listo» —hasta 30 filas— y `grep` daba un solo consumidor de la nota, en `veredicto-informe.tsx`.
+
+Importa porque **`/progreso` está en la barra de navegación**: se llega sin pasar por ningún informe. §22 regla 11 dice que la nota se muestra *siempre*, y §1 de la licencia lo respalda («sus veredictos no representan el puntaje oficial»). El revisor ofreció el contraargumento honesto —la fila solo muestra el título, no el mensaje asertivo, y cada fila enlaza al informe— y aun así concluyó que la regla no admite grados. De acuerdo: **una línea bajo el titular de la sección**, no repetida por fila, que sería ruido.
+
+### 🟡 Los relevantes
+
+| # | Hallazgo | Arreglo |
+|---|---|---|
+| **2** | **La revisión ítem por ítem MENTÍA con la tanda incompleta.** `presentarTanda` avanza un solo rng y cada tipo consume distinto número de llamadas, así que un ítem ausente rebaraja **todo lo que venía después**. Medido sobre C5 quitando uno de seis: **2 de 5** señalaban una opción que el usuario no marcó, con el check verde en una tercera. La pantalla se contradecía sola | En esa rama se **degrada a propósito**: opciones en orden canónico, **sin señalar la elegida** —ese índice ya no significa nada— y dicho en pantalla. Se conserva lo que sigue siendo verdad: acertó o no, explicación y referencia |
+| **3** | `RevisionItems` sin un solo test, siendo el componente con más lógica del paso | 5 tests de componente (jsdom), uno por fase. El del caso incompleto fija exactamente el defecto |
+| **4** | La persistencia del intento sin guardián, y su radio de daño es el **estado entero** (ADR-008 + ADR-023) | Extraída a `construirIntento`, función **pura** en `informe.ts`, con 9 tests — incluido el viaje completo por `JSON.stringify`, que es como se guarda de verdad |
+| **5** | `loading: () => null` **no reservaba** el hueco que ADR-024 dice reservar: la altura vivía dentro del componente diferido, así que la tabla saltaba ~200 px al llegar recharts | La altura pasa al contenedor. Sigue siendo espacio en blanco y no esqueleto: reservar el sitio no es prometer que se llenará, es no mover lo que ya se está leyendo |
+
+### 💭 Los menores
+
+- **`controlador-simulacro.tsx` estaba en 300/300, margen cero** — una línea más y la compuerta salta sin aviso. Extraer `construirIntento` lo dejó en **280**, así que el arreglo del punto 4 resolvió este de paso.
+- **Comentario obsoleto**: seguía diciendo «los intentos no se persisten hasta el Paso 12». Actualizado con la medición real.
+- **`slugs` se recreaba en cada render** y es dependencia del efecto de carga del banco. `useMemo`, colocado **antes** de los returns condicionales — ponerlo donde estaba habría sido un hook después de un `return`.
+
+**Mutación de los arreglos: 3 mutantes, 3 muertos** (volver a señalar la opción con tanda incompleta, aliasar `itemIds`, permitir segundos negativos).
+
+### Lo que verificó y está bien
+
+- **`itemsRecientes` funciona de verdad, medido por la UI real**: dos simulacros seguidos de 10 ítems sobre C5 pasaron de **5/10 repetidos a 0/10**. El cableado del Paso 11 estaba bien y solo le faltaba que alguien escribiera intentos.
+- **El intento sobrevive a su propio esquema y al round-trip por `localStorage`**: `esqIntento` OK, `esqEstadoProgreso` OK. No va a cuarentena.
+- **ADR-023 por las dos mitades**: el esquema rechaza los cinco campos ausentes, y `construirInforme` con ese mismo desglose cojo **no lanza**.
+- **La compuerta `max-lines` tiene dientes** (mutante de +320 líneas → único `error` del lint), **81 archivos en alcance, 0 incumplidores**, y la regla 1 completa se cumple: ningún archivo exporta más de un componente.
+- **recharts diferido**: de los 10 chunks ansiosos de `/resultados`, ninguno lo contiene, y la tabla se renderiza en el primer pintado sin él.

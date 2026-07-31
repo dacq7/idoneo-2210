@@ -15,7 +15,7 @@
 // «no encontrado» a secas sugeriría que el usuario perdió su progreso, y eso
 // sería mentir sobre lo más delicado que guarda la app.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useEstado } from '@/hooks/usar-estado';
 import { obtenerIntento } from '@/lib/almacenamiento';
@@ -58,10 +58,24 @@ export function VistaInforme({ intentoId, modulos, bloques }: Props) {
     setMontado(true);
   }, []);
 
-  if (!montado) return <Esqueleto />;
-
   const intento = estado === null ? null : obtenerIntento(estado, intentoId);
 
+  // Los módulos que este intento tocó: acota qué banco carga la revisión.
+  //
+  // Memoizado porque es dependencia del efecto de carga de `RevisionItems`:
+  // `Object.keys` da un array nuevo en cada render, y cada escritura en
+  // `localStorage` —que hay varias al cerrar un simulacro— volvería a
+  // descargar el banco entero sin necesidad.
+  //
+  // Va ANTES de los returns condicionales, con todos los demás hooks: un hook
+  // después de un `return` cambia el número de hooks entre renders y React lo
+  // rompe. Por eso tolera `intento === null` en vez de darlo por hecho.
+  const slugs = useMemo(
+    () => (intento === null ? [] : Object.keys(intento.desglose.porModulo)),
+    [intento],
+  );
+
+  if (!montado) return <Esqueleto />;
   if (intento === null) return <SinIntento />;
 
   const informe: Informe = construirInforme(
@@ -70,9 +84,6 @@ export function VistaInforme({ intentoId, modulos, bloques }: Props) {
     bloques,
     intentoAnteriorComparable(estado?.intentos ?? [], intento),
   );
-
-  // Los módulos que este intento tocó: acota qué banco carga la revisión.
-  const slugs = Object.keys(intento.desglose.porModulo);
 
   return (
     <div className="space-y-8">

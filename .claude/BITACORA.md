@@ -2100,3 +2100,48 @@ La compuerta de ESLint sigue apagada y el usuario lo ratificó con el argumento 
 El dato del paso: `/resultados` pesaba **244.9 kB gz** con recharts en el bundle —casi 100 más que cualquier otra ruta, en la pantalla que se abre tras dos horas de examen y muchas veces en 4G—. Diferirlo la deja en **145.6**, y solo es defendible porque la **tabla es la fuente**: el desglose se ve entero sin esperar, y si la gráfica no llega no falta ningún dato (ADR-024).
 
 **Dos ADR nuevos:** ADR-023 (el esquema exige las claves que el informe lee, y por qué eso no contradice ADR-017) y ADR-024 (la tabla es la fuente, recharts diferido).
+
+## [2026-07-31 18:40] · accessibility-auditor · Paso 12 (alcance acotado)
+
+**Qué audité:** solo el dominio por bloque de `/resultados/[intentoId]` —
+`src/components/informe/grafica-dominio.tsx`, `tabla-dominio.tsx` y
+`barras-dominio.tsx`. Alcance acotado por el usuario a las gráficas de recharts y
+a lo inseparable de ellas; el resto del informe **no se auditó**.
+
+**Cómo lo probé:** build de producción (`npm run build` + `next start`, nunca
+`dev`) · Playwright sobre Chromium · estado sintético con **dos** intentos
+`final`/`global` sembrado con `addInitScript`, diseñado para que los cuatro casos
+de la columna «Cambio» (`+30` · `-40` · `0` · `—`) salgan en una sola pantalla ·
+claro y oscuro × 375 px y 1280 px · `prefers-reduced-motion: reduce` · corrida
+con el chunk de recharts bloqueado a voluntad para medir la carga diferida ·
+axe-core 4.x acotado a la sección · árbol de accesibilidad real · esperas de
+1400 ms por la lección de `transition-colors` del Paso 11.
+
+**Hallazgos:** Crítico 0 · Serio 1 (A-37) · Moderado 1 (A-38) · Menor 0.
+
+**Bloqueantes:** ninguno.
+
+**Contraste:** **todos AA en los dos temas.** Peor caso, barra C sobre el fondo
+real: 4.84:1 claro / 8.02:1 oscuro (umbral 3.0 de 1.4.11). Etiqueta de valor
+17.03:1 / 15.22:1. Los cuatro deltas de la tabla entre 5.03:1 y 6.95:1. Ningún
+token necesita corrección; no hay nada que pasar al `ui-designer`.
+
+**Lo que se confirmó:** ADR-024 es correcto. El SVG no aparece en el árbol de
+accesibilidad, no contiene enfocables, y la tabla es superconjunto estricto de la
+gráfica (añade `aciertos/total` y el delta). Con el chunk bloqueado
+indefinidamente la tabla sale completa: diferir recharts no esconde ningún dato.
+`isAnimationActive={false}` verificado en runtime — cero nodos `<animate>` en las
+seis corridas, también sin `reduce`.
+
+**Dos correcciones de método, anotadas en ACCESIBILIDAD.md:** (1) Chromium
+devuelve los colores en `oklch()` desde `getComputedStyle`; hay que rasterizarlos
+en un `<canvas>` 1×1 para obtener RGBA — la primera corrida dio 1.03:1 en todo y
+era mío el fallo, no del código. (2) Hay dos tablas en el informe y la de nivel
+cognitivo va antes en el DOM: toda medición debe acotarse a
+`section[aria-labelledby="titulo-bloques"]`.
+
+**Pendiente:** A-37 y A-38 abiertos, ninguno bloqueante. Sin auditar del Paso 12:
+veredicto, patrones, temas prioritarios, dominio por módulo y revisión ítem por
+ítem — fuera del alcance pedido. `radius={2}` en `<Bar>` contradice la
+prohibición de §4.5 de `DISENO.md`; derivado al `ui-designer`, no es
+accesibilidad.
