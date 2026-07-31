@@ -2157,3 +2157,41 @@ recharts (idéntico con gráfica y sin ella); queda fuera de alcance y sin halla
 Sin auditar del Paso 12: veredicto, patrones, temas prioritarios, dominio por
 módulo y revisión ítem por ítem. `radius={2}` en `<Bar>` contradice §4.5 de
 `DISENO.md`; derivado al `ui-designer`, no es accesibilidad.
+
+---
+
+## Paso 13 — Diagnóstico y plan de estudio — 2026-07-31
+
+**Estado:** ✅ Completado · **Rama:** `paso-13-diagnostico`
+
+**Archivos creados:** `src/lib/plan.ts` (§7.6 + `DIAS_SIN_FECHA` y `diaVigente`), `src/app/diagnostico/page.tsx`, `src/app/plan/page.tsx`, `src/components/plan/vista-plan.tsx`, `src/lib/__tests__/plan.test.ts` (32 tests), `src/components/plan/__tests__/vista-plan.test.tsx` (5).
+
+**Modificados:** `src/lib/censo.ts` (+`censarModulosPara`), `src/lib/simulacro.ts` (`CensoModulo.filtradoPara`, `exacto` real), `src/components/sesion/controlador-simulacro.tsx` (+`destinoCierre`).
+
+**Compuertas:** typecheck · lint · **636 tests** (593 → 636) · build 136 páginas · canario · validar.
+
+**Campaña de mutación — 5 mutantes, 5 muertos.** El cuarto sobrevivió a la primera pasada y es el interesante: poner a **cero** el factor de los módulos dominados no mataba ningún test, porque el que había solo comprobaba que el módulo *siguiera en el plan* — y con factor 0 sigue, solo que al final. La distinción real es que un dominado del bloque C debe ir **por delante** de uno del mismo bloque que el diagnóstico dice casi perfecto (0.099 contra 0.033). Con ese test, el mutante muere.
+
+**La obligación heredada, cerrada (ADR-025).** `diagnosticarViabilidad` ya no devuelve una cota superior cuando el blueprint filtra: `censarModulosPara` cuenta en el servidor aplicando el filtro del blueprint y marca el censo con su id. De las dos salidas que proponía `PENDIENTES.md` se eligió contar en el servidor, porque la conjunta tipo × dificultad multiplicaba por 21 lo que cruza la frontera y esta no cambia nada: sigue siendo un número por módulo.
+
+**El diagnóstico reutiliza `ControladorSimulacro`, y no es pereza.** El diagnóstico **es** un simulacro cronometrado: mismo muestreo, mismo reloj, misma persistencia, misma reanudación, mismo auto-envío. Lo único que cambia son tres datos que ya viajaban por prop. `guardarIntento` pone `diagnosticoHecho` al ver `tipo: 'diagnostico'` (§6), así que el hito no necesitó código.
+
+**Un defecto que solo cazó el build**, y por eso el build es compuerta: la primera versión pasaba `alCerrar` como **función** desde la página al controlador. Typecheck y lint en verde, tests en verde, y el prerender falló con «Functions cannot be passed directly to Client Components». Es una prop serializable ahora (`destinoCierre`), y el porqué queda escrito en el tipo para que nadie lo vuelva a intentar.
+
+**Las decisiones del plan, y una que corregí a mitad**
+
+- **Sin fecha de examen el plan sigue existiendo** (`DIAS_SIN_FECHA = 42`) y **lo dice** en sus advertencias, con enlace a Ajustes. Seis semanas no es un número redondo elegido al azar: es el horizonte más corto que no dispara la advertencia de «~N min diarios» desde el primer día, que sería la peor bienvenida posible. Tiene test.
+- **Los prerequisitos son restricción dura y la prioridad es blanda.** Aunque C5 sea lo peor del diagnóstico, no puede adelantarse a C1, C2 y C3. Test sobre los 29 módulos reales, no sobre un grafo de juguete.
+- **`diaVigente` se documentó de más y se corrigió.** Nació con el comentario «el día que le toca aunque el usuario se haya saltado días», y el test que escribí para eso **falló**: la app regenera el plan con `hoy` en cada visita, así que su día 1 **es** hoy y ese escenario no ocurre. Es una guarda para un `Plan` ya construido consultado con otra fecha, y ahora el comentario dice eso y no más.
+
+**Peso — js gz por ruta**
+
+| Ruta | Antes | Después |
+|---|---|---|
+| `/layout` | 132.4 | 132.4 |
+| `/diagnostico` | — | **150.3** (nueva) |
+| `/plan` | — | **134.7** (nueva) |
+
+`/diagnostico` pesa lo mismo que los otros simulacros porque **es** el mismo controlador. `/plan` queda por debajo de las rutas de sesión: no carga banco.
+
+**Nota de frontera declarada:** `/plan` pasa los `Modulo` **completos** por prop, y es la excepción razonada del proyecto a la proyección que hace el informe. `generarPlan` necesita `prerequisitos`, `minutosEstimados`, `orden` y `bloque` de los 29 —no tres campos—, así que proyectar ahorraría poco y obligaría a mantener un tipo paralelo en sincronía con `Modulo`. Lo que ADR-010 prohíbe es el import **estático** desde cliente, que sigue sin ocurrir: el canario está en verde.

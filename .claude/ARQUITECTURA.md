@@ -1224,3 +1224,33 @@ Un `sr-only` habría resuelto el criterio de accesibilidad y **dejado peor la pa
 - **Aceptar los 244.9 kB.** Es la ruta de mayor carga emocional del producto y la que más probable es que se abra con datos móviles.
 - **Sustituir recharts por SVG a mano.** Cuatro barras horizontales son ~40 líneas y ahorrarían la dependencia entera. Se descarta **por ahora** porque `recharts` ya está en el stack fijado por §2 y el Paso 18 puede querer más gráficas; si al cerrar la v1 sigue siendo la única, la dependencia sobra y se reconsidera. Anotado en `PENDIENTES.md`.
 - **Graficar también el dominio por módulo.** Son hasta 29 categorías: a 375 px no se lee. Va en lista ordenada de peor a mejor, que además es el orden en que hay que actuar.
+
+---
+
+## ADR-025 · El censo se cuenta *para* un blueprint cuando ese blueprint filtra
+
+**Estado:** Aceptada
+**Fecha:** 2026-07-31 · **Autor:** Paso 13
+
+**Contexto.** `PENDIENTES.md` traía esto desde el Paso 11, aplazado dos veces y asignado a este paso: `diagnosticarViabilidad` devolvía `exacto: false` cuando el blueprint filtra por tipo o dificultad, porque el censo cuenta ítems **publicados** y no **elegibles**. El veredicto era entonces una **cota superior**: podía decir «viable» y no serlo.
+
+El diagnóstico es el primero que lo activa —`tiposPermitidos: ['unica','emparejar','caso']`, `dificultadesPermitidas: [1, 2]`— y con él deja de ser teórico: C5 tiene 28 ítems publicados, pero cuántos son de esos tres tipos **y** de dificultad 1 o 2 es otra cuenta, menor.
+
+**La nota dejaba dos salidas. Se elige la segunda:**
+
+| | Coste | Exactitud |
+|---|---|---|
+| Llevar la distribución **conjunta** tipo × dificultad en el censo | 21 números por módulo (7 × 3) cruzando la frontera, y una tabla que hay que mantener en sincronía con `TipoItem` | exacta |
+| **Contar en el servidor aplicando el filtro** ← esta | un `filter` sobre el banco, que ya se carga | exacta **por construcción** |
+
+Lo decisivo es que la segunda **no cambia lo que viaja al cliente**: sigue siendo un número por módulo. La primera multiplica por 21 la carga útil de una pantalla que solo necesita saber si se puede empezar. Y el coste servidor ya se pagaba: `censarBanco` carga el banco desde el Paso 11, en build.
+
+**Decisión:** `censarModulosPara(bp, slugs)` cuenta solo los ítems que `bp` puede elegir, y marca cada entrada con `filtradoPara: bp.id`. `diagnosticarViabilidad` declara `exacto: true` si el blueprint no filtra **o** si todas las entradas del censo se contaron para él.
+
+**Tres detalles que parecen menores y no lo son:**
+
+- **Un censo filtrado para OTRO blueprint no vale.** Sus cuentas son de otros tipos y otras dificultades; fiarse sería el mismo error con más pasos. Por eso se compara el `id`, no la mera presencia del campo.
+- **Basta con que una entrada no esté filtrada** para perder la exactitud: un censo mezclado no es «casi exacto», es un número que no significa nada.
+- **Un censo vacío no se declara exacto por vacuidad.** `[].every(...)` es `true`, así que sin la guarda de longitud un censo sin entradas afirmaría exactitud sobre cero evidencia. Tiene test propio, y el mutante que quita la guarda muere.
+
+**Consecuencia:** el diagnóstico se comporta como los simulacros —hoy dice que no es armable, con cifras— y ahora **ese veredicto es exacto**, no una cota. La portada ya lo bloqueaba con `exacto: false` desde el Paso 12; lo que cambia es que deja de bloquearlo por precaución y pasa a bloquearlo por conocimiento.
