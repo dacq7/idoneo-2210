@@ -2286,3 +2286,16 @@ Suite **651** (636 → 651).
 **Peso — js gz por ruta.** `/page` sube de **102.8 a 136.5 kB gz**, y es esperado: la portada pasó de HTML estático a Client Component con estado, plan y SRS. Queda por debajo de las rutas de sesión (144–150) y del layout más su propio código. El resto no se movió.
 
 **Lo que queda para el 18:** `public/` vacío espera los iconos de la PWA, y `/ajustes` sigue en 404 — la portada, a diferencia del pie y de `DESTINOS`, **no** enlaza ahí.
+
+### Revisión del `code-reviewer` — Paso 14
+
+**RECHAZADO**, dos bloqueantes, con las seis compuertas en verde. Detalle en `REVISIONES.md`.
+
+La lección del paso: **una pantalla que decide qué hacer no se valida con compuertas.** Los 663 tests, el build y el canario no detectan que el consejo sea equivocado — solo que el código compila y no revienta. Los dos bloqueantes eran consejos falsos en estados alcanzables:
+
+- **B1** — una sesión de hace tres días producía «el cronómetro sigue corriendo», y como nada limpia esa clave salvo visitar la ruta del simulacro, la portada **se quedaba clavada en ese escalón para siempre**.
+- **B2** — el día del examen la portada ofrecía 45 minutos de teoría nueva mientras `/plan`, en la misma app, decía «nada de teoría nueva». Con el examen pasado, idéntico.
+
+Los cinco relevantes también se aplicaron, incluido un **test que no comprobaba lo que su nombre decía** (pasaba igual con el mutante) y `/ajustes`, que era el quinto destino de la barra devolviendo 404 en las 18 rutas justo en el paso que declara la app compartible.
+
+Suite **673** (663 → 673). Cuatro mutantes sobre los arreglos, cuatro muertos.

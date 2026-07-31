@@ -52,7 +52,9 @@ export function ResumenInicio({ datos }: { datos: DatosResumen }) {
       <dl className="grid grid-cols-3 gap-3">
         <Cifra
           valor={`${dominados}/${publicados}`}
-          rotulo={publicados === 1 ? 'módulo dominado' : 'módulos dominados'}
+          // Concuerda con el NUMERADOR, que es lo que se cuenta. Miraba el
+          // denominador y producía «3/1 módulo dominado».
+          rotulo={dominados === 1 ? 'módulo dominado' : 'módulos dominados'}
         />
         <Cifra valor={repasoPendiente} rotulo="por repasar hoy" />
         <Cifra valor={intentos} rotulo={intentos === 1 ? 'simulacro hecho' : 'simulacros hechos'} />

@@ -45,8 +45,11 @@ export function OrdenPublicacion({ bloque }: { bloque: BloqueId }) {
       El contenido se escribe por bloques, no módulo suelto. El bloque {bloque} —{' '}
       {NOMBRE[bloque]} — es <strong className="font-semibold text-foreground">{ORDINAL[turno]}</strong>{' '}
       de los cuatro en la cola.{' '}
+      {/* Ni siquiera del primero se afirma que «se está escribiendo ahora»: eso
+          solo sería cierto durante el paso que lo escribe, y esta pantalla
+          existe para no adelantar nada. */}
       {turno === 1
-        ? 'Es el que se está escribiendo ahora.'
+        ? 'Es el siguiente en escribirse.'
         : 'No hay fecha comprometida y no nos la inventamos: cuando esté, aparecerá aquí sin que tengas que hacer nada.'}
     </p>
   );

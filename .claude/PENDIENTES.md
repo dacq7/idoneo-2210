@@ -115,7 +115,7 @@ Las dos obligaciones heredadas, cerradas: el diagnóstico persiste su `IntentoSi
 **Obligaciones nuevas que este paso genera:**
 
 - **Paso 18.1 — `public/` está vacío.** Los iconos `icono-192.png`, `icono-512.png`, `icono-maskable.png` y `og.png` que pide §16 hay que crearlos: ya no hay ningún archivo ahí que sirva de plantilla ni que estorbe.
-- **Paso 18.5 — `/ajustes` sigue en 404 y ahora la portada NO enlaza ahí**, a diferencia del pie y de `DESTINOS`. Cuando exista, conviene revisar si la portada debería ofrecerlo.
+- **Paso 18.5 — `/ajustes` YA NO es 404: tiene un anticipo honesto** (`src/app/ajustes/page.tsx`), porque era el quinto destino de la barra en las 18 rutas y este paso declara la app compartible. **El 18.5 reemplaza ese archivo entero** y no debe conservar nada suyo salvo dos cosas: la obligación de exponer la cuarentena de ADR-008, y el aviso de que sin respaldo el progreso se pierde al borrar los datos del navegador — que hoy solo está ahí.
 - **Pasos 15–17 — la portada mejora sola con el contenido.** Hoy el denominador de «módulos dominados» es 1 (los publicados), y el escalón 6 de la prioridad —«vas al día con lo que hay»— es alcanzable de verdad. Con 29 módulos publicados ese escalón pasa a ser raro y el plan del día toma el mando.
 
 ## Paso 15 — Contenido del bloque D · y todo paso que escriba tablas
