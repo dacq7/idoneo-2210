@@ -2011,3 +2011,30 @@ La cuadrícula de 100 celdas se midió **clonando celdas en vivo**, no con un ba
 **Un falso positivo que dejó documentado y vale para todo el proyecto:** midió el contorno de foco en 2,26:1 y no lo es — los enfocables llevan `transition-colors duration-150`, que **también anima `outline-color`**, y la lectura caía dentro de la transición. Con 320 ms de espera el valor asentado es `--ring` al 100 %. Toda medición de foco en esta app tiene que esperar a que la transición termine.
 
 Suite final **537**. Los tres mutantes de los arreglos (foco al entrar, `inicioCoherente`, `exacto`) mueren.
+
+---
+
+## [2026-07-30] · software-architect · Resolución del M1 del Paso 11 — la regla de las 300 líneas
+
+**Qué revisé:** `CLAUDE.md` §21 «Reglas de código» punto 1, su historial de aplicación en los pasos 9, 10 y 11, y la cita que hace de ella ADR-020. Sin tocar código: la intervención es documentación y una regla.
+
+**Veredicto:** APROBADO CON CAMBIOS — la regla se conserva con el mismo número y se le fija la unidad que le faltaba.
+
+**Desvíos detectados:**
+
+- **La unidad no estaba definida, y por eso la regla solo se podía invocar, nunca cumplir ni aplicar.** Tres mediciones honestas de `mazo-tarjetas.tsx` dieron 424 (`wc -l`), 300 (conteo a mano), 282 (`sed`/`awk`) y 294 (ESLint `max-lines`). Ese es el mecanismo de la queja del usuario, no el número.
+- **ADR-020 citó la regla en un sentido que su letra no soporta**: proyectó el tamaño del componente fusionado en líneas totales y lo comparó contra un límite que solo tiene sentido en líneas de código. Con la unidad fijada, el argumento y el resultado sí cierran (fusionado ~500 de código; las dos mitades en 271 y 259).
+- **La regla nunca decidió una partición de verdad.** Las dos que ocurrieron se decidieron por divergencia de ciclos de vida (ADR-020) y por peso medido del bundle (ADR-021). Queda escrito que el límite es un indicador que obliga a mirar el archivo, no un criterio de diseño.
+
+**Decisión (ADR-022):** el número sigue en **300** y la unidad pasa a ser **líneas de código**, `skipComments` + `skipBlankLines`, tal como las cuenta ESLint `max-lines`. Alcance `src/components/**` (salvo `ui/`), `src/hooks/**`, `src/app/**`; fuera `content/**` (datos: el banco de C5 son 594 líneas de código y 28 módulos van a copiar esa forma), `src/lib/**` (motores copiados por §22 regla 2 — `simulacro.ts` 306, `almacenamiento.ts` 298) y los tests (`simulacro.test.ts`, 925).
+
+**Por qué no se movió el número:** medido bien, ya era el correcto. El mayor archivo del alcance mide 414 y el segundo 294; **no hay nada entre medias**. Subirlo a 400 o 450 habría ratificado el statu quo con un número de aspecto técnico; contar líneas totales habría gravado el comentario, que es un rasgo cultivado del proyecto (`cronometro.ts`: 172 totales, 73 de código).
+
+**Verificación:** `npx eslint --rule '{"max-lines":["error",{"max":1,…}]}'` sobre todo el repositorio, que es también la herramienta que definirá la unidad. `npm run typecheck`, `npm run lint` y `npm test` en verde — el diff son cuatro archivos markdown, nada que compile.
+
+**Archivos:** `.claude/ARQUITECTURA.md` (ADR-022 nuevo + enmienda dentro de ADR-020), `CLAUDE.md` (línea 6350, sexta edición del blueprint, autorizada por el usuario), `.claude/PENDIENTES.md`, `.claude/BITACORA.md`.
+
+**Pendiente para el siguiente paso:**
+
+- **Paso 12 — `controlador-repaso.tsx` (414) es el único incumplidor y no se acepta con excusa.** Se extrae `SesionRepaso` (~250 líneas, ya separada por nombre dentro del archivo) y **acto seguido se enciende `max-lines` en `eslint.config.mjs`**. No se encendió ahora porque con 414 dejaría el lint rojo, y las dos salidas para evitarlo son las dos formas de recrear la enfermedad. **Hasta esa línea, la regla sigue siendo de honor.**
+- **Sin paso asignado — pregunta abierta al usuario:** la otra mitad de la regla 1, «un componente por archivo», tampoco describe la práctica (`repaso-vacio.tsx` exporta 7). No se decidió sin autorización.
