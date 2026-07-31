@@ -50,7 +50,14 @@ export function GraficaDominio({ datos }: { datos: readonly DominioBloque[] }) {
             tickLine={false}
             tick={{ fill: 'var(--color-muted-foreground)', fontSize: 12 }}
           />
-          <Bar dataKey="porcentaje" radius={2} isAnimationActive={false} label={EtiquetaValor}>
+          {/* Sin `radius`: DISENO.md §4.5 prohíbe las barras redondeadas, y el
+              `radius={2}` que llevaba era una contradicción con el sistema de
+              diseño que señaló el `accessibility-auditor` de pasada. La banda
+              del instrumento de este proyecto es recta en todas partes —la de
+              avance del simulacro, la del repaso— y esta no es la excepción.
+              `isAnimationActive={false}` por §5.2: una gráfica que se dibuja
+              sola cuesta atención y no añade información. */}
+          <Bar dataKey="porcentaje" isAnimationActive={false} label={EtiquetaValor}>
             {datos.map((d) => (
               <Cell key={d.bloque} fill={COLOR_BLOQUE[d.bloque]} />
             ))}

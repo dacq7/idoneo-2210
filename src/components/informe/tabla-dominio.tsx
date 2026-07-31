@@ -43,7 +43,27 @@ export function TablaDominio({ datos, delta }: PropsDominio) {
   const hayDelta = delta !== null && datos.some((d) => delta[d.bloque] !== null);
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-border">
+    // [A-37 · WCAG 2.1.1 nivel A] El envoltorio desborda a 375 px cuando hay
+    // columna «Cambio», y sin `tabIndex` el contenido oculto era inalcanzable
+    // con teclado: no contiene ningún enfocable propio que permita desplazarlo.
+    //
+    // `tabIndex={0}` + `role="region"` + nombre accesible es el patrón estándar
+    // para una zona desplazable, y es también lo que hace que un lector la
+    // anuncie como región navegable.
+    //
+    // Pero el problema medido era peor que el de teclado: como las celdas son
+    // `text-right`, el recorte se comía **el final del número** y se leía «+3»
+    // donde el dato era «+30». Un dato ausente se nota; **un dato cambiado, no**
+    // — y «+3» es un delta perfectamente plausible. Por eso, además del scroll,
+    // el título del bloque puede partirse en dos líneas (`min-w-0` y sin
+    // `nowrap`) y las cifras nunca: así la tabla cabe a 375 px y el desborde
+    // deja de ser el caso normal.
+    <div
+      role="region"
+      aria-label="Dominio por bloque"
+      tabIndex={0}
+      className="overflow-x-auto rounded-lg border border-border"
+    >
       <table className="w-full border-collapse text-sm">
         <caption className="sr-only">
           Porcentaje de aciertos por bloque, con el número de ítems evaluados
@@ -51,19 +71,28 @@ export function TablaDominio({ datos, delta }: PropsDominio) {
         </caption>
         <thead>
           <tr>
-            <th scope="col" className="border-b-2 border-border px-3 py-2 text-left font-semibold">
+            <th
+              scope="col"
+              className="border-b-2 border-border px-2 py-2 text-left font-semibold sm:px-3"
+            >
               Bloque
             </th>
-            <th scope="col" className="border-b-2 border-border px-3 py-2 text-right font-semibold">
+            <th
+              scope="col"
+              className="whitespace-nowrap border-b-2 border-border px-2 py-2 text-right font-semibold sm:px-3"
+            >
               Aciertos
             </th>
-            <th scope="col" className="border-b-2 border-border px-3 py-2 text-right font-semibold">
+            <th
+              scope="col"
+              className="whitespace-nowrap border-b-2 border-border px-2 py-2 text-right font-semibold sm:px-3"
+            >
               Dominio
             </th>
             {hayDelta ? (
               <th
                 scope="col"
-                className="border-b-2 border-border px-3 py-2 text-right font-semibold"
+                className="whitespace-nowrap border-b-2 border-border px-2 py-2 text-right font-semibold sm:px-3"
               >
                 Cambio
               </th>
@@ -75,20 +104,25 @@ export function TablaDominio({ datos, delta }: PropsDominio) {
             const cambio = delta?.[d.bloque] ?? null;
             return (
               <tr key={d.bloque}>
-                <th scope="row" className="border-b border-border px-3 py-2 text-left font-normal">
+                <th
+                  scope="row"
+                  className="min-w-0 border-b border-border px-2 py-2 text-left font-normal sm:px-3"
+                >
                   {/* La letra en el color del bloque, el nombre en texto: el
                       color acompaña y nunca informa solo. */}
                   <span className={cn('font-semibold', CLASE_TEXTO[d.bloque])}>{d.bloque}</span>{' '}
                   {d.titulo}
                 </th>
-                <td className="border-b border-border px-3 py-2 text-right font-mono tabular-nums">
+                {/* `whitespace-nowrap` en las cifras: partir «+30» en dos
+                    líneas o recortarlo cambia el dato, no lo esconde. */}
+                <td className="whitespace-nowrap border-b border-border px-2 py-2 text-right font-mono tabular-nums sm:px-3">
                   {Math.round((d.porcentaje / 100) * d.total)}/{d.total}
                 </td>
-                <td className="border-b border-border px-3 py-2 text-right font-mono font-semibold tabular-nums">
+                <td className="whitespace-nowrap border-b border-border px-2 py-2 text-right font-mono font-semibold tabular-nums sm:px-3">
                   {d.porcentaje}%
                 </td>
                 {hayDelta ? (
-                  <td className="border-b border-border px-3 py-2 text-right font-mono tabular-nums">
+                  <td className="whitespace-nowrap border-b border-border px-2 py-2 text-right font-mono tabular-nums sm:px-3">
                     {cambio === null ? (
                       // Guion largo, no un 0: «no comparable» y «no cambió» son
                       // cosas distintas y confundirlas sería inventar un dato.

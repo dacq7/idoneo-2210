@@ -36,7 +36,7 @@ Solo existen dos rutas en este paso. Las demás llegan en pasos posteriores.
 | `/modulos/[slug]/practica` — 8 ítems, retroalimentación inmediata | ✅ | ✅ A-25 · A-26 · A-27 **arreglados** | ✅ | ✅ | ✅ A-24 **arreglado** | ✅ 188 px sin desbordamiento | **APROBADA** — axe 0 violaciones en los 4 cruces; queda A-28, Menor y no bloqueante | 2026-07-30 |
 | `/modulos/[slug]/quiz` — 10 ítems, retroalimentación al final | ✅ | ✅ (mismos componentes que práctica) | ✅ | ✅ | ✅ | ✅ | **APROBADA** — comparte controlador, envoltorio y los 7 tipos con práctica; la única diferencia es `feedbackInmediato` | 2026-07-30 |
 | Resumen de tanda (`resumen-sesion.tsx`) | ✅ | ✅ A-27 **arreglado** | ✅ | ✅ | ✅ A-24 **arreglado** | ✅ | **APROBADA con salvedad** — A-28 abierto | 2026-07-30 |
-| `/resultados/[intentoId]` — **solo** el dominio por bloque (`barras-dominio` · `grafica-dominio` · `tabla-dominio`) | ⚠️ ver A-37 | ✅ la gráfica no llega al árbol y la tabla lo expone todo | ✅ | ✅ | ⚠️ ver A-37 | n/e | **PARCIAL** — 1 Serio (A-37) · 1 Moderado (A-38). Contraste **todo AA en los dos temas**; ADR-024 **confirmado** | 2026-07-31 |
+| `/resultados/[intentoId]` — **solo** el dominio por bloque (`barras-dominio` · `grafica-dominio` · `tabla-dominio`) | ⚠️ ver A-37 | ✅ la gráfica no llega al árbol y la tabla lo expone todo | ✅ | ✅ | ⚠️ ver A-37 | n/e | **RECHAZADA** — 1 **Crítico** (A-39, aparecido al arreglar A-38) · 1 Serio (A-37) · A-38 arreglado y verificado. Contraste **todo AA en los dos temas**; la mitad accesible de ADR-024 **confirmada**, la mitad de robustez **falsificada** | 2026-07-31 |
 
 Reverificación del 2026-07-30, con los cuatro arreglos aplicados:
 **axe-core 4.x — 0 violaciones y 0 incompletas en los dos temas**, en `/` y en el
@@ -2815,65 +2815,108 @@ aparece justo cuando hay algo que comparar, que es cuando la columna importa.
 
 ---
 
-### A-38 · El «hueco reservado» de la gráfica no reserva nada: 216 px de salto al llegar recharts
+### A-38 · El «hueco reservado» de la gráfica no reservaba nada: 216 px de salto — **ARREGLADO durante esta auditoría**
 **Criterio:** ninguno de AA lo exige · **Severidad: Moderado — mejora, no incumplimiento**
-**Dónde:** `src/components/informe/barras-dominio.tsx:32-38` — `loading: () => null`.
+**Dónde:** `src/components/informe/barras-dominio.tsx` — `loading: () => null`.
+**Estado: arreglado 2026-07-31**, por el `code-reviewer`, mientras esta auditoría
+corría. Se documenta con las dos cifras porque el arreglo trajo A-39 detrás.
 
-**El comentario del archivo y ADR-024 afirman que el hueco está reservado:** «el
-hueco reservado NO es un esqueleto que promete contenido: es espacio en blanco».
-La intención es correcta y está bien argumentada. **El código no la implementa:**
-`loading: () => null` ocupa **0 px**. La altura (`datos.length * 44 + 24`) vive
-dentro de `GraficaDominio`, así que solo existe **después** de que el chunk
-aterrice. No hay espacio en blanco reservado; hay ausencia, y luego una
-aparición.
+**El problema (medido sobre el build del commit 2298dc0).** El comentario del
+archivo y ADR-024 afirmaban que el hueco estaba reservado: «el hueco reservado NO
+es un esqueleto que promete contenido: es espacio en blanco». La intención era
+correcta; **el código no la implementaba.** `loading: () => null` ocupa 0 px, y la
+altura (`datos.length * 44 + 24`) vivía dentro de `GraficaDominio`, así que solo
+existía **después** de que el chunk aterrizara.
 
-**Medición** (chunk `78.6a8eb9cf3616fa26.js`, 360 K, bloqueado con `page.route`
-hasta soltarlo a mano):
-
-| | antes | después |
+| | antes de recharts | después |
 |---|---|---|
 | alto de la sección | 405 px | 621 px |
 | `top` de la tabla | 1145 px | 1361 px |
 | **desplazamiento** | | **+216 px** |
-| CLS a 375 px | | **0.393** |
-| CLS a 1280 px | | 0.173 |
 
-216 px = los 200 del contenedor (4 × 44 + 24) más los 16 de `space-y-4`. El
-`layout-shift` se registra a ~200 ms y su única fuente es el `DIV` sin clase, que
-es el contenedor `aria-hidden` de la gráfica. 0.393 está muy por encima del 0.1
-que se considera aceptable.
+216 px = los 200 del contenedor (4 × 44 + 24) más los 16 de `space-y-4`.
 
-**Lo que NO pasa, y conviene dejarlo escrito porque era la sospecha inicial: el
-foco no se desplaza.** Con el chunk bloqueado, el foco puesto en «Volver a los
-simulacros» (debajo de la gráfica) y la gráfica soltada después:
+**Lo que NO pasaba, y conviene dejarlo escrito porque era la sospecha de
+partida: el foco no se desplazaba.** Con el chunk retenido, el foco puesto en
+«Volver a los simulacros» y la gráfica soltada después: el elemento enfocado se
+movió **−6 px**, `document.activeElement` siguió siendo el mismo enlace y
+`window.scrollY` pasó de 1469 a 1685 (+216 exactos). Es el *scroll anchoring* de
+Chromium compensando la inserción. Quien ya está leyendo no pierde el sitio.
 
-- el elemento enfocado se movió **−6 px** en pantalla, no 216;
-- `document.activeElement` **siguió siendo el mismo enlace**;
-- `window.scrollY` pasó de 1469 a 1685, exactamente +216.
+**Verificación del arreglo (build del árbol de trabajo, 2026-07-31).** El
+contenedor expone `style="min-height: 200px"` y la reserva es exacta:
 
-Es el *scroll anchoring* de Chromium compensando la inserción. El usuario que ya
-está leyendo no pierde el sitio. El salto se cobra en la **carga inicial**, antes
-de que haya nada anclado.
+| | gráfica presente | chunk retenido (sin gráfica) |
+|---|---|---|
+| `svg.recharts-surface` | sí | **no** |
+| alto de la sección | 621 px | **621 px** |
+| `top` absoluto de la tabla | 1361 px | **1361 px** |
 
-**Y la mitad buena de ADR-024 se confirma:** con el chunk bloqueado
-indefinidamente, la tabla renderiza **completa** —4 filas, las 4 columnas,
-`+30 / -40 / 0 / —` incluidos— y es perfectamente legible. Diferir recharts no
-esconde ningún dato. La decisión es correcta; lo único que falta es el hueco.
+Cero desplazamiento. **Confirmado.**
 
-**Arreglo.** Reservar la altura en el compositor, que es quien conoce `datos`, sin
-convertirla en esqueleto (sigue siendo espacio en blanco, que es lo que ADR-024
-quiere):
+**Y una atribución que hay que corregir:** el `layout-shift` de **0.393** que se
+registra a ~200 ms **no es de recharts**. Es idéntico con la gráfica y sin ella
+(medido en las dos condiciones), así que su fuente es el cambio de `<Esqueleto/>`
+a informe en `vista-informe.tsx` — un `h-32` + `h-40` que se sustituyen por la
+pantalla completa. Queda **fuera del alcance de esta auditoría** y sin hallazgo
+propio, pero anotado para que nadie se lo cuelgue a la gráfica.
 
-```tsx
-// barras-dominio.tsx
-<div style={{ minHeight: datos.length * 44 + 24 }}>
-  <GraficaDominio datos={datos} />
-</div>
+---
+
+### A-39 · Si el chunk de recharts **falla**, se cae el informe entero
+**Criterio:** ninguno de AA lo nombra; es robustez, no conformidad · **Severidad: Crítico** — impide completar el flujo
+**Dónde:** `src/components/informe/barras-dominio.tsx:32-36` — el `dynamic()` se
+quedó **sin** `loading` al arreglar A-38:
+
+```ts
+const GraficaDominio = dynamic(
+  () => import('./grafica-dominio').then((m) => m.GraficaDominio),
+  { ssr: false },          // ← antes: { ssr: false, loading: () => null }
+);
 ```
 
-`loading` de `next/dynamic` no recibe props, así que la altura tiene que salir de
-aquí. La constante `44 + 24` queda duplicada entre los dos archivos: conviene
-exportarla desde `grafica-dominio.tsx` como `altoGrafica(n)` y que ambos la usen.
+**Medición** (build del árbol de trabajo, 375 px, chunk `78.6a8eb9cf3616fa26.js`):
+
+| Modo de fallo | `<h1>` que se ve | tabla de dominio | deltas |
+|---|---|---|---|
+| chunk **lento** (retenido, sin error) | «Tu informe» | sí, 4 filas | `+30, -40, 0, —` |
+| chunk **abortado** (la red falla) | **«Esta pantalla no se pudo mostrar»** | **no** | — |
+
+Con el chunk abortado la ruta entera cae al límite de error: se pierden el
+veredicto, los patrones, el dominio por bloque, los temas prioritarios y la
+revisión ítem por ítem. `h2` en la página: **0**. Tablas: **0**.
+
+**Por qué.** `loading` no era solo el hueco de carga: el HOC `loadable` de
+`next/dynamic` **le pasa el error** al componente de `loading` en vez de lanzarlo.
+`loading: () => null` estaba absorbiendo el `ChunkLoadError`. Sin él, el rechazo
+de `React.lazy` sube hasta el `error.tsx` de la ruta. La distinción entre las dos
+filas de la tabla lo prueba: la **suspensión** sí está contenida (fila «lento»
+funciona, y ahí se ve que el `minHeight` de A-38 hace bien su trabajo); lo que
+dejó de estarlo es el **error**.
+
+**A quién afecta, y por qué es Crítico.** Es exactamente el escenario que ADR-024
+dice haber previsto: «si no llegara —red que se cae a mitad—, **no falta ningún
+dato**». Medido: si la red se cae, no falta un dato, faltan **todos**. Y le pasa
+a un usuario que acaba de terminar un simulacro de dos horas, en 4G, en la
+pantalla que este componente existe para aligerar. El mensaje de error remata:
+«**No es un problema de conexión**: la app corre en tu dispositivo» — que en este
+caso concreto es justo lo contrario de lo que ocurrió.
+
+Serwist no cubre esto todavía: la PWA se cablea en el Paso 18.
+
+**Arreglo.** Restituir `loading`, conservando el `minHeight` de A-38 — las dos
+cosas son compatibles y resuelven problemas distintos:
+
+```ts
+const GraficaDominio = dynamic(
+  () => import('./grafica-dominio').then((m) => m.GraficaDominio),
+  { ssr: false, loading: () => null },
+);
+```
+
+Conviene además una prueba que fije el invariante, porque es un fallo que no se
+ve en desarrollo y que ya se coló una vez: abortar el chunk y comprobar que la
+tabla sigue en pie.
 
 **Estado:** abierto.
 
@@ -2884,5 +2927,126 @@ exportarla desde `grafica-dominio.tsx` como `altoGrafica(n)` y que ambos la usen
 `grafica-dominio.tsx:53` monta `<Bar radius={2}>`. `DISENO.md` §4.5 prohíbe
 literalmente «barras de recharts con esquinas redondeadas y degradado» y pide
 «barras rectas». No es accesibilidad y no lo cuento como hallazgo, pero el
-contraste de esa decisión con la prohibición es explícito y alguien debería
-resolverlo en un sentido o en el otro.
+contraste con la prohibición es explícito y alguien debería resolverlo en un
+sentido o en el otro.
+
+### Método, para quien vuelva sobre esta pantalla
+
+1. **`getComputedStyle` devuelve `oklch()`, no `rgb()`.** Chromium conserva el
+   espacio de color en que se declaró. Parsearlo como RGB da ratios de 1.03:1 en
+   todo y parece que arde el mundo. Hay que rasterizar cada color en un
+   `<canvas>` 1×1 y leerlo con `getImageData`, que además resuelve el alfa.
+2. **Hay dos tablas en el informe.** La de nivel cognitivo (`PatronesInforme`) va
+   antes en el DOM, así que `querySelector('table')` coge la equivocada. Acotar
+   todo a `section[aria-labelledby="titulo-bloques"]`.
+3. **Un `next start` viejo sobrevive a `rm -rf .next`** y sigue sirviendo
+   referencias a chunks que ya no existen: salen 400 y 404 y parece un fallo de
+   la app. Levantar el servidor en un puerto nuevo después de cada build.
+4. **`route.continue()` corrompe las URLs con corchetes** (`%5BintentoId%5D` →
+   400). Para simular un chunk lento o caído, usar `route.abort()` o retener la
+   promesa; no reenviar la petición.
+5. **Retener un chunk y abortarlo no son la misma prueba**, y aquí la diferencia
+   era el hallazgo entero: la primera mide la suspensión, la segunda mide el
+   error. Hay que hacer las dos.
+
+---
+
+## Cierre de A-37 y A-39 — 2026-07-31, mismo día
+
+Los dos hallazgos de la auditoría de gráficas, **corregidos y verificados en
+runtime a 375 px** sobre build de producción con el chunk de recharts abortado.
+
+### A-39 · Crítico — y el arreglo propuesto NO era el correcto
+
+El auditor midió que, con el chunk de recharts abortado, la pantalla mostraba
+«Esta pantalla no se pudo mostrar», **cero tablas y cero encabezados**: el
+`ChunkLoadError` subía al límite de error y se llevaba el informe entero. Es
+exactamente el escenario que ADR-024 dice haber previsto —«si no llegara, no
+falta ningún dato»— y faltaba todo, después de dos horas de examen.
+
+**El diagnóstico era correcto; la hipótesis de arreglo, no.** El informe
+proponía restituir `loading: () => null`, que es lo que había antes de que yo lo
+quitara al arreglar el hueco reservado. **Se probó y el fallo se reproduce
+igual**:
+
+| | `h1` | tablas | encabezados |
+|---|---|---|---|
+| Con `loading` restituido, chunk abortado | «Esta pantalla no se pudo mostrar» | 0 | 0 |
+
+`loading` **pinta mientras carga; no captura**. Que el fallo desapareciera al
+ponerlo era una correlación, no la causa.
+
+**El arreglo real:** sustituir `next/dynamic` por un `import()` propio dentro de
+un efecto, con `catch` explícito. Si el chunk no llega, el componente se queda
+en `null` y no se pinta nada más. Verificado:
+
+| | `h1` | tablas | encabezados | SVG | deltas |
+|---|---|---|---|---|---|
+| Chunk OK | Tu informe | 2 | 5 | 1 | `+30 0 -30 —` |
+| **Chunk abortado** | **Tu informe** | **2** | **5** | 0 | **`+30 0 -30 —`** |
+
+La gráfica falta y no falta ningún dato, que es lo que el ADR prometía.
+
+**La lección, y por eso queda escrita:** el `loading` original hacía **dos
+cosas** y solo una estaba documentada. Al quitarlo por la razón correcta se
+perdió la que nadie había escrito. Cuando se retire una opción de configuración
+porque «solo sirve para X», conviene comprobar que de verdad solo sirve para X.
+
+### A-37 · Serio · WCAG 2.1.1 (nivel A)
+
+A 375 px el envoltorio de la tabla desbordaba 19 px sin `tabindex` y sin ningún
+enfocable dentro: el contenido oculto era inalcanzable con teclado. Y el daño
+mayor no era ese — como las celdas son `text-right`, **el recorte se comía el
+final del número**: se leía `+3` donde el dato era `+30`. Un dato ausente se
+nota; **un dato cambiado, no**, y `+3` es un delta perfectamente plausible.
+
+Arreglo en dos frentes, porque el scroll accesible soluciona el criterio pero no
+el engaño:
+
+1. `role="region"` + `aria-label` + `tabIndex={0}` en el envoltorio desplazable
+   — el patrón estándar, que además hace que un lector la anuncie como región.
+2. **Que quepa**: padding menor en móvil (`px-2` / `sm:px-3`), el título del
+   bloque puede partirse en dos líneas y **las cifras nunca** (`whitespace-nowrap`).
+
+Verificado a 375 px: **desborde de 0 px**, `tabIndex=0` presente, y la celda del
+delta mide `+30` completo y dentro del área visible.
+
+### Lo que el auditor confirmó bien, y no se tocó
+
+- **`aria-hidden` sobre el SVG es correcto**: el árbol de accesibilidad de la
+  sección no contiene nada entre el `<p>` y la `table`, cero enfocables dentro
+  del SVG, y la tabla es **superconjunto estricto** de la gráfica (añade
+  aciertos/total y el delta).
+- **Contraste AA en los dos temas sin excepciones.** Peor caso, barra C: 4.84:1
+  claro / 8.02:1 oscuro sobre umbral 3.0. Etiqueta de valor 17.03:1 / 15.22:1 —
+  se dibuja **fuera** de la barra, sobre el fondo de página. Corrige de paso el
+  enunciado con el que se pidió la auditoría: la gráfica **no va sobre `--card`**,
+  el primer ancestro opaco es el `<body>`.
+- **El signo textual hace todo el trabajo** en el delta: `+30`, `-40`, `0`, `—`.
+  El color es redundancia.
+- **`prefers-reduced-motion` respetado por partida doble**: cero nodos
+  `<animate>` incluso **sin** `reduce` — la gráfica no anima nunca.
+- **El foco no se desplazaba** con el salto de layout: el *scroll anchoring* de
+  Chromium lo compensaba. Era sospecha mía al encargar la auditoría, y era falsa.
+
+### Un extra que sí se aplicó
+
+`<Bar radius={2}>` contradecía la prohibición literal de **DISENO.md §4.5**
+(barras rectas). El auditor lo señaló como fuera de su alcance; se quitó igual,
+porque no es una decisión de diseño nueva sino una regla ya escrita que el
+componente incumplía. La banda del instrumento es recta en toda la app.
+
+### Método, para quien audite gráficas después
+
+Tres cosas que costaron tiempo y conviene heredar:
+
+1. **Chromium devuelve `oklch()` desde `getComputedStyle`.** Parsearlo como RGB
+   da ~1.03:1 en todo y parece que arde el mundo. Hay que rasterizar en un
+   `<canvas>` de 1×1.
+2. **Hay DOS tablas en el informe** —la de nivel cognitivo va antes en el DOM—,
+   así que `querySelector('table')` coge la equivocada.
+3. **Un `next start` viejo en el mismo puerto sirve un `BUILD_ID` distinto** y
+   todos los assets del build nuevo dan **400**: la página parece rota sin que lo
+   esté. Si el informe queda sin tablas ni encabezados en las dos corridas —con
+   chunk y sin él—, sospecha del servidor antes que del código. `pkill -f "next
+   start"` no basta: el proceso se llama `next-server`.

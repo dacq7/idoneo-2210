@@ -2101,47 +2101,59 @@ El dato del paso: `/resultados` pesaba **244.9 kB gz** con recharts en el bundle
 
 **Dos ADR nuevos:** ADR-023 (el esquema exige las claves que el informe lee, y por qué eso no contradice ADR-017) y ADR-024 (la tabla es la fuente, recharts diferido).
 
-## [2026-07-31 18:40] · accessibility-auditor · Paso 12 (alcance acotado)
+## [2026-07-31 19:20] · accessibility-auditor · Paso 12 (alcance acotado)
 
 **Qué audité:** solo el dominio por bloque de `/resultados/[intentoId]` —
 `src/components/informe/grafica-dominio.tsx`, `tabla-dominio.tsx` y
 `barras-dominio.tsx`. Alcance acotado por el usuario a las gráficas de recharts y
 a lo inseparable de ellas; el resto del informe **no se auditó**.
 
-**Cómo lo probé:** build de producción (`npm run build` + `next start`, nunca
-`dev`) · Playwright sobre Chromium · estado sintético con **dos** intentos
+**Cómo lo probé:** dos builds de producción (`npm run build` + `next start`,
+nunca `dev`) · Playwright sobre Chromium · estado sintético con **dos** intentos
 `final`/`global` sembrado con `addInitScript`, diseñado para que los cuatro casos
-de la columna «Cambio» (`+30` · `-40` · `0` · `—`) salgan en una sola pantalla ·
-claro y oscuro × 375 px y 1280 px · `prefers-reduced-motion: reduce` · corrida
-con el chunk de recharts bloqueado a voluntad para medir la carga diferida ·
-axe-core 4.x acotado a la sección · árbol de accesibilidad real · esperas de
-1400 ms por la lección de `transition-colors` del Paso 11.
+de la columna «Cambio» (`+30` · `-40` · `0` · `—`) salgan en una sola pantalla,
+pasando `esqEstadoProgreso` entero con las cuatro claves de bloque de ADR-023 ·
+claro y oscuro × 375 px y 1280 px · `prefers-reduced-motion: reduce` · el chunk de
+recharts **retenido** y **abortado** por separado · axe-core 4.x acotado a la
+sección · árbol de accesibilidad real · esperas de 1400 ms por la lección de
+`transition-colors` del Paso 11.
 
-**Hallazgos:** Crítico 0 · Serio 1 (A-37) · Moderado 1 (A-38) · Menor 0.
+**Hallazgos:** **Crítico 1** (A-39) · Serio 1 (A-37) · Moderado 1 (A-38,
+arreglado durante la auditoría) · Menor 0.
 
-**Bloqueantes:** ninguno.
+**Bloqueantes:** A-39 — al arreglar A-38 se quitó `loading: () => null` del
+`dynamic()`, y con eso se perdió la absorción del `ChunkLoadError`. Si el chunk de
+recharts **falla** (no si tarda), la ruta entera cae a `error.tsx`: 0 encabezados,
+0 tablas, «Esta pantalla no se pudo mostrar» después de dos horas de examen. Es
+justo el escenario que ADR-024 dice haber previsto. Arreglo: restituir `loading`
+conservando el `minHeight`; son compatibles.
 
 **Contraste:** **todos AA en los dos temas.** Peor caso, barra C sobre el fondo
 real: 4.84:1 claro / 8.02:1 oscuro (umbral 3.0 de 1.4.11). Etiqueta de valor
-17.03:1 / 15.22:1. Los cuatro deltas de la tabla entre 5.03:1 y 6.95:1. Ningún
-token necesita corrección; no hay nada que pasar al `ui-designer`.
+17.03:1 / 15.22:1 — se dibuja fuera de la barra, sobre el fondo de página, así
+que no depende del bloque. Los cuatro deltas de la tabla entre 5.03:1 y 6.95:1.
+Ningún token necesita corrección; **nada que pasar al `ui-designer`**.
 
-**Lo que se confirmó:** ADR-024 es correcto. El SVG no aparece en el árbol de
-accesibilidad, no contiene enfocables, y la tabla es superconjunto estricto de la
-gráfica (añade `aciertos/total` y el delta). Con el chunk bloqueado
-indefinidamente la tabla sale completa: diferir recharts no esconde ningún dato.
-`isAnimationActive={false}` verificado en runtime — cero nodos `<animate>` en las
-seis corridas, también sin `reduce`.
+**Lo que se confirmó:** el `aria-hidden` sobre el SVG es correcto — no aparece en
+el árbol de accesibilidad, no contiene enfocables, y la tabla es superconjunto
+estricto de la gráfica (añade `aciertos/total` y el delta, con `—` para «no
+comparable»). El signo textual del delta basta como portador no cromático. La
+letra del eje Y distingue los bloques sin color. `isAnimationActive={false}`
+verificado en runtime: cero nodos `<animate>` en todas las corridas, también sin
+`reduce`. La reserva de altura de A-38 quedó exacta (621 px de sección y tabla en
+1361 px, con gráfica y sin ella).
 
-**Dos correcciones de método, anotadas en ACCESIBILIDAD.md:** (1) Chromium
-devuelve los colores en `oklch()` desde `getComputedStyle`; hay que rasterizarlos
-en un `<canvas>` 1×1 para obtener RGBA — la primera corrida dio 1.03:1 en todo y
-era mío el fallo, no del código. (2) Hay dos tablas en el informe y la de nivel
-cognitivo va antes en el DOM: toda medición debe acotarse a
-`section[aria-labelledby="titulo-bloques"]`.
+**Correcciones de método, anotadas en ACCESIBILIDAD.md:** Chromium devuelve
+`oklch()` desde `getComputedStyle` y hay que rasterizar en `<canvas>` para medir
+contraste (mi primera corrida dio 1.03:1 en todo y el fallo era mío) · hay dos
+tablas en el informe y la de nivel cognitivo va antes en el DOM · un `next start`
+viejo sobrevive a `rm -rf .next` y ensucia la medición con 400 y 404 ·
+`route.continue()` corrompe las URLs con corchetes · retener un chunk y abortarlo
+son pruebas distintas, y ahí estaba el hallazgo Crítico.
 
-**Pendiente:** A-37 y A-38 abiertos, ninguno bloqueante. Sin auditar del Paso 12:
-veredicto, patrones, temas prioritarios, dominio por módulo y revisión ítem por
-ítem — fuera del alcance pedido. `radius={2}` en `<Bar>` contradice la
-prohibición de §4.5 de `DISENO.md`; derivado al `ui-designer`, no es
-accesibilidad.
+**Pendiente:** A-39 (Crítico) y A-37 (Serio) abiertos. El `layout-shift` residual
+de 0.393 es del cambio `<Esqueleto/>` → informe en `vista-informe.tsx`, **no** de
+recharts (idéntico con gráfica y sin ella); queda fuera de alcance y sin hallazgo.
+Sin auditar del Paso 12: veredicto, patrones, temas prioritarios, dominio por
+módulo y revisión ítem por ítem. `radius={2}` en `<Bar>` contradice §4.5 de
+`DISENO.md`; derivado al `ui-designer`, no es accesibilidad.
