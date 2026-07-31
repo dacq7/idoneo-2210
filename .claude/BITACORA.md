@@ -2299,3 +2299,15 @@ La lección del paso: **una pantalla que decide qué hacer no se valida con comp
 Los cinco relevantes también se aplicaron, incluido un **test que no comprobaba lo que su nombre decía** (pasaba igual con el mutante) y `/ajustes`, que era el quinto destino de la barra devolviendo 404 en las 18 rutas justo en el paso que declara la app compartible.
 
 Suite **673** (663 → 673). Cuatro mutantes sobre los arreglos, cuatro muertos.
+
+### Auditoría del `accessibility-auditor` — Paso 14
+
+**axe-core: 0 violaciones** en cinco combinaciones. Los dos incumplimientos AA salieron **a mano**, y ninguno era detectable automáticamente — igual que los dos bloqueantes del `code-reviewer` no los detectaron 663 tests. Dos veces en el mismo paso.
+
+- **A-40 · Serio** — faltaba `scroll-padding-top`: al 200 % de zoom el botón «Hacer el diagnóstico», que es la **única acción principal de la portada**, quedaba oculto al **100 %** al recibir el foco con Shift+Tab. Es la mitad que faltaba del arreglo de A-29: en el Paso 11 se tapó la banda de abajo y se dejó la de arriba. Verificado tras el arreglo: **0 % en los tres tamaños**.
+- **A-41 · Moderado** — el detalle de los dos destinos caía a **4,44:1** en hover sobre tema oscuro, porque el `<span>` declara su color y gana sobre el heredado. Ahora **10,93:1**.
+- **A-42 y A-44** también corregidos: la cifra `0/1` no se pronunciaba «0 de 1» en ningún lector, y `/diagnostico` aparecía dos veces en la primera pantalla del usuario nuevo.
+
+**Lo que confirmó, y era el riesgo de ADR-027: A-01 no se ha reabierto.** A 188 px la barra sigue con cinco destinos de **37,59 px**, todos enteros. Una sexta celda los dejaría en ~31. La decisión de meter `/plan` y `/diagnostico` por la portada se sostiene con la medición.
+
+Suite **675**.

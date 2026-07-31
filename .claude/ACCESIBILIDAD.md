@@ -3050,3 +3050,50 @@ Tres cosas que costaron tiempo y conviene heredar:
    esté. Si el informe queda sin tablas ni encabezados en las dos corridas —con
    chunk y sin él—, sospecha del servidor antes que del código. `pkill -f "next
    start"` no basta: el proceso se llama `next-server`.
+
+---
+
+## Paso 14 · portada y navegación — 2026-07-31
+
+**axe-core: 0 violaciones** en 5 combinaciones (portada nueva y sembrada × claro y oscuro, más un módulo en preparación). Los dos incumplimientos AA salieron **a mano**: ninguno es detectable automáticamente.
+
+### A-40 · Serio · 2.4.11 — el encabezado pegajoso tapaba el botón principal · **CORREGIDO**
+
+`globals.css` tenía el `scroll-padding-bottom` que cerró A-29 y **no tenía `scroll-padding-top`**. El encabezado es `sticky top-0` con 60 px, así que al subir el foco con Shift+Tab —la navegación hacia atrás normal— el navegador alineaba el elemento con el borde del scrollport y lo dejaba debajo.
+
+| Viewport | Antes | Después |
+|---|---|---|
+| 375×667 nativo | 14,1 % | **0 %** |
+| 214×381 (175 % zoom) | **100 %** · «Hacer el diagnóstico» | **0 %** |
+| 188×334 (200 % zoom) | **100 %** · «Hacer el diagnóstico» | **0 %** |
+
+Afectaba justo al público de la app —quien estudia con presbicia y el navegador al 175–200 %— y el elemento que desaparecía era la **única acción principal de la portada**: el usuario no veía dónde estaba el foco ni tenía señal de que pulsar Enter haría algo.
+
+**La lección: era la mitad que faltaba del mismo arreglo.** En el Paso 11 se tapó la banda de abajo y se dejó la de arriba. Cuando un elemento fijo obstruya el foco, hay que mirar **las dos** bandas del scrollport, no la que produjo el hallazgo.
+
+### A-41 · Moderado · 1.4.3 — el detalle de los destinos caía a 4,44:1 en hover · **CORREGIDO**
+
+El `<Link>` llevaba `hover:text-foreground`, pero el `<span>` del detalle declara `text-muted-foreground` propio y **gana sobre el color heredado**. El título hermano sí subía, porque no declara color.
+
+| Tema | Reposo | En hover, antes | En hover, ahora |
+|---|---|---|---|
+| Claro | 5,49:1 | 4,75:1 ✔ | **14,74:1** |
+| Oscuro | 6,18:1 | **4,44:1 ✘** | **10,93:1** |
+
+Es el mismo par que `nav-inferior.tsx` ya había documentado y esquivado; allí bastó subir el color del enlace porque no había hijo con color propio. Aquí hizo falta `group` + `group-hover`.
+
+### A-42 y A-44 · Menores · **también corregidos**
+
+- **A-42** — la cifra se exponía como el literal `0/1`, y cómo se pronuncia la barra depende de la verbosidad del lector: «cero barra uno» o «cero uno», nunca «0 de 1». El `dt` lleva ahora la frase entera y el `dd` va `aria-hidden`.
+- **A-44** — para un usuario nuevo, `/diagnostico` aparecía **dos veces** en la primera pantalla: como acción principal y en la lista. No falla 2.4.4, pero competía justo con el escalón que la portada quiere que se pulse. La lista lo omite mientras sea la acción principal.
+- **A-43** quedó cerrado de paso por el `scroll-padding-top` de A-40 (era 2.4.12, AAA).
+
+### Lo confirmado, con cifras
+
+- **A-01 NO se ha reabierto**, que era el riesgo de ADR-027: a 188 px la barra sigue con **cinco** destinos de **37,59 px**, las cinco celdas enteras y con el centro dentro de la pantalla. Una sexta las dejaría en ~31 px. Sin scroll horizontal ni solapamientos a 320 px ni a 280.
+- **A-29 sigue cerrado** en esta pantalla: la barra inferior tapa **0 %** de todo lo enfocado con la página desplazada al final.
+- Un solo `<h1>`, tres `<h2>` sin saltos, las tres `<section>` con nombre accesible. La tarjeta de acción mide 52 px, contrasta **6,26:1 / 7,19:1** y su nombre accesible dice la acción, no «continuar». El enlace de salto se hace visible (167×44) y mueve el foco de verdad. Todos los objetivos táctiles ≥44 px. `prefers-reduced-motion` respetado.
+
+### Para el 18.10, sin verificar aquí
+
+La `<dl>` del resumen es contenedor `grid`. Chromium **conserva** la semántica —medido: `DescriptionList` con sus `term`/`definition`—, pero cambiar `display` en listas ha roto roles en Safari históricamente. Hay que comprobarlo con VoiceOver en un iPhone real.

@@ -167,17 +167,24 @@ export function PanelInicio({ modulos, bloques }: Props) {
               }
             />
           </li>
-          <li>
-            <EnlaceDestino
-              href="/diagnostico"
-              titulo={estado?.diagnosticoHecho ? 'Repetir el diagnóstico' : 'Diagnóstico inicial'}
-              detalle={
-                estado?.diagnosticoHecho
-                  ? 'Vuelve a medirte para ver cuánto has movido la aguja.'
-                  : '30 preguntas para saber por dónde empezar. No cuenta como nota.'
-              }
-            />
-          </li>
+          {/* [A-44] No se repite el diagnóstico en la lista cuando YA es la
+              acción principal de arriba: para un usuario nuevo aparecía dos
+              veces en la misma pantalla, y compite justo con el escalón que la
+              portada quiere que se pulse. Cuando ya lo hizo, aquí es donde
+              vive la opción de repetirlo. */}
+          {accion.clase !== 'diagnostico' ? (
+            <li>
+              <EnlaceDestino
+                href="/diagnostico"
+                titulo={estado?.diagnosticoHecho ? 'Repetir el diagnóstico' : 'Diagnóstico inicial'}
+                detalle={
+                  estado?.diagnosticoHecho
+                    ? 'Vuelve a medirte para ver cuánto has movido la aguja.'
+                    : '30 preguntas para saber por dónde empezar. No cuenta como nota.'
+                }
+              />
+            </li>
+          ) : null}
         </ul>
       </section>
     </div>
@@ -370,13 +377,23 @@ function EnlaceDestino({
   detalle: string;
 }) {
   return (
+    // [A-41 · 1.4.3] `group` + `group-hover` en el detalle. El `hover:text-foreground`
+    // del enlace no llegaba a este `<span>`, que declara su propio
+    // `text-muted-foreground` y gana sobre el color heredado: sobre `--accent`
+    // en tema oscuro el par mide **4,44:1** y se queda corto de AA.
+    //
+    // Es el mismo fallo que `nav-inferior.tsx` ya documentó y esquivó; allí
+    // bastaba con subir el color del enlace porque no había hijo con color
+    // propio.
     <Link
       href={href}
-      className="flex min-h-11 items-center gap-3 px-3 py-3 transition-colors duration-150 ease-out hover:bg-accent hover:text-foreground"
+      className="group flex min-h-11 items-center gap-3 px-3 py-3 transition-colors duration-150 ease-out hover:bg-accent hover:text-foreground"
     >
       <span className="min-w-0 grow space-y-0.5">
         <span className="block font-medium">{titulo}</span>
-        <span className="block text-[0.8125rem] text-muted-foreground">{detalle}</span>
+        <span className="block text-[0.8125rem] text-muted-foreground group-hover:text-foreground">
+          {detalle}
+        </span>
       </span>
       <ArrowRight className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
     </Link>

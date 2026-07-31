@@ -52,6 +52,11 @@ export function ResumenInicio({ datos }: { datos: DatosResumen }) {
       <dl className="grid grid-cols-3 gap-3">
         <Cifra
           valor={`${dominados}/${publicados}`}
+          // [A-42] El nombre hablado lleva «de» y no la barra: cómo se pronuncia
+          // «/» depende de la verbosidad de puntuación del lector — «cero barra
+          // uno» con la de por defecto, «cero uno» con puntuación desactivada—,
+          // y ninguna de las dos es «0 de 1».
+          hablado={`${dominados} de ${publicados} ${dominados === 1 ? 'módulo dominado' : 'módulos dominados'}`}
           // Concuerda con el NUMERADOR, que es lo que se cuenta. Miraba el
           // denominador y producía «3/1 módulo dominado».
           rotulo={dominados === 1 ? 'módulo dominado' : 'módulos dominados'}
@@ -72,20 +77,28 @@ export function ResumenInicio({ datos }: { datos: DatosResumen }) {
   );
 }
 
-function Cifra({ valor, rotulo }: { valor: string | number; rotulo: string }) {
+function Cifra({
+  valor,
+  rotulo,
+  hablado,
+}: {
+  valor: string | number;
+  rotulo: string;
+  /** Frase completa para el lector, cuando la cifra visible no se pronuncia bien. */
+  hablado?: string;
+}) {
   return (
     <div className="rounded-lg border border-border bg-card p-3 shadow-sm">
-      {/* `dd` antes que `dt` en el orden visual, pero el par sigue siendo
-          correcto: en una `dl` el navegador los asocia por posición, no por
-          orden de lectura visual. */}
-      <dt className="sr-only">{rotulo}</dt>
-      <dd className="space-y-0.5">
+      {/* El `dt` lleva la frase entera y el `dd` va `aria-hidden`: así el lector
+          oye una sola vez «0 de 1 módulos dominados» en vez de deletrear la
+          barra. La asociación `dt`/`dd` la hace el navegador por posición, no
+          por orden de lectura visual. */}
+      <dt className="sr-only">{hablado ?? `${valor} ${rotulo}`}</dt>
+      <dd aria-hidden="true" className="space-y-0.5">
         <span className="block font-mono text-2xl font-semibold leading-none tabular-nums">
           {valor}
         </span>
-        <span aria-hidden="true" className="block text-[0.75rem] leading-[1.3] text-muted-foreground">
-          {rotulo}
-        </span>
+        <span className="block text-[0.75rem] leading-[1.3] text-muted-foreground">{rotulo}</span>
       </dd>
     </div>
   );

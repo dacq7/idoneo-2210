@@ -158,13 +158,27 @@ describe('PanelInicio — el resto de la pantalla', () => {
     expect(screen.getByText(/Hay 1 de 29 módulos publicados/)).toBeDefined();
   });
 
-  it('da acceso a /plan y /diagnostico, que no caben en la barra (A-01)', async () => {
+  it('da acceso a /plan, que no cabe en la barra (A-01)', async () => {
     montar();
     await waitFor(() => expect(screen.getByText('Prepararte con método')).toBeDefined());
     expect(screen.getByRole('link', { name: /Tu plan de estudio/ }).getAttribute('href')).toBe(
       '/plan',
     );
-    expect(screen.getByRole('link', { name: /Diagnóstico inicial/ })).toBeDefined();
+  });
+
+  it('[A-44] no repite el diagnóstico en la lista cuando YA es la acción principal', async () => {
+    // Usuario nuevo: el escalón 2 pone el diagnóstico en el botón grande.
+    // Tenerlo también en la lista lo hacía aparecer dos veces en la primera
+    // pantalla, compitiendo con el escalón que la portada quiere que se pulse.
+    montar();
+    await waitFor(() => expect(screen.getByText('Empieza por el diagnóstico')).toBeDefined());
+    expect(screen.getAllByRole('link', { name: /diagnóstico/i })).toHaveLength(1);
+  });
+
+  it('[A-44] y SÍ lo ofrece en la lista cuando la acción principal es otra', async () => {
+    sembrar({ diagnosticoHecho: true, intentos: [intentoDiagnostico()] });
+    montar();
+    await waitFor(() => expect(screen.getByText(/Repetir el diagnóstico/)).toBeDefined());
   });
 
   it('con el diagnóstico hecho, ofrece repetirlo en vez de hacerlo', async () => {
