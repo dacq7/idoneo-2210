@@ -23,6 +23,7 @@
 // handlers. Nunca en el cuerpo del render.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { calcularPuntaje } from '@/lib/informe';
 import { calificar, sinResponder } from '@/lib/simulacro';
 import type { Item } from '@/lib/tipos';
 
@@ -218,10 +219,19 @@ export function useSesion(items: readonly Item[], inicial?: SesionInicial): Sesi
       total: detalle.length,
       correctas,
       sinResponder: detalle.filter((d) => !d.respondida).length,
-      // Misma fórmula que `calcularPuntaje` de §7.5, que todavía no existe:
-      // `src/lib/informe.ts` nace en el Paso 12 y ese paso es el dueño de la
-      // versión canónica. Cuando exista, esta línea se sustituye por la llamada.
-      puntaje: detalle.length === 0 ? 0 : Math.round((correctas / detalle.length) * 100),
+      // [Paso 12] Ya no hay copia de la fórmula: `informe.ts` es su dueño.
+      // Estaba marcado aquí desde el Paso 9, con el aviso de que la línea se
+      // sustituiría por la llamada en cuanto el motor existiera.
+      puntaje: calcularPuntaje(
+        detalle.map((d) => ({
+          itemId: d.item.id,
+          respuesta: d.valor,
+          correcta: d.correcta,
+          segundos: d.segundos,
+          marcada: d.marcada,
+        })),
+        detalle.length,
+      ),
       segundos: detalle.reduce((suma, d) => suma + d.segundos, 0),
       detalle,
     };

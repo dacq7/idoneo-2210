@@ -2050,3 +2050,53 @@ Es la lectura que hace la regla cierta *y* la única que la deja en pie: con la 
 La compuerta de ESLint sigue apagada y el usuario lo ratificó con el argumento del arquitecto: subir el número o poner un `eslint-disable` serían las dos formas de recrear el problema recién cerrado. Se enciende en el Paso 12 con los tres incumplimientos resueltos. Y `max-lines` cubre **solo la primera mitad** de la regla: a la de «un componente exportado» no se le inventa una comprobación automática, porque distinguir un componente de un helper exportado exige criterio.
 
 **Paso 11 aprobado por el usuario.** Los dos aplazamientos quedan ratificados: persistir el `IntentoSimulacro` exige `informe.ts` del Paso 12, y `SimulacroSinRed` va al 18.10 junto a `error.tsx`.
+
+---
+
+## Paso 12 — Motor de informe y `/resultados/[intentoId]` — 2026-07-31
+
+**Estado:** ✅ Completado
+**Rama:** `paso-12-informe`
+
+**Archivos creados**
+
+| Archivo | Qué es |
+|---|---|
+| `src/lib/informe.ts` | §7.5 + lectura defensiva del desglose (ADR-023) |
+| `src/app/resultados/[intentoId]/page.tsx` · `src/app/progreso/page.tsx` | las dos rutas |
+| `src/components/informe/vista-informe.tsx` | orquesta: lee el intento, construye el informe |
+| `informe/veredicto-informe.tsx` | puntaje, veredicto y la nota de COLEF |
+| `informe/tabla-dominio.tsx` · `grafica-dominio.tsx` · `barras-dominio.tsx` | la fuente, el SVG diferido y el compositor (ADR-024) |
+| `informe/patrones-informe.tsx` · `temas-prioritarios.tsx` · `dominio-modulo.tsx` · `revision-items.tsx` | las cuatro secciones |
+| `src/components/progreso/panel-progreso.tsx` | historial de intentos y módulos |
+| `src/components/sesion/sesion-repaso.tsx` | extraído del controlador (ADR-022) |
+| `src/components/sesion/repaso/*.tsx` (6) | `repaso-vacio.tsx` partido: un componente por archivo |
+| `src/components/items/grupo-opcion-unica.tsx` | extraído de `opcion-unica.tsx` |
+| `src/lib/__tests__/informe.test.ts` | 42 tests |
+
+**Verificación.** Cinco compuertas en verde: `typecheck` · `lint` · **579 tests** (537 → 579) · `build` · `canario`.
+
+**Campaña de mutación — 4 mutantes, 4 muertos.** El cuarto es el que importa: **`porBloque` revertido a `z.record` sobrevivió** en la primera pasada, o sea que ADR-023 no tenía guarda. Se añadieron 4 tests que fijan el esquema y entonces sí murió. Un test escrito después de ver sobrevivir al mutante es el único que se sabe con dientes.
+
+**Las cuatro obligaciones heredadas, cerradas.** Detalle en `PENDIENTES.md`. La que más código movió fue la regla 1: `controlador-repaso.tsx` baja de **414 a 170** líneas de código extrayendo `SesionRepaso`, `repaso-vacio.tsx` se parte en seis archivos y `GrupoOpcionUnica` sale a uno propio. **La compuerta `max-lines` queda encendida**, que era la mitad que ADR-022 no pudo cerrar en su momento: verificada por mutación —con `max: 150` salta en 16 archivos— y en verde a 300.
+
+**Sobre `opcion-unica.tsx`, que era la decisión abierta:** `PENDIENTES.md` pedía decidir mirando el código, no contando exports, y mirándolo no hacía falta excepción — `GrupoOpcionUnica` lo consume `caso.tsx`, así que tiene consumidor externo y es público por derecho propio. **El criterio queda escrito** para el próximo caso: un componente con consumidor fuera de su archivo es público; uno que solo usa el archivo que lo define es un auxiliar y puede convivir.
+
+**Los dos requisitos de producto**
+
+- **El veredicto dice que los cortes son criterio interno.** `NOTA_VEREDICTO` va pegada al veredicto, no en un pie, y con un test que falla si alguien la suaviza o si un mensaje empieza a hablar de «aprobado». La app no conoce el corte real de COLEF: afirmarlo sería la clase de cosa que §22 regla 11 prohíbe, sobre la decisión más cara que toma el usuario.
+- **La detección de patrón funciona y puede callarse.** Recuerdo alto con aplicación baja produce «te sabes las definiciones pero no las estás aplicando; haz la Práctica». Con los tres niveles parejos devuelve `[]` y la sección lo dice en vez de rellenar: un informe que siempre encuentra algo enseña a no leerlo.
+
+**Peso — js gz por ruta**
+
+| Ruta | Antes | Después |
+|---|---|---|
+| `/layout` | 132.5 | **132.4** |
+| `/resultados/[intentoId]` | — | **145.6** (nueva) |
+| `/progreso` | — | **135.9** (nueva) |
+| `/repaso` | 143.7 | 143.8 |
+| `/simulacros/final` | 148.3 | 150.1 |
+
+El dato del paso: `/resultados` pesaba **244.9 kB gz** con recharts en el bundle —casi 100 más que cualquier otra ruta, en la pantalla que se abre tras dos horas de examen y muchas veces en 4G—. Diferirlo la deja en **145.6**, y solo es defendible porque la **tabla es la fuente**: el desglose se ve entero sin esperar, y si la gráfica no llega no falta ningún dato (ADR-024).
+
+**Dos ADR nuevos:** ADR-023 (el esquema exige las claves que el informe lee, y por qué eso no contradice ADR-017) y ADR-024 (la tabla es la fuente, recharts diferido).

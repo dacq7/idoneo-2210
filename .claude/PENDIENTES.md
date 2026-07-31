@@ -78,29 +78,22 @@ Se cerraron las siete obligaciones que este paso heredaba. Resumen de qué pasó
 
 - **Pasos 15–17 — la portada del simulacro avisará del reparto incumplido.** En cuanto haya ítems suficientes en total pero repartidos desigual, `repartoIncumplido` se enciende y la portada dice que el reparto por tema no será el del examen real. Es el estado esperado durante toda la producción de contenido, no un error.
 
-## Paso 12 — Informe
+## Paso 12 — Informe · ✅ CERRADO el 2026-07-31
 
-- **Riesgo con crash reproducido** (ADR-008): `esqIntento.desglose.porBloque` es `z.record(esqConteo)`, así que un intento **sin** los bloques B/C/D pasa Zod, pero el cast afirma `Record<BloqueId, …>` con las cuatro claves. `construirInforme` de §7.5 hace `porBloque[b.id].total` y revienta con `Cannot read properties of undefined`. Vía de entrada real: `importarJSON` acepta ese respaldo como válido en /ajustes.
-  Arreglo: endurecer `desglose` en `src/lib/esquemas.ts` para exigir las 4 claves de bloque y las 3 de nivel. Toca un archivo del Paso 2, así que se decide aquí.
+Las cuatro obligaciones heredadas del Paso 11, cerradas:
 
-- **Bajar `src/components/sesion/controlador-repaso.tsx` de 300 líneas de código y encender la compuerta. Las dos cosas, en este orden y en este paso** (ADR-022). Hoy mide **414** y es el único archivo que incumple la **primera** mitad de la regla 1.
+- ✅ **El crash de ADR-008/§5 en `esqIntento`**, reproducido desde el Paso 4: `porBloque` y `porNivel` pasan a `z.object` con todas sus claves (**ADR-023**), y el motor gana además una lectura defensiva propia — el esquema protege la puerta de `/ajustes`, pero `construirInforme` es público y no debe depender de que alguien haya validado.
+- ✅ **`IntentoSimulacro` se persiste** al cerrar un simulacro, con su desglose real. Eso desbloqueó `itemsRecientes`, que el Paso 11 había dejado cableado apuntando a una lista vacía: dos simulacros seguidos ya no repiten ítems.
+- ✅ **`controlador-repaso.tsx`: 414 → 170 líneas de código**, extrayendo `SesionRepaso` a su archivo. **La compuerta `max-lines` está ENCENDIDA** en `eslint.config.mjs` y verificada por mutación (con `max: 150` salta en 16 archivos).
+- ✅ **`repaso-vacio.tsx` (6 exportados) partido** en `sesion/repaso/`: un componente por archivo, más `Marco` y `accion-siguiente`.
+- ✅ **`opcion-unica.tsx` (2 exportados) resuelto mirando el código**, como pedía la nota: `GrupoOpcionUnica` **tiene consumidor externo** (`caso.tsx`), así que no es un auxiliar interno sino una pieza pública, y le toca archivo propio. No hizo falta excepción. **El criterio queda escrito** en la cabecera de `grupo-opcion-unica.tsx` y sirve para el próximo caso: *un componente con consumidor fuera de su archivo es público; uno que solo usa el archivo que lo define es un auxiliar y puede convivir.*
 
-- **Y resolver los dos incumplimientos de la SEGUNDA mitad de la regla 1** —«un componente **exportado** por archivo», redacción fijada por el usuario el 2026-07-31, ver la enmienda a ADR-022—. Medido tras esa edición:
+**Obligaciones nuevas que este paso genera:**
 
-  | Archivo | Exportados | Cuáles |
-  |---|---|---|
-  | `src/components/sesion/repaso-vacio.tsx` | **6** | `AccionSiguiente`, `ColaSinEstrenar`, `NadaPendienteHoy`, `ColaSinContenido`, `RepasoSinRed`, `CierreRepaso` |
-  | `src/components/items/opcion-unica.tsx` | **2** | `GrupoOpcionUnica`, `OpcionUnica` |
-
-  **El arreglo no está prejuzgado.** `opcion-unica.tsx` exporta una pareja cohesiva que consumen varios tipos de ítem: puede que toque partirlo, o puede que merezca una excepción razonada y registrada. Se decide mirando el código, no contando exports. Lo que **no** vale es dejarlo sin decidir: la regla ya está escrita en su forma correcta y estos dos archivos la incumplen hoy.
-
-  Ojo con lo que la compuerta cubre: `max-lines` vigila **solo la primera mitad**. La de «un componente exportado» no tiene comprobación automática y **no se le inventa una** — distinguir un componente de un helper exportado exige criterio, no una expresión regular.
-  El arreglo no es cortar por la línea 300: el archivo ya está separado por dentro y con nombres — `resolverElementos` (cargador), `ControladorRepaso` (contenedor), **`SesionRepaso` (~250 líneas, la vista de la sesión)** y dos auxiliares. Extraer `SesionRepaso` a su propio archivo lo deja holgadamente dentro sin inventar ninguna abstracción.
-  Hecho eso, se añade a `eslint.config.mjs`, sobre el alcance declarado en ADR-022:
-  ```js
-  'max-lines': ['error', { max: 300, skipComments: true, skipBlankLines: true }],
-  ```
-  **Por qué no se encendió al decidir la regla:** con 414 líneas dejaría `npm run lint` rojo, y las dos salidas para evitarlo —subir el número hasta que nadie incumpla, o poner un `eslint-disable` en la cabecera— son las dos formas de recrear el problema que ADR-022 corrige. **Hasta que esa línea exista, la regla sigue dependiendo de que el revisor se acuerde de invocarla.** Que nadie la dé por blindada antes.
+- **Paso 13 — el diagnóstico también termina en un informe.** `construirInforme` ya lo soporta (`tipo: 'diagnostico'`), y `/diagnostico` tendrá que persistir su `IntentoSimulacro` igual que hacen los simulacros, con `diagnosticoHecho` puesto por `guardarIntento`.
+- **Paso 13 — `diagnosticarViabilidad` sigue sin ser exacta con filtros.** Sin cambios respecto al Paso 11: el diagnóstico filtra por tipo y dificultad, así que su veredicto es una cota superior y la portada lo bloquea (`exacto: false`). Hay que ampliar el censo con la distribución conjunta tipo × dificultad, o cargar el banco en el servidor y contar.
+- **Paso 18 — reconsiderar recharts si sigue siendo la única gráfica.** Cuatro barras horizontales son ~40 líneas de SVG a mano y ahorrarían la dependencia entera; hoy se conserva porque §2 la fija y el 18 puede querer más visualizaciones. Ver **ADR-024**.
+- **Pasos 15–17 — el informe mejora solo con el contenido.** Hoy un simulacro solo puede tocar C5, así que `temasPrioritarios` devuelve un tema y `dominioPorBloque` una barra. Nada que arreglar: la pantalla ya dice la verdad sobre lo que midió.
 
 ## Paso 14.4 — Punto de corte usable
 
