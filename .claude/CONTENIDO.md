@@ -129,6 +129,10 @@ la precisión que la hace correcta. Un distractor plausible tiene el mismo nivel
 respuesta: si es más corto, casi siempre es porque está peor escrito. Y un **empate** de longitud no
 cuenta como sesgo — dos opciones igual de largas no distinguen nada, así que igualar basta.
 
+**Ojo con pasarse de frenada.** El objetivo es **parecerse al azar (28 %), no minimizar**. Dejar la correcta
+sistemáticamente más corta es el mismo exploit al revés —«descarta la más larga» acierta casi siempre— y el
+validador avisa por debajo del **12 %**.
+
 **Por qué es una compuerta y no un consejo:** §14.4 pedía «longitud pareja» desde el primer módulo, y
 el banco llegó igualmente al 66 % con C5 —la plantilla de oro— en el 80 %. Una regla escrita que
 nadie mide no se cumple. A 750 ítems, la pista es explotable: se aprende a marcar la larga sin leer.

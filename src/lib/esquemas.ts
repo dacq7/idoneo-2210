@@ -262,6 +262,27 @@ export function cuotasDelBloque(bloque: BloqueId): ReglasCuota {
 export const UMBRAL_SESGO_ERROR = 0.5;
 export const UMBRAL_SESGO_AVISO = 0.4;
 
+/**
+ * Y el límite por ABAJO, que es menos obvio y también importa.
+ *
+ * Lo encontró el `technical-writer` al repasar C5: en su primera pasada lo dejó
+ * en el **15 %**, con los distractores 6,5 caracteres más largos de media que
+ * la correcta. Eso no es arreglar el sesgo, **es invertirlo** — a ese nivel
+ * «descartar la más larga» acierta el 85 % de las veces, que es el mismo
+ * exploit del revés y con la misma consecuencia: se aprueba sin leer.
+ *
+ * Por eso el objetivo nunca fue «minimizar la proporción», sino **acercarla al
+ * azar** (28,2 %). Un módulo al 5 % está tan escrito con patrón como uno al
+ * 80 %, solo que al contrario.
+ *
+ * Va como AVISO y no como error, a diferencia del techo. El sesgo invertido no
+ * aparece escribiendo con normalidad —nadie engorda distractores sin querer—,
+ * así que solo puede salir de un repaso como este; un error bloquearía módulos
+ * legítimos que por muestra pequeña caigan bajo. 12 % está a ~1,5σ por debajo
+ * del azar con n = 18.
+ */
+export const UMBRAL_SESGO_INVERTIDO = 0.12;
+
 export interface SesgoLongitud {
   /** Ítems con opciones comparables: `unica`, `caso` y `multiple`. */
   conOpciones: number;

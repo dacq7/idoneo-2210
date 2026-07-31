@@ -20,6 +20,7 @@ import {
   medirSesgoLongitud,
   UMBRAL_SESGO_AVISO,
   UMBRAL_SESGO_ERROR,
+  UMBRAL_SESGO_INVERTIDO,
   verificarCuotas,
 } from '../src/lib/esquemas';
 import type {
@@ -250,6 +251,16 @@ export async function validarCatalogo(catalogo: Catalogo): Promise<ResultadoVali
           );
         } else if (sesgo.proporcion > UMBRAL_SESGO_AVISO) {
           avi(`banco/${modulo.slug}`, `sesgo de longitud al límite: ${detalle}`);
+        } else if (sesgo.proporcion < UMBRAL_SESGO_INVERTIDO) {
+          // El sesgo INVERTIDO es el mismo exploit del revés: si la correcta
+          // casi nunca es la más larga, «descartar la más larga» se vuelve una
+          // heurística ganadora. El objetivo es parecerse al azar (~28 %), no
+          // minimizar la cifra.
+          avi(
+            `banco/${modulo.slug}`,
+            `sesgo de longitud INVERTIDO: ${detalle}. Los distractores quedaron sistemáticamente ` +
+              'más largos que la correcta, que es la misma pista al revés.',
+          );
         }
       }
     }

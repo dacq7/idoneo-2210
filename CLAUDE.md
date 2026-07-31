@@ -5638,6 +5638,8 @@ El daño es directo al producto: a 750 ítems, un usuario espabilado aprende a m
 
 Sigue siendo falso para ese enunciado, y ahora obliga a leer para descartarlo. Un empate de longitud entre la correcta y un distractor **no cuenta como sesgo**: dos opciones igual de largas no distinguen nada, así que igualar basta.
 
+**Y no te pases de frenada.** El objetivo es **parecerse al azar (~28 %), no minimizar la cifra**: si la correcta casi nunca es la más larga, «descartar la más larga» se vuelve una heurística ganadora y has reintroducido la misma pista al revés. El validador avisa por debajo del 12 %.
+
 **De la explicación.** Estructura fija: *por qué la correcta lo es* → *por qué falla el distractor más tentador* → *dato para recordar*. Mínimo 200 caracteres. Cita cartilla y subtema en `referencia`, que es el mapa del temario. El cuerpo de la explicación **no habla de las cartillas**: enseña el dato verdadero (ADR-014).
 
 **Orden de producción** (por densidad de retorno, no alfabético): C5 → bloque D completo → resto del bloque C → bloque B → bloque A. Un bloque temático por sesión de Claude Code, nunca módulos sueltos de bloques distintos: mantiene el tono y el criterio de dificultad consistentes.

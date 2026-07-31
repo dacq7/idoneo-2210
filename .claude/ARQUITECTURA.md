@@ -1355,3 +1355,13 @@ Por encima del 50 % un módulo bien escrito cae menos del 3 % de las veces: cuan
 **Resultado del repaso de los 228 ítems existentes: 66 % → 35 %**, sin que **ninguna** de las 228 explicaciones perdiera un solo carácter. Los largos medios quedaron igualados y en varios módulos el distractor es ahora más largo que la correcta, que es la firma de haberlo hecho por el lado bueno.
 
 **Consecuencia para los pasos 16 y 17:** los 522 ítems que faltan nacen con la compuerta puesta. La regla está escrita en `CLAUDE.md` §14.4 y en `.claude/CONTENIDO.md` —que es lo que el `technical-writer` lee antes de escribir un módulo— con el ejemplo del antes/después.
+
+### Enmienda — el mismo día: el objetivo es parecerse al azar, no minimizar
+
+Lo encontró el `technical-writer` mientras repasaba C5, y es el matiz que faltaba. En su primera pasada lo dejó en el **15 %**, con los distractores 6,5 caracteres más largos de media que la correcta — y se detuvo a decir que eso **no es arreglar el sesgo, es invertirlo**: a ese nivel «descartar la más larga» acierta el 85 % de las veces, que es el mismo exploit del revés y con la misma consecuencia, aprobar sin leer. Lo devolvió al **30 %**, pegado al azar esperado, en vez de apurar la cifra hacia abajo.
+
+Tenía razón y la compuerta tenía el hueco: **solo miraba por arriba**. Un módulo al 5 % está tan escrito con patrón como uno al 80 %, y pasaba limpio.
+
+Añadido `UMBRAL_SESGO_INVERTIDO = 0.12`, **como aviso y no como error**. La asimetría es deliberada: el sesgo invertido no aparece escribiendo con normalidad —nadie engorda distractores sin querer—, así que solo puede salir de un repaso como este, y un error bloquearía módulos legítimos que por muestra pequeña caigan bajo. 12 % está a ~1,5σ por debajo del azar con n = 18.
+
+**La lección general, que vale más que el umbral:** una métrica que solo se vigila en una dirección enseña a empujar en la otra. Al fijar un límite conviene preguntarse qué pasa si alguien lo optimiza demasiado.

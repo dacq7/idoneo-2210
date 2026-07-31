@@ -5,6 +5,7 @@ import {
   cuotasDelBloque,
   medirSesgoLongitud,
   UMBRAL_SESGO_AVISO,
+  UMBRAL_SESGO_INVERTIDO,
   UMBRAL_SESGO_ERROR,
   esqItem,
   esqItemCalculo,
@@ -593,5 +594,28 @@ describe('medirSesgoLongitud', () => {
     expect(UMBRAL_SESGO_ERROR).toBe(0.5);
     expect(UMBRAL_SESGO_AVISO).toBe(0.4);
     expect(UMBRAL_SESGO_AVISO).toBeLessThan(UMBRAL_SESGO_ERROR);
+  });
+});
+
+describe('sesgo invertido', () => {
+  it('el umbral inferior está por debajo del azar, no cerca de cero', () => {
+    // El objetivo es parecerse al azar (28,2 %), no minimizar: un módulo al 5 %
+    // está tan escrito con patrón como uno al 80 %, solo que al revés — ahí
+    // «descartar la más larga» acierta el 95 % de las veces.
+    expect(UMBRAL_SESGO_INVERTIDO).toBe(0.12);
+    expect(UMBRAL_SESGO_INVERTIDO).toBeLessThan(UMBRAL_SESGO_AVISO);
+  });
+
+  it('detecta un banco con los distractores sistemáticamente más largos', () => {
+    const items = Array.from({ length: 10 }, (_, i) => ({
+      ...BASE,
+      id: `D1-0${String(i).padStart(2, '0')}`,
+      tipo: 'unica',
+      opciones: ['corta', 'un distractor deliberadamente largo y detallado', 'otro largo también', 'x'],
+      correcta: 0,
+    })) as Item[];
+    const s = medirSesgoLongitud(items);
+    expect(s.proporcion).toBe(0);
+    expect(s.largoMedioCorrecta).toBeLessThan(s.largoMedioDistractor);
   });
 });
