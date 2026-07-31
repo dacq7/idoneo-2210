@@ -2195,3 +2195,19 @@ módulo y revisión ítem por ítem. `radius={2}` en `<Bar>` contradice §4.5 de
 `/diagnostico` pesa lo mismo que los otros simulacros porque **es** el mismo controlador. `/plan` queda por debajo de las rutas de sesión: no carga banco.
 
 **Nota de frontera declarada:** `/plan` pasa los `Modulo` **completos** por prop, y es la excepción razonada del proyecto a la proyección que hace el informe. `generarPlan` necesita `prerequisitos`, `minutosEstimados`, `orden` y `bloque` de los 29 —no tres campos—, así que proyectar ahorraría poco y obligaría a mantener un tipo paralelo en sincronía con `Modulo`. Lo que ADR-010 prohíbe es el import **estático** desde cliente, que sigue sin ocurrir: el canario está en verde.
+
+### Verificación de accesibilidad — decisión y comprobación propia
+
+**No se invocó al `accessibility-auditor`,** y la razón es la que fijó el usuario: solo si hay interacción nueva sin auditar. `/diagnostico` **reutiliza `ControladorSimulacro`**, cuyo cronómetro, panel de navegación, portada y diálogo de reanudar se auditaron enteros en el Paso 11 (A-29 a A-36); `/plan` son listas de enlaces con los patrones ya verificados en pasos anteriores.
+
+Lo único sin precedente es el **día destacado** del plan, que se marca con borde y fondo de color. Se comprobó a mano, a 375 px y en los dos temas:
+
+| | claro | oscuro |
+|---|---|---|
+| Encabezados sin saltos de nivel | ✅ 6 | ✅ 6 |
+| Enlaces por debajo de 44 px | 0 | 0 |
+| El destacado **se dice en texto** («Hoy toca» / «Por aquí ibas»), no solo en color | ✅ | ✅ |
+
+**Y esa comprobación encontró un defecto de copy que ningún test habría cazado.** La portada del diagnóstico decía «hay **14 publicados**», y 14 no son los publicados: C5 tiene **28**. Catorce son los **elegibles** para el diagnóstico una vez aplicado su filtro de tipo y dificultad (ADR-025). El texto se corrigió a «que sirvan para este examen», que es cierto con censo filtrado y sin filtrar.
+
+Es un detalle pequeño y merece decirse en voz alta: la pantalla cuyo trabajo es **decir la verdad sobre lo que hay** estaba dando un número correcto con una etiqueta falsa. La cifra la produjo bien ADR-025; el copy se quedó del paso anterior.

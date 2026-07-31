@@ -177,11 +177,17 @@ function BancoInsuficiente({
         <span className="font-mono font-semibold tabular-nums text-foreground">
           {viabilidad.totalRequerido}
         </span>{' '}
+        {/* «que sirven para este examen», no «publicados»: desde ADR-025 el
+            censo del diagnóstico viene FILTRADO por tipo y dificultad, así que
+            la cifra es menor que la de ítems publicados. Medido: C5 tiene 28
+            publicados y solo 14 elegibles para el diagnóstico. Llamarlos
+            «publicados» sería un dato falso en la pantalla cuyo trabajo es
+            decir la verdad sobre lo que hay. */}
         ítems y hay{' '}
         <span className="font-mono font-semibold tabular-nums text-foreground">
           {viabilidad.totalDisponible}
         </span>{' '}
-        publicados: faltan{' '}
+        que sirvan para este examen: faltan{' '}
         <span className="font-mono font-semibold tabular-nums text-foreground">
           {viabilidad.faltan}
         </span>
