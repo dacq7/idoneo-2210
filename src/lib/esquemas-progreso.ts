@@ -78,10 +78,45 @@ export const esqIntento = z.object({
     }),
   ),
   puntaje: z.number().min(0).max(100),
+  /**
+   * [ADR-023] `porBloque` y `porNivel` exigen **todas** sus claves. §5 las
+   * declaraba como `z.record(esqConteo)` y ahí había un crash reproducido,
+   * anotado en `PENDIENTES.md` desde el Paso 4 para decidirse aquí:
+   *
+   * un intento **sin** los bloques B, C y D pasa `z.record` sin problema, pero
+   * el tipo afirma `Record<BloqueId, …>` con las cuatro claves. Entonces
+   * `construirInforme` hace `desglose.porBloque[b.id].total` y revienta con
+   * `Cannot read properties of undefined` — en la ruta `/resultados`, que es
+   * la pantalla que el usuario abre justo después de dos horas de examen.
+   *
+   * La vía de entrada es real y no hipotética: `importarJSON` acepta ese
+   * respaldo como válido en `/ajustes`.
+   *
+   * **Por qué aquí sí se endurece, cuando ADR-017 decidió no hacerlo con
+   * `intervaloDias`:** el criterio es el mismo de siempre —validar en la capa
+   * cuyo radio de daño corresponde al dato— y sale al revés porque el daño es
+   * otro. Un `intervaloDias` absurdo es inofensivo: la cola solo compara
+   * fechas. Un desglose incompleto **rompe la página**. Y el coste de rechazar
+   * es simétrico en los dos casos (el estado entero va a cuarentena, ADR-008),
+   * así que lo que decide es qué pasa si lo dejas pasar.
+   *
+   * `porModulo` se queda como `z.record`: sus claves son slugs, el conjunto
+   * cambia con el contenido en los pasos 15–17 y el informe lo recorre con
+   * `Object.entries`, nunca por clave fija.
+   */
   desglose: z.object({
-    porBloque: z.record(esqConteo),
+    porBloque: z.object({
+      A: esqConteo,
+      B: esqConteo,
+      C: esqConteo,
+      D: esqConteo,
+    }),
     porModulo: z.record(esqConteo),
-    porNivel: z.record(esqConteo),
+    porNivel: z.object({
+      recuerdo: esqConteo,
+      comprension: esqConteo,
+      aplicacion: esqConteo,
+    }),
   }),
 });
 

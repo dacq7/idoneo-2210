@@ -48,6 +48,40 @@ const eslintConfig = [
       ],
     },
   },
+  // ── Regla 1 de CLAUDE.md §21, con dientes (ADR-022) ──
+  //
+  // «Máximo 300 líneas de código», contadas como las cuenta esta regla:
+  // `skipComments` y `skipBlankLines`. La unidad la fijó ADR-022 después de que
+  // tres mediciones honestas del mismo archivo dieran cuatro resultados
+  // distintos — una regla en una unidad indefinida no se puede cumplir ni
+  // aplicar, solo invocar.
+  //
+  // **Se enciende en el Paso 12, no antes, y eso es parte de la decisión.** Al
+  // decidir la regla el proyecto tenía un incumplidor (`controlador-repaso.tsx`,
+  // 414 líneas) y encenderla habría dejado el lint rojo. Las dos salidas para
+  // evitarlo —subir el número hasta que nadie incumpla, o un `eslint-disable` en
+  // la cabecera— son las dos formas de recrear la enfermedad que ADR-022 cura,
+  // así que se esperó a arreglar el archivo. Si algún día esta regla vuelve a
+  // saltar, el arreglo es extraer la responsabilidad que sobra, no tocar este
+  // número.
+  //
+  // El alcance es el que declara ADR-022. Fuera quedan `content/` (son datos:
+  // el banco de C5 son 594 líneas de ítems), `src/lib/` (motores que §22 regla 2
+  // manda copiar literalmente del blueprint; su criterio de partición es
+  // ADR-021), `src/components/ui/` (generado por el CLI de shadcn) y los tests,
+  // donde el tamaño es cobertura y no diseño.
+  //
+  // La OTRA mitad de la regla 1 —«un componente exportado por archivo»— no tiene
+  // compuerta y no se le inventa una: distinguir un componente de un helper
+  // exportado exige criterio, no una expresión regular.
+  {
+    files: ["src/components/**/*.tsx", "src/hooks/**/*.ts", "src/app/**/*.tsx"],
+    ignores: ["src/components/ui/**"],
+    rules: {
+      "max-lines": ["error", { max: 300, skipComments: true, skipBlankLines: true }],
+    },
+  },
 ];
+
 
 export default eslintConfig;

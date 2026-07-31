@@ -1162,3 +1162,65 @@ ADR-022 fijó la unidad del **límite de líneas** y dejó abierta a propósito 
 Los dos pasan a ser obligación del **Paso 12**, y van declarados en `PENDIENTES.md` en vez de resolverse por iniciativa propia — el usuario pidió expresamente anotarlos sin arreglarlos ahora. **No se prejuzga el arreglo**: `opcion-unica.tsx` exporta una pareja cohesiva que consumen varios tipos de ítem, así que puede que lo correcto sea partirlo o puede que merezca una excepción razonada. Esa es una decisión de diseño que el Paso 12 tomará mirando el código, no una que se pueda tomar contando exports.
 
 **La compuerta de ESLint sigue apagada, y el usuario lo ratificó** con el mismo argumento que dio el `software-architect`: *«subir el número o poner un eslint-disable serían las dos formas de recrear el problema que acabamos de cerrar.»* Se enciende en el Paso 12, cuando los tres incumplimientos —`controlador-repaso.tsx` por líneas, y estos dos por exports— estén resueltos. Nótese que `max-lines` cubre solo la primera mitad de la regla: **la de «un componente exportado» no tiene compuerta automática** y no se le inventa una, porque distinguir un componente de un helper exportado exige criterio, no una expresión regular.
+
+---
+
+## ADR-023 · `esqIntento` exige las claves que el informe lee por nombre
+
+**Estado:** Aceptada
+**Fecha:** 2026-07-31 · **Autor:** Paso 12
+
+**Contexto.** `PENDIENTES.md` traía esto desde el Paso 4, con crash reproducido y la decisión aplazada expresamente a este paso: `esqIntento.desglose.porBloque` era `z.record(esqConteo)`, así que un intento **sin** los bloques B, C y D pasaba la validación. Pero el tipo afirma `Record<BloqueId, …>` con las cuatro claves, y `construirInforme` hace `desglose.porBloque[b.id].total`.
+
+Resultado: `Cannot read properties of undefined` **en `/resultados`**, que es la pantalla que el usuario abre justo después de dos horas de examen. La vía de entrada es real: `importarJSON` acepta ese respaldo como válido en `/ajustes`.
+
+**Decisión: `porBloque` y `porNivel` pasan a `z.object` con todas sus claves. `porModulo` se queda abierto.**
+
+La asimetría no es descuido. Las claves de `porBloque` y `porNivel` son **cerradas y conocidas** —los cuatro bloques y los tres niveles cognitivos—, y el motor las lee por nombre. Las de `porModulo` son slugs: el conjunto **cambia con el contenido** en los pasos 15–17, y el informe las recorre con `Object.entries`, nunca por clave fija. Cerrar `porModulo` obligaría a editar el esquema cada vez que se publica un módulo.
+
+**Por qué aquí sí se endurece, cuando ADR-017 decidió lo contrario con `intervaloDias`.** El criterio es el mismo de siempre —validar en la capa cuyo radio de daño corresponde al dato— y sale al revés porque el daño es otro:
+
+| | `intervaloDias` (ADR-017) | `desglose` (aquí) |
+|---|---|---|
+| Si el dato malo **pasa** | inofensivo: la cola solo compara fechas, y el motor lo acota al escribir | **rompe la página** del informe |
+| Si el dato malo **se rechaza** | el estado entero va a cuarentena (ADR-008) | el estado entero va a cuarentena |
+
+El coste de rechazar es idéntico en los dos casos. Lo que decide es qué pasa si lo dejas entrar, y por eso las dos decisiones son opuestas sin ser incoherentes.
+
+**Segunda línea de defensa, en el motor.** `construirInforme` y `detectarPatrones` leen con `conteoDe(registro, clave)`, que devuelve `{correctas: 0, total: 0}` ante una clave ausente. **No sobra por tener el esquema**: el motor es público, lo llaman los tests y lo llamará el Paso 13, y depender de que alguien más haya validado es la suposición que rompió `restantes()` en ADR-019. El test que lo fija construye a mano un desglose cojo y comprueba que no lanza.
+
+**Verificado por mutación:** revertir `porBloque` a `z.record` mata 1 test; quitar la lectura defensiva del motor mata otro. Los dos se añadieron **después** de comprobar que el mutante sobrevivía sin ellos — un test que no mata a su mutante no cuenta.
+
+---
+
+## ADR-024 · La tabla es la fuente y recharts se carga diferido
+
+**Estado:** Aceptada
+**Fecha:** 2026-07-31 · **Autor:** Paso 12
+
+**Contexto.** El informe estrena la única visualización de datos de la app. Medido con el comando oficial de `COMPONENTES.md`, la ruta pesaba **244.9 kB gz** contra los ~135–150 del resto: **recharts son ~99 kB gz**, y `/resultados/[intentoId]` es la pantalla que el usuario abre justo después de dos horas de examen, muchas veces en 4G, en una app que promete cargar en menos de 3 s (§3).
+
+**Decisión, y las dos mitades se sostienen la una a la otra:**
+
+1. **La tabla de dominio por bloque es la FUENTE, no el pie de la gráfica.** Va siempre, visible para todo el mundo, con los porcentajes exactos y el nombre del bloque escrito. La gráfica lleva `aria-hidden`.
+2. **Por eso recharts puede cargarse diferido** (`next/dynamic`, `ssr: false`). El usuario ve su desglose completo sin esperar; la gráfica aparece cuando llega, y si no llegara —red que se cae— **no falta ningún dato**.
+
+La segunda solo es defendible por la primera. Diferir una visualización que fuera la única portadora de su información sería esconder el dato detrás de una descarga.
+
+**Medido:** 244.9 → **145.6 kB gz** (−99.3), en línea con el resto de la app.
+
+**Por qué la tabla y no un `sr-only`.** Tres razones, y ninguna es de accesibilidad formal:
+
+- Un SVG de recharts es un árbol de `<path>` sin semántica. Ningún `aria-label` sobre el contenedor convierte cuatro barras en cuatro datos.
+- Los porcentajes son el dato que el usuario quiere **comparar y anotar**. Una tabla los da exactos; una barra, aproximados.
+- DISENO.md §1.2: el color nunca es el único portador, y aquí el color distingue bloques.
+
+Un `sr-only` habría resuelto el criterio de accesibilidad y **dejado peor la pantalla para todo el mundo**.
+
+**El hueco reservado mientras carga es espacio en blanco, no un esqueleto.** Un esqueleto promete contenido, y aquí puede no llegar nada. Es la misma honestidad de estado vacío que §22 regla 11 pide en el resto de la app.
+
+**Alternativas descartadas:**
+
+- **Aceptar los 244.9 kB.** Es la ruta de mayor carga emocional del producto y la que más probable es que se abra con datos móviles.
+- **Sustituir recharts por SVG a mano.** Cuatro barras horizontales son ~40 líneas y ahorrarían la dependencia entera. Se descarta **por ahora** porque `recharts` ya está en el stack fijado por §2 y el Paso 18 puede querer más gráficas; si al cerrar la v1 sigue siendo la única, la dependencia sobra y se reconsidera. Anotado en `PENDIENTES.md`.
+- **Graficar también el dominio por módulo.** Son hasta 29 categorías: a 375 px no se lee. Va en lista ordenada de peor a mejor, que además es el orden en que hay que actuar.

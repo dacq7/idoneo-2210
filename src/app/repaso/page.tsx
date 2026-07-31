@@ -22,7 +22,7 @@
 import type { Metadata } from 'next';
 import { MODULOS } from '@/content/estructura';
 import { ControladorRepaso } from '@/components/sesion/controlador-repaso';
-import type { ModuloPublicado } from '@/components/sesion/repaso-vacio';
+import type { ModuloPublicado } from '@/components/sesion/repaso/accion-siguiente';
 
 export const metadata: Metadata = {
   title: 'Repaso',

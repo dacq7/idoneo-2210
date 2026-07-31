@@ -50,10 +50,12 @@ import { fechaLocalDe } from '@/lib/fechas';
 import {
   borrarSesion,
   guardarColaRepaso,
+  guardarIntento,
   guardarSesion,
   leerEstado,
   leerSesion,
 } from '@/lib/almacenamiento';
+import { construirIntento } from '@/lib/informe';
 import { inicioCoherente, restantes } from '@/lib/cronometro';
 import {
   armarSimulacro,
@@ -63,7 +65,13 @@ import {
   type CensoModulo,
 } from '@/lib/simulacro';
 import type { ResumenSesion as DatosResumen } from '@/hooks/usar-sesion';
-import type { BlueprintExamen, BloqueId, Item, SesionCronometro, TipoIntento } from '@/lib/tipos';
+import type {
+  BlueprintExamen,
+  BloqueId,
+  Item,
+  SesionCronometro,
+  TipoIntento,
+} from '@/lib/tipos';
 import { DialogoReanudar } from './dialogo-reanudar';
 import { PortadaSimulacro } from './portada-simulacro';
 import { ResumenSesion } from './resumen-sesion';
@@ -92,7 +100,7 @@ type Vista =
   | { fase: 'cargando' }
   | { fase: 'error'; intento: number }
   | { fase: 'sesion'; sesion: SesionCronometro; items: Item[] }
-  | { fase: 'cerrada'; resumen: DatosResumen };
+  | { fase: 'cerrada'; resumen: DatosResumen; intentoId: string };
 
 /** Carga el banco de los módulos del ámbito. `import()` bajo interacción. */
 async function cargarBanco(slugs: readonly string[]): Promise<Item[]> {
@@ -150,13 +158,11 @@ export function ControladorSimulacro({
         // el instante de arranque, y de ella salen las dos cosas aleatorias del
         // intento: qué ítems entran y en qué orden se presentan sus opciones.
         const semilla = Date.now();
-        // [R3 del `code-reviewer`] Los ítems de los dos últimos intentos se
-        // penalizan —no se prohíben— para que un segundo simulacro no sea el
-        // mismo examen. Hoy la lista sale VACÍA porque los intentos no se
-        // persisten hasta el Paso 12, y se cablea igual: dejarlo para entonces
-        // significa que nadie se acuerde y que el motor tenga un parámetro que
-        // nunca se usó. En cuanto `guardarIntento` empiece a escribir, esto
-        // funciona sin tocar una línea.
+        // Los ítems de los dos últimos intentos se penalizan —no se prohíben—
+        // para que un segundo simulacro no sea el mismo examen. Se cableó en el
+        // Paso 11 apuntando a una lista vacía, y desde el Paso 12 hay intentos
+        // persistidos que lo alimentan: medido, dos simulacros seguidos de 10
+        // ítems sobre C5 pasaron de repetir 5 a repetir 0.
         const recientes = itemsDeIntentosRecientes(leerEstado(new Date().toISOString()).intentos);
         const elegidos = armarSimulacro(blueprint, banco, semilla, recientes);
         const items = presentarTanda(elegidos, semilla);
@@ -215,26 +221,52 @@ export function ControladorSimulacro({
       });
   }, [slugs]);
 
-  const cerrar = useCallback((resumen: DatosResumen) => {
-    // La sesión persistida deja de existir en cuanto el intento se cierra: si
-    // se quedara, la próxima visita ofrecería reanudar un simulacro terminado.
-    borrarSesion();
+  const cerrar = useCallback(
+    (resumen: DatosResumen, sesion: SesionCronometro) => {
+      // La sesión persistida deja de existir en cuanto el intento se cierra: si
+      // se quedara, la próxima visita ofrecería reanudar un simulacro terminado.
+      borrarSesion();
 
-    // SRS: todo ítem fallado entra en la cola, y también los que quedaron en
-    // blanco —`correcta` ya es `false`—, porque no responder tampoco es saberlo.
-    // Es el mismo enganche que práctica y quiz, con `encolar` y no
-    // `registrarRevision`: fallar un ítem no es una revisión, es el motivo por
-    // el que el elemento entra en la cola (ADR-018).
-    const momento = new Date();
-    const ahora = momento.toISOString();
-    const fallados = resumen.detalle.filter((d) => !d.correcta).map((d) => d.item.id);
-    if (fallados.length > 0) {
-      const cola = leerEstado(ahora).colaRepaso;
-      guardarColaRepaso(encolar(cola, fallados, fechaLocalDe(momento)), ahora);
-    }
+      // Handler: el reloj se lee aquí (§10.4).
+      const momento = new Date();
+      const ahora = momento.toISOString();
 
-    setVista({ fase: 'cerrada', resumen });
-  }, []);
+      // ── El intento se PERSISTE (Paso 12) ──
+      //
+      // El Paso 11 lo dejó declarado como aplazamiento: `desglose` exige
+      // `calcularDesglose`, que nace en `informe.ts` y no existía. Ahora sí.
+      //
+      // Lo arma `construirIntento`, que es función pura de `informe.ts` y tiene
+      // test propio: si lo que produce dejara de satisfacer `esqIntento`, el
+      // estado ENTERO iría a cuarentena (ADR-008, ADR-023) y el usuario
+      // perdería de vista su historial, no un intento.
+      const intento = construirIntento(
+        sesion,
+        resumen.detalle,
+        resumen.total,
+        momento.getTime(),
+      );
+      guardarIntento(intento, ahora);
+
+      // SRS: todo ítem fallado entra en la cola, y también los que quedaron en
+      // blanco —`correcta` ya es `false`—, porque no responder tampoco es saberlo.
+      // Es el mismo enganche que práctica y quiz, con `encolar` y no
+      // `registrarRevision`: fallar un ítem no es una revisión, es el motivo por
+      // el que el elemento entra en la cola (ADR-018).
+      //
+      // Va DESPUÉS de `guardarIntento` a propósito: las dos escrituras pasan
+      // por `actualizarEstado`, y la cola tiene que salir del estado que ya
+      // incluye el intento recién guardado.
+      const fallados = resumen.detalle.filter((d) => !d.correcta).map((d) => d.item.id);
+      if (fallados.length > 0) {
+        const cola = leerEstado(ahora).colaRepaso;
+        guardarColaRepaso(encolar(cola, fallados, fechaLocalDe(momento)), ahora);
+      }
+
+      setVista({ fase: 'cerrada', resumen, intentoId: intento.id });
+    },
+    [],
+  );
 
   const descartarYEmpezar = useCallback(() => {
     borrarSesion();
@@ -270,7 +302,7 @@ export function ControladorSimulacro({
         sesion={vista.sesion}
         bloque={bloque}
         volver={volver}
-        onCerrar={cerrar}
+        onCerrar={(resumen) => cerrar(resumen, vista.sesion)}
       />
     );
   }
@@ -279,6 +311,7 @@ export function ControladorSimulacro({
     return (
       <CierreSimulacro
         resumen={vista.resumen}
+        intentoId={vista.intentoId}
         volver={volver}
         onRepetir={() => setVista({ fase: 'portada' })}
       />
@@ -364,10 +397,12 @@ function ReanudarConBanco({
 
 function CierreSimulacro({
   resumen,
+  intentoId,
   volver,
   onRepetir,
 }: {
   resumen: DatosResumen;
+  intentoId: string;
   volver: { href: string; texto: string };
   onRepetir: () => void;
 }) {
@@ -385,7 +420,10 @@ function CierreSimulacro({
       resumen={resumen}
       clase="suelta"
       volver={volver}
-      siguiente={null}
+      // El informe completo —desglose, temas prioritarios, patrones y revisión
+      // ítem por ítem— vive en su propia ruta y es lo primero que se ofrece:
+      // esta pantalla da el titular, el informe da el diagnóstico.
+      siguiente={{ href: `/resultados/${intentoId}`, texto: 'Ver el informe completo' }}
       onRepetir={onRepetir}
     />
   );

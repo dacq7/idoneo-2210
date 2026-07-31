@@ -2050,3 +2050,110 @@ Es la lectura que hace la regla cierta *y* la única que la deja en pie: con la 
 La compuerta de ESLint sigue apagada y el usuario lo ratificó con el argumento del arquitecto: subir el número o poner un `eslint-disable` serían las dos formas de recrear el problema recién cerrado. Se enciende en el Paso 12 con los tres incumplimientos resueltos. Y `max-lines` cubre **solo la primera mitad** de la regla: a la de «un componente exportado» no se le inventa una comprobación automática, porque distinguir un componente de un helper exportado exige criterio.
 
 **Paso 11 aprobado por el usuario.** Los dos aplazamientos quedan ratificados: persistir el `IntentoSimulacro` exige `informe.ts` del Paso 12, y `SimulacroSinRed` va al 18.10 junto a `error.tsx`.
+
+---
+
+## Paso 12 — Motor de informe y `/resultados/[intentoId]` — 2026-07-31
+
+**Estado:** ✅ Completado
+**Rama:** `paso-12-informe`
+
+**Archivos creados**
+
+| Archivo | Qué es |
+|---|---|
+| `src/lib/informe.ts` | §7.5 + lectura defensiva del desglose (ADR-023) |
+| `src/app/resultados/[intentoId]/page.tsx` · `src/app/progreso/page.tsx` | las dos rutas |
+| `src/components/informe/vista-informe.tsx` | orquesta: lee el intento, construye el informe |
+| `informe/veredicto-informe.tsx` | puntaje, veredicto y la nota de COLEF |
+| `informe/tabla-dominio.tsx` · `grafica-dominio.tsx` · `barras-dominio.tsx` | la fuente, el SVG diferido y el compositor (ADR-024) |
+| `informe/patrones-informe.tsx` · `temas-prioritarios.tsx` · `dominio-modulo.tsx` · `revision-items.tsx` | las cuatro secciones |
+| `src/components/progreso/panel-progreso.tsx` | historial de intentos y módulos |
+| `src/components/sesion/sesion-repaso.tsx` | extraído del controlador (ADR-022) |
+| `src/components/sesion/repaso/*.tsx` (6) | `repaso-vacio.tsx` partido: un componente por archivo |
+| `src/components/items/grupo-opcion-unica.tsx` | extraído de `opcion-unica.tsx` |
+| `src/lib/__tests__/informe.test.ts` | 42 tests |
+
+**Verificación.** Cinco compuertas en verde: `typecheck` · `lint` · **579 tests** (537 → 579) · `build` · `canario`.
+
+**Campaña de mutación — 4 mutantes, 4 muertos.** El cuarto es el que importa: **`porBloque` revertido a `z.record` sobrevivió** en la primera pasada, o sea que ADR-023 no tenía guarda. Se añadieron 4 tests que fijan el esquema y entonces sí murió. Un test escrito después de ver sobrevivir al mutante es el único que se sabe con dientes.
+
+**Las cuatro obligaciones heredadas, cerradas.** Detalle en `PENDIENTES.md`. La que más código movió fue la regla 1: `controlador-repaso.tsx` baja de **414 a 170** líneas de código extrayendo `SesionRepaso`, `repaso-vacio.tsx` se parte en seis archivos y `GrupoOpcionUnica` sale a uno propio. **La compuerta `max-lines` queda encendida**, que era la mitad que ADR-022 no pudo cerrar en su momento: verificada por mutación —con `max: 150` salta en 16 archivos— y en verde a 300.
+
+**Sobre `opcion-unica.tsx`, que era la decisión abierta:** `PENDIENTES.md` pedía decidir mirando el código, no contando exports, y mirándolo no hacía falta excepción — `GrupoOpcionUnica` lo consume `caso.tsx`, así que tiene consumidor externo y es público por derecho propio. **El criterio queda escrito** para el próximo caso: un componente con consumidor fuera de su archivo es público; uno que solo usa el archivo que lo define es un auxiliar y puede convivir.
+
+**Los dos requisitos de producto**
+
+- **El veredicto dice que los cortes son criterio interno.** `NOTA_VEREDICTO` va pegada al veredicto, no en un pie, y con un test que falla si alguien la suaviza o si un mensaje empieza a hablar de «aprobado». La app no conoce el corte real de COLEF: afirmarlo sería la clase de cosa que §22 regla 11 prohíbe, sobre la decisión más cara que toma el usuario.
+- **La detección de patrón funciona y puede callarse.** Recuerdo alto con aplicación baja produce «te sabes las definiciones pero no las estás aplicando; haz la Práctica». Con los tres niveles parejos devuelve `[]` y la sección lo dice en vez de rellenar: un informe que siempre encuentra algo enseña a no leerlo.
+
+**Peso — js gz por ruta**
+
+| Ruta | Antes | Después |
+|---|---|---|
+| `/layout` | 132.5 | **132.4** |
+| `/resultados/[intentoId]` | — | **145.6** (nueva) |
+| `/progreso` | — | **135.9** (nueva) |
+| `/repaso` | 143.7 | 143.8 |
+| `/simulacros/final` | 148.3 | 150.1 |
+
+El dato del paso: `/resultados` pesaba **244.9 kB gz** con recharts en el bundle —casi 100 más que cualquier otra ruta, en la pantalla que se abre tras dos horas de examen y muchas veces en 4G—. Diferirlo la deja en **145.6**, y solo es defendible porque la **tabla es la fuente**: el desglose se ve entero sin esperar, y si la gráfica no llega no falta ningún dato (ADR-024).
+
+**Dos ADR nuevos:** ADR-023 (el esquema exige las claves que el informe lee, y por qué eso no contradice ADR-017) y ADR-024 (la tabla es la fuente, recharts diferido).
+
+## [2026-07-31 19:20] · accessibility-auditor · Paso 12 (alcance acotado)
+
+**Qué audité:** solo el dominio por bloque de `/resultados/[intentoId]` —
+`src/components/informe/grafica-dominio.tsx`, `tabla-dominio.tsx` y
+`barras-dominio.tsx`. Alcance acotado por el usuario a las gráficas de recharts y
+a lo inseparable de ellas; el resto del informe **no se auditó**.
+
+**Cómo lo probé:** dos builds de producción (`npm run build` + `next start`,
+nunca `dev`) · Playwright sobre Chromium · estado sintético con **dos** intentos
+`final`/`global` sembrado con `addInitScript`, diseñado para que los cuatro casos
+de la columna «Cambio» (`+30` · `-40` · `0` · `—`) salgan en una sola pantalla,
+pasando `esqEstadoProgreso` entero con las cuatro claves de bloque de ADR-023 ·
+claro y oscuro × 375 px y 1280 px · `prefers-reduced-motion: reduce` · el chunk de
+recharts **retenido** y **abortado** por separado · axe-core 4.x acotado a la
+sección · árbol de accesibilidad real · esperas de 1400 ms por la lección de
+`transition-colors` del Paso 11.
+
+**Hallazgos:** **Crítico 1** (A-39) · Serio 1 (A-37) · Moderado 1 (A-38,
+arreglado durante la auditoría) · Menor 0.
+
+**Bloqueantes:** A-39 — al arreglar A-38 se quitó `loading: () => null` del
+`dynamic()`, y con eso se perdió la absorción del `ChunkLoadError`. Si el chunk de
+recharts **falla** (no si tarda), la ruta entera cae a `error.tsx`: 0 encabezados,
+0 tablas, «Esta pantalla no se pudo mostrar» después de dos horas de examen. Es
+justo el escenario que ADR-024 dice haber previsto. Arreglo: restituir `loading`
+conservando el `minHeight`; son compatibles.
+
+**Contraste:** **todos AA en los dos temas.** Peor caso, barra C sobre el fondo
+real: 4.84:1 claro / 8.02:1 oscuro (umbral 3.0 de 1.4.11). Etiqueta de valor
+17.03:1 / 15.22:1 — se dibuja fuera de la barra, sobre el fondo de página, así
+que no depende del bloque. Los cuatro deltas de la tabla entre 5.03:1 y 6.95:1.
+Ningún token necesita corrección; **nada que pasar al `ui-designer`**.
+
+**Lo que se confirmó:** el `aria-hidden` sobre el SVG es correcto — no aparece en
+el árbol de accesibilidad, no contiene enfocables, y la tabla es superconjunto
+estricto de la gráfica (añade `aciertos/total` y el delta, con `—` para «no
+comparable»). El signo textual del delta basta como portador no cromático. La
+letra del eje Y distingue los bloques sin color. `isAnimationActive={false}`
+verificado en runtime: cero nodos `<animate>` en todas las corridas, también sin
+`reduce`. La reserva de altura de A-38 quedó exacta (621 px de sección y tabla en
+1361 px, con gráfica y sin ella).
+
+**Correcciones de método, anotadas en ACCESIBILIDAD.md:** Chromium devuelve
+`oklch()` desde `getComputedStyle` y hay que rasterizar en `<canvas>` para medir
+contraste (mi primera corrida dio 1.03:1 en todo y el fallo era mío) · hay dos
+tablas en el informe y la de nivel cognitivo va antes en el DOM · un `next start`
+viejo sobrevive a `rm -rf .next` y ensucia la medición con 400 y 404 ·
+`route.continue()` corrompe las URLs con corchetes · retener un chunk y abortarlo
+son pruebas distintas, y ahí estaba el hallazgo Crítico.
+
+**Pendiente:** A-39 (Crítico) y A-37 (Serio) abiertos. El `layout-shift` residual
+de 0.393 es del cambio `<Esqueleto/>` → informe en `vista-informe.tsx`, **no** de
+recharts (idéntico con gráfica y sin ella); queda fuera de alcance y sin hallazgo.
+Sin auditar del Paso 12: veredicto, patrones, temas prioritarios, dominio por
+módulo y revisión ítem por ítem. `radius={2}` en `<Bar>` contradice §4.5 de
+`DISENO.md`; derivado al `ui-designer`, no es accesibilidad.

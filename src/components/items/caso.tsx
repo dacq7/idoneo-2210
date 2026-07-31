@@ -15,7 +15,7 @@
 
 import type { ItemCaso } from '@/lib/tipos';
 import type { PropsItem } from './contrato';
-import { GrupoOpcionUnica } from './opcion-unica';
+import { GrupoOpcionUnica } from './grupo-opcion-unica';
 
 export function Caso({ item, valor, modo, onCambio, numero, total }: PropsItem<number, ItemCaso>) {
   return (
