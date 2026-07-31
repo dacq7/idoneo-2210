@@ -1,0 +1,540 @@
+// content/banco/a1-celula.ts
+// Bloque A · Módulo 1 — Célula: estructura, tipos y división.
+//
+// 25 ítems. Reparto exigido por verificarCuotas con n = 25:
+//   nivel      → 11 recuerdo (44 %) · 8 comprensión (32 %) · 6 aplicación (24 %)
+//   dificultad → 6 de nivel 1 · 13 de nivel 2 · 6 de nivel 3
+//   tipos      → 12 única · 3 emparejar · 3 múltiple · 3 caso · 2 ordenar · 2 V/F
+//
+// Sin ítems de cálculo: el módulo es descriptivo y sus únicas cifras son
+// tamaños de referencia y conteos de células hijas, que no se calculan.
+//
+// ADR-014 · los tres puntos verificados que este módulo enseña sin anunciar
+// discrepancia: protozoos y hongos son eucariotas siempre; «alga» no es un
+// taxón y las cianobacterias son bacterias; el sarcómero y el alvéolo son
+// estructuras, no células.
+//
+// Los ítems son datos literales: nunca se generan con map(), plantillas ni
+// funciones auxiliares.
+import type { Item } from '@/lib/tipos';
+
+export const ITEMS: Item[] = [
+  {
+    id: 'A1-001',
+    modulo: 'a1-celula',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: '¿Qué caracteriza a una célula procariota?',
+    opciones: [
+      'Que carece de núcleo definido: su ADN está libre en el citoplasma',
+      'Que carece de material genético propio y lo toma de la célula anfitriona',
+      'Que posee un único orgánulo con membrana, encargado de producir energía',
+      'Que su tamaño supera al de la eucariota por no tener compartimentos internos',
+    ],
+    correcta: 0,
+    explicacion:
+      'La procariota se define por la ausencia de núcleo definido: el ADN, circular y sin histonas, está libre en el citoplasma, y tampoco tiene orgánulos con membrana. El distractor más tentador es el tercero, porque suena a mitocondria, y precisamente la mitocondria es de las que faltan. El cuarto invierte el tamaño: la procariota mide 1–5 µm frente a los 10–100 µm de la eucariota. Dato para recordar: procariota es «antes del núcleo».',
+    referencia: 'Cartilla 1, Tema 1, Subtema 1.1 — Teoría celular y tipos de célula',
+    etiquetas: ['célula procariota', 'núcleo', 'definición'],
+  },
+  {
+    id: 'A1-002',
+    modulo: 'a1-celula',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: '¿Cuál es la función de la mitocondria?',
+    opciones: [
+      'Realizar la respiración celular y producir la mayor parte del ATP de la célula',
+      'Sintetizar las proteínas que la célula necesita para funcionar',
+      'Empaquetar y distribuir el material procedente del retículo endoplasmático',
+      'Degradar el material celular gastado mediante enzimas digestivas',
+    ],
+    correcta: 0,
+    explicacion:
+      'La mitocondria es donde ocurre la respiración celular y donde se produce la mayor parte del ATP de la célula; se reconoce además por su doble membrana con crestas y por tener ADN propio. Los tres distractores describen ribosoma, aparato de Golgi y lisosoma. El más tentador es el segundo, porque la producción de energía y la de proteínas se confunden al estudiar la lista de corrido. Dato para recordar: es el orgánulo que sostiene todo el bloque C.',
+    referencia: 'Cartilla 1, Tema 1, Subtema 1.2 — Orgánulos y sus funciones',
+    etiquetas: ['mitocondria', 'ATP', 'orgánulo'],
+  },
+  {
+    id: 'A1-003',
+    modulo: 'a1-celula',
+    bloque: 'A',
+    tipo: 'emparejar',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: 'Relacione cada orgánulo con su función.',
+    izquierda: ['Núcleo', 'Ribosoma', 'Aparato de Golgi', 'Lisosoma'],
+    derecha: [
+      'Contiene el ADN y dirige la actividad de la célula',
+      'Sintetiza las proteínas a partir de la información recibida',
+      'Modifica, empaqueta y distribuye lo que llega del retículo',
+      'Degrada material celular mediante enzimas digestivas',
+    ],
+    pares: [
+      [0, 0],
+      [1, 1],
+      [2, 2],
+      [3, 3],
+    ],
+    explicacion:
+      'El par que más se falla es Golgi con lisosoma, porque los dos manipulan material que viene del retículo: el Golgi lo prepara y lo envía, y el lisosoma lo destruye. Conviene recordar además que el ribosoma no es solo el que sintetiza proteínas, sino el único de la lista sin membrana, y que quien lo fabrica es el nucléolo dentro del núcleo. Dato para recordar: el Golgi envía y el lisosoma destruye.',
+    referencia: 'Cartilla 1, Tema 1, Subtema 1.2 — Orgánulos y sus funciones',
+    etiquetas: ['orgánulo', 'Golgi', 'lisosoma', 'clasificación'],
+  },
+  {
+    id: 'A1-004',
+    modulo: 'a1-celula',
+    bloque: 'A',
+    tipo: 'vf',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: 'Los hongos y los protozoos son organismos procariotas.',
+    correcta: false,
+    explicacion:
+      'Falso. Los hongos y los protozoos son eucariotas sin excepción: tienen núcleo con envoltura, mitocondrias y el resto de orgánulos membranosos. Una levadura de cerveza es un hongo unicelular y es eucariota; un paramecio es un protozoo y también lo es. Los únicos procariotas son las bacterias y las arqueas. Dato para recordar: unicelular no significa procariota.',
+    referencia: 'Cartilla 1, Tema 1, Subtema 1.1 — Teoría celular y tipos de célula',
+    etiquetas: ['célula eucariota', 'hongos', 'protozoos'],
+  },
+  {
+    id: 'A1-005',
+    modulo: 'a1-celula',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: '¿Qué orgánulo carece de membrana que lo delimite?',
+    opciones: [
+      'El ribosoma',
+      'El lisosoma, que solo está rodeado por una capa de enzimas activas',
+      'La mitocondria, que se apoya directamente sobre el citoesqueleto celular',
+      'El aparato de Golgi, formado por cisternas abiertas al citoplasma',
+    ],
+    correcta: 0,
+    explicacion:
+      'El ribosoma es el único de la lista habitual que no está delimitado por membrana: es un complejo de ARN y proteínas que puede estar libre en el citoplasma o adherido al retículo rugoso. Los tres distractores atribuyen falsamente esa ausencia a orgánulos que sí tienen membrana, y la mitocondria además tiene dos. Dato para recordar: sin membrana y con la tarea más importante, sintetizar proteínas.',
+    referencia: 'Cartilla 1, Tema 1, Subtema 1.2 — Orgánulos y sus funciones',
+    etiquetas: ['ribosoma', 'orgánulo', 'membrana'],
+  },
+  {
+    id: 'A1-006',
+    modulo: 'a1-celula',
+    bloque: 'A',
+    tipo: 'ordenar',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: 'Ordene las cuatro etapas de la mitosis.',
+    elementos: [
+      'Profase: la cromatina se condensa y desaparece la envoltura nuclear',
+      'Metafase: los cromosomas se alinean en el plano ecuatorial',
+      'Anafase: las cromátidas hermanas migran hacia polos opuestos',
+      'Telofase: se reconstruye la envoltura nuclear y los cromosomas se descondensan',
+    ],
+    ordenCorrecto: [0, 1, 2, 3],
+    explicacion:
+      'La secuencia se recuerda por sus iniciales, P-M-A-T. El error más frecuente es intercambiar metafase y anafase, y el prefijo lo resuelve: meta es «en medio», los cromosomas se colocan en el centro, y ana es «separando», las cromátidas se van a los polos. Primero se forma la fila y después se rompe. La citocinesis, que reparte el citoplasma, viene después y es un proceso aparte.',
+    referencia: 'Cartilla 1, Tema 1, Subtema 1.4 — Ciclo celular y mitosis',
+    etiquetas: ['mitosis', 'profase', 'anafase', 'secuencia'],
+  },
+  {
+    id: 'A1-007',
+    modulo: 'a1-celula',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: '¿Qué tres estructuras tiene la célula vegetal y no la animal?',
+    opciones: [
+      'Pared celular de celulosa, cloroplastos y vacuola central grande',
+      'Pared celular de quitina, cloroplastos y centriolos bien desarrollados',
+      'Mitocondrias, ribosomas libres y retículo endoplasmático liso abundante',
+      'Vacuola central grande, lisosomas numerosos y aparato de Golgi múltiple',
+    ],
+    correcta: 0,
+    explicacion:
+      'Las tres exclusivas del vegetal son pared de celulosa, cloroplasto y vacuola central, y tienen sentido juntas: la planta no se mueve, así que necesita sostén rígido, fábrica de alimento y depósito de agua que la mantenga turgente. El distractor más tentador es el segundo, porque acierta el cloroplasto y falla en lo demás: la quitina es de los hongos y los centriolos faltan en las plantas superiores. Dato para recordar: celulosa la planta, quitina el hongo.',
+    referencia: 'Cartilla 1, Tema 1, Subtema 1.3 — Célula animal y célula vegetal',
+    etiquetas: ['célula vegetal', 'cloroplasto', 'pared celular'],
+  },
+  {
+    id: 'A1-008',
+    modulo: 'a1-celula',
+    bloque: 'A',
+    tipo: 'multiple',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: 'Seleccione los TRES grupos de organismos formados por células eucariotas.',
+    opciones: [
+      'Los hongos, incluidas las levaduras unicelulares',
+      'Los protozoos, como el paramecio o la ameba',
+      'Los animales, desde los invertebrados hasta los mamíferos',
+      'Las bacterias, incluidas las que viven en el intestino humano',
+      'Las cianobacterias, conocidas antiguamente como algas verdeazuladas',
+    ],
+    correctas: [0, 1, 2],
+    explicacion:
+      'Hongos, protozoos y animales son eucariotas, igual que las plantas. Los dos distractores son los únicos procariotas del examen: las bacterias y las arqueas, y las cianobacterias pertenecen al primer grupo por mucho que su nombre antiguo hablara de algas. Ese nombre es justamente la trampa, porque «alga» no es un grupo biológico y reúne organismos de ambos lados. Dato para recordar: si el nombre lleva «bacteria», es procariota.',
+    referencia: 'Cartilla 1, Tema 1, Subtema 1.1 — Teoría celular y tipos de célula',
+    etiquetas: ['célula eucariota', 'cianobacterias', 'clasificación'],
+  },
+  {
+    id: 'A1-009',
+    modulo: 'a1-celula',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: '¿Qué ocurre durante la metafase?',
+    opciones: [
+      'Los cromosomas se alinean en el plano ecuatorial de la célula',
+      'Las cromátidas hermanas se separan y migran hacia polos opuestos',
+      'La cromatina se condensa y desaparece la envoltura nuclear',
+      'Se reconstruye la envoltura nuclear alrededor de cada juego cromosómico',
+    ],
+    correcta: 0,
+    explicacion:
+      'En la metafase los cromosomas forman una única fila en el ecuador de la célula, anclados al huso. El distractor más tentador es el segundo, la anafase, que es la etapa inmediatamente posterior y donde esa fila se rompe. El prefijo lo aclara: meta es «en medio» y ana es «separando». Dato para recordar: primero se forma la fila, después se rompe, y solo entonces se reconstruyen los núcleos.',
+    referencia: 'Cartilla 1, Tema 1, Subtema 1.4 — Ciclo celular y mitosis',
+    etiquetas: ['metafase', 'mitosis', 'cromosomas'],
+  },
+  {
+    id: 'A1-010',
+    modulo: 'a1-celula',
+    bloque: 'A',
+    tipo: 'emparejar',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: 'Relacione cada rasgo con el tipo de división celular que le corresponde.',
+    izquierda: [
+      'Produce 2 células hijas con la misma dotación que la madre',
+      'Produce 4 células hijas con la mitad de los cromosomas',
+      'Ocurre en las células somáticas y sirve para crecer y reparar',
+      'Ocurre en las células germinales y genera variabilidad genética',
+    ],
+    derecha: ['Mitosis', 'Meiosis', 'Mitosis', 'Meiosis'],
+    pares: [
+      [0, 0],
+      [1, 1],
+      [2, 2],
+      [3, 3],
+    ],
+    explicacion:
+      'La mitosis conserva la dotación cromosómica y la meiosis la reduce a la mitad, que es la diferencia de fondo: por eso una da 2 células idénticas y la otra 4 haploides. El rasgo que más se falla es la variabilidad, porque se atribuye a las dos: la mitosis solo la genera por error, mientras que en la meiosis es un mecanismo previsto, con entrecruzamiento y reparto al azar. Dato para recordar: mitosis repara, meiosis reproduce.',
+    referencia: 'Cartilla 1, Tema 1, Subtema 1.5 — Meiosis',
+    etiquetas: ['mitosis', 'meiosis', 'clasificación'],
+  },
+  {
+    id: 'A1-011',
+    modulo: 'a1-celula',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: '¿Qué ocurre durante la interfase del ciclo celular?',
+    opciones: [
+      'La célula crece y duplica su ADN antes de empezar a dividirse',
+      'La célula reparte su citoplasma entre las dos células hijas resultantes',
+      'La célula detiene su actividad metabólica hasta que comienza la profase',
+      'La célula reduce a la mitad su dotación cromosómica para formar gametos',
+    ],
+    correcta: 0,
+    explicacion:
+      'La interfase no es una pausa: es donde la célula crece y duplica su material genético, sin lo cual no habría nada que repartir entre las dos hijas. El distractor más tentador es el tercero, porque «inter» sugiere un intervalo de descanso entre divisiones, y es al revés: la mayor parte de la vida activa de la célula transcurre ahí. Dato para recordar: el ADN se duplica antes de la profase, no durante ella.',
+    referencia: 'Cartilla 1, Tema 1, Subtema 1.4 — Ciclo celular y mitosis',
+    etiquetas: ['interfase', 'ciclo celular', 'ADN'],
+  },
+  {
+    id: 'A1-012',
+    modulo: 'a1-celula',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado:
+      '¿Por qué una célula procariota no puede realizar la respiración celular del modo en que la realiza una eucariota?',
+    opciones: [
+      'Porque carece de mitocondrias, que es donde ocurre ese proceso en la eucariota',
+      'Porque su ADN circular no codifica las enzimas necesarias para oxidar sustratos',
+      'Porque su membrana plasmática no permite la entrada de oxígeno al citoplasma',
+      'Porque su tamaño reducido no le permite almacenar el ATP que produciría',
+    ],
+    correcta: 0,
+    explicacion:
+      'La respiración celular de la eucariota ocurre en la mitocondria, y ese orgánulo no existe en la procariota, que resuelve su metabolismo energético en la membrana plasmática y el citoplasma. El distractor más tentador es el tercero, porque muchas bacterias sí son aerobias y el oxígeno entra sin problema: lo que falta es el compartimento, no el sustrato ni el gas. Dato para recordar: la ausencia de orgánulos membranosos es la definición misma de procariota.',
+    referencia: 'Cartilla 1, Tema 1, Subtema 1.1 — Teoría celular y tipos de célula',
+    etiquetas: ['célula procariota', 'mitocondria', 'respiración celular'],
+  },
+  {
+    id: 'A1-013',
+    modulo: 'a1-celula',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado:
+      'Al microscopio se observa una célula con los cromosomas formando una única fila en el centro. ¿En qué etapa está?',
+    opciones: [
+      'En metafase',
+      'En anafase, porque los cromosomas ya se han desplazado desde la periferia',
+      'En profase, porque los cromosomas acaban de hacerse visibles al condensarse',
+      'En telofase, porque los cromosomas se agrupan antes de descondensarse',
+    ],
+    correcta: 0,
+    explicacion:
+      'La fila única en el plano ecuatorial es la imagen característica de la metafase, y es la etapa más fácil de identificar al microscopio precisamente por eso. El distractor más tentador es el segundo, porque en la anafase los cromosomas también están en movimiento; en la anafase, sin embargo, ya se ven dos grupos separándose hacia los polos, no una sola fila. Dato para recordar: una fila es metafase, dos grupos es anafase.',
+    referencia: 'Cartilla 1, Tema 1, Subtema 1.4 — Ciclo celular y mitosis',
+    etiquetas: ['metafase', 'anafase', 'mitosis'],
+  },
+  {
+    id: 'A1-014',
+    modulo: 'a1-celula',
+    bloque: 'A',
+    tipo: 'multiple',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado: 'Seleccione las DOS afirmaciones correctas sobre la meiosis.',
+    opciones: [
+      'Consta de dos divisiones sucesivas y produce cuatro células hijas',
+      'Reduce la dotación cromosómica a la mitad y genera variabilidad genética',
+      'Ocurre en cualquier célula del organismo cuando es necesario repararla',
+      'Produce células hijas genéticamente idénticas a la célula que las originó',
+      'Es el mecanismo con el que el músculo dañado repone sus fibras',
+    ],
+    correctas: [0, 1],
+    explicacion:
+      'Las dos primeras describen la meiosis completa: dos divisiones, cuatro células haploides y variabilidad por entrecruzamiento y reparto al azar. Las tres restantes describen la mitosis y son el error clásico del módulo, porque reparar tejidos, producir células idénticas y reponer fibras musculares son tareas de la división somática. Dato para recordar: la meiosis solo ocurre en las células germinales.',
+    referencia: 'Cartilla 1, Tema 1, Subtema 1.5 — Meiosis',
+    etiquetas: ['meiosis', 'mitosis', 'variabilidad genética'],
+  },
+  {
+    id: 'A1-015',
+    modulo: 'a1-celula',
+    bloque: 'A',
+    tipo: 'vf',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado: 'El sarcómero es la célula del tejido muscular y el alvéolo, la del tejido pulmonar.',
+    correcta: false,
+    explicacion:
+      'Falso en las dos mitades. La célula muscular es la fibra muscular o miocito, y el sarcómero es la unidad contráctil que se repite dentro de ella, no una célula. La célula pulmonar es el neumocito, y el alvéolo es la estructura, el saco donde ocurre el intercambio de gases, tapizado precisamente por neumocitos. Dato para recordar: sarcómero y alvéolo son estructuras, no células.',
+    referencia: 'Cartilla 1, Tema 1, Subtema 1.1 — Teoría celular y tipos de célula',
+    etiquetas: ['fibra muscular', 'neumocito', 'sarcómero', 'alvéolo'],
+  },
+  {
+    id: 'A1-016',
+    modulo: 'a1-celula',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado:
+      'En la fibra muscular, ¿qué orgánulo recibe el nombre de retículo sarcoplásmico y qué función cumple?',
+    opciones: [
+      'El retículo endoplasmático liso, que almacena el calcio que dispara la contracción',
+      'El retículo endoplasmático rugoso, que sintetiza las proteínas contráctiles',
+      'El aparato de Golgi, que distribuye el calcio hacia las miofibrillas vecinas',
+      'La mitocondria, que suministra el ATP que consume cada ciclo de contracción',
+    ],
+    correcta: 0,
+    explicacion:
+      'El retículo sarcoplásmico es el retículo endoplasmático liso de la fibra muscular, y su función de almacenar calcio es la que permite disparar la contracción cuando llega el impulso nervioso. El distractor más tentador es el segundo, porque las proteínas contráctiles sí se sintetizan en el rugoso; lo que aquí se pregunta es quién guarda el calcio. Dato para recordar: no es un orgánulo distinto, es el mismo con nombre de tejido.',
+    referencia: 'Cartilla 1, Tema 1, Subtema 1.2 — Orgánulos y sus funciones',
+    etiquetas: ['retículo sarcoplásmico', 'calcio', 'fibra muscular'],
+  },
+  {
+    id: 'A1-017',
+    modulo: 'a1-celula',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'comprension',
+    dificultad: 3,
+    enunciado:
+      'Una pregunta afirma que «las algas son organismos procariotas». ¿Por qué el enunciado no puede ser correcto tal como está formulado?',
+    opciones: [
+      'Porque «alga» no es un grupo biológico: las hay eucariotas y solo las cianobacterias son procariotas',
+      'Porque todas las algas conocidas son eucariotas, sin ninguna excepción registrada',
+      'Porque las algas carecen de célula y se organizan como colonias de bacterias libres',
+      'Porque las algas son hongos acuáticos y comparten con ellos su organización celular',
+    ],
+    correcta: 0,
+    explicacion:
+      'El término «alga» reúne organismos de linajes muy distintos: las algas verdes y las pardas son eucariotas, con núcleo y cloroplastos, mientras que las cianobacterias —las llamadas antiguamente algas verdeazuladas— son bacterias y por tanto procariotas. El distractor más tentador es el segundo, porque corrige la afirmación en la dirección adecuada y se pasa de frenada. Dato para recordar: si la pregunta mete a «las algas» en un solo saco, la respuesta correcta hablará de bacterias y arqueas.',
+    referencia: 'Cartilla 1, Tema 1, Subtema 1.1 — Teoría celular y tipos de célula',
+    etiquetas: ['cianobacterias', 'célula procariota', 'clasificación'],
+  },
+  {
+    id: 'A1-018',
+    modulo: 'a1-celula',
+    bloque: 'A',
+    tipo: 'caso',
+    nivel: 'comprension',
+    dificultad: 3,
+    viñeta:
+      'En una práctica de laboratorio se observa una célula grande, con núcleo bien visible, rodeada por una capa rígida externa, con un compartimento translúcido que ocupa la mayor parte del interior y varios cuerpos verdes distribuidos por el citoplasma.',
+    enunciado: '¿De qué tipo de célula se trata y por qué?',
+    opciones: [
+      'Vegetal: la capa rígida es pared de celulosa, el compartimento la vacuola y los cuerpos verdes cloroplastos',
+      'Animal: la capa rígida es la membrana plasmática y los cuerpos verdes son lisosomas teñidos',
+      'Procariota: la capa rígida es la pared bacteriana y el compartimento central, el nucleoide',
+      'Fúngica: la capa rígida es de quitina y los cuerpos verdes son vacuolas digestivas',
+    ],
+    correcta: 0,
+    explicacion:
+      'Las tres pistas apuntan al mismo sitio y ninguna sobra: pared rígida externa, vacuola central que ocupa casi todo el volumen y cloroplastos. El distractor más tentador es el tercero, porque la pared también existe en bacterias; una procariota no tendría núcleo bien visible ni alcanzaría ese tamaño. Y el fúngico se descarta porque los hongos no fotosintetizan y no tienen cloroplastos. Dato para recordar: cloroplasto visible cierra el diagnóstico.',
+    referencia: 'Cartilla 1, Tema 1, Subtema 1.3 — Célula animal y célula vegetal',
+    etiquetas: ['célula vegetal', 'cloroplasto', 'vacuola', 'identificación'],
+  },
+  {
+    id: 'A1-019',
+    modulo: 'a1-celula',
+    bloque: 'A',
+    tipo: 'emparejar',
+    nivel: 'comprension',
+    dificultad: 3,
+    enunciado: 'Relacione cada tejido con el nombre de su célula.',
+    izquierda: ['Tejido muscular', 'Tejido pulmonar', 'Tejido óseo', 'Tejido nervioso'],
+    derecha: ['Fibra muscular o miocito', 'Neumocito', 'Osteocito', 'Neurona'],
+    pares: [
+      [0, 0],
+      [1, 1],
+      [2, 2],
+      [3, 3],
+    ],
+    explicacion:
+      'Los cuatro nombres se piden con precisión y dos de ellos se confunden habitualmente con estructuras que no son células: el sarcómero, que es la unidad contráctil dentro de la fibra, y el alvéolo, que es el saco tapizado por neumocitos donde ocurre el intercambio de gases. El osteocito reaparece en el módulo A3 junto al osteoblasto y al osteoclasto, que son otras dos células del mismo tejido. Dato para recordar: la célula tiene nombre propio; la estructura, otro.',
+    referencia: 'Cartilla 1, Tema 1, Subtema 1.1 — Teoría celular y tipos de célula',
+    etiquetas: ['fibra muscular', 'neumocito', 'osteocito', 'clasificación'],
+  },
+  {
+    id: 'A1-020',
+    modulo: 'a1-celula',
+    bloque: 'A',
+    tipo: 'caso',
+    nivel: 'aplicacion',
+    dificultad: 2,
+    viñeta:
+      'Un deportista completa una sesión de trabajo excéntrico y presenta dolor muscular en las 48 horas siguientes. El análisis del tejido muestra fibras con daño estructural y un aumento de células satélite en división junto a ellas.',
+    enunciado: '¿Qué proceso celular está ocurriendo?',
+    opciones: [
+      'Mitosis de las células satélite, que se dividen y se fusionan con la fibra dañada',
+      'Meiosis de las células satélite, que reducen su dotación para generar fibras nuevas',
+      'Apoptosis generalizada de las fibras, que son sustituidas por tejido conectivo',
+      'División de los sarcómeros, que se multiplican dentro de cada fibra afectada',
+    ],
+    correcta: 0,
+    explicacion:
+      'La reparación del daño muscular se apoya en células satélite que se dividen por mitosis y se fusionan con la fibra dañada: es división somática, con dotación cromosómica conservada. El distractor más tentador es el segundo, porque nombra correctamente las células y se equivoca de división; la meiosis solo ocurre en células germinales. Y el sarcómero no se divide, porque no es una célula. Dato para recordar: sin mitosis no hay adaptación, solo daño acumulado.',
+    referencia: 'Cartilla 1, Tema 1, Subtema 1.4 — Ciclo celular y mitosis',
+    etiquetas: ['mitosis', 'reparación muscular', 'células satélite', 'aplicación'],
+  },
+  {
+    id: 'A1-021',
+    modulo: 'a1-celula',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'aplicacion',
+    dificultad: 2,
+    enunciado:
+      'Una sustancia impide la formación del huso mitótico. ¿En qué etapa quedaría detenida la célula?',
+    opciones: [
+      'No podría pasar de la profase, porque el huso se forma en ella y sin él no hay alineación',
+      'Se detendría en la telofase, porque el huso interviene al reconstruir la envoltura nuclear',
+      'Completaría la mitosis con normalidad, porque el huso solo interviene en la citocinesis',
+      'Quedaría bloqueada en la interfase, porque el huso es necesario para duplicar el ADN',
+    ],
+    correcta: 0,
+    explicacion:
+      'El huso se forma durante la profase y es la estructura que después alinea los cromosomas en metafase y separa las cromátidas en anafase: sin él, el proceso no avanza más allá de la profase. El distractor más tentador es el último, porque la interfase precede a todo; la duplicación del ADN no depende del huso, sino de las enzimas de replicación. Dato para recordar: el huso mueve cromosomas, no los copia.',
+    referencia: 'Cartilla 1, Tema 1, Subtema 1.4 — Ciclo celular y mitosis',
+    etiquetas: ['huso mitótico', 'profase', 'mitosis', 'aplicación'],
+  },
+  {
+    id: 'A1-022',
+    modulo: 'a1-celula',
+    bloque: 'A',
+    tipo: 'caso',
+    nivel: 'aplicacion',
+    dificultad: 3,
+    viñeta:
+      'Un preparado muestra células alargadas, con muchos núcleos por célula, gran cantidad de mitocondrias y un sistema de membranas internas muy desarrollado que almacena calcio. No se observan cloroplastos ni pared rígida.',
+    enunciado: '¿Qué tipo celular es y qué explica cada rasgo?',
+    opciones: [
+      'Fibra muscular: los núcleos múltiples proceden de la fusión de células, las mitocondrias aportan el ATP y las membranas son el retículo sarcoplásmico',
+      'Neumocito: la forma alargada tapiza el alvéolo y las membranas internas facilitan el intercambio de gases con el capilar',
+      'Célula vegetal joven: aún no ha desarrollado cloroplastos ni ha engrosado su pared de celulosa',
+      'Célula procariota de gran tamaño: los núcleos múltiples son en realidad varios nucleoides del mismo ADN',
+    ],
+    correcta: 0,
+    explicacion:
+      'Los cuatro rasgos apuntan a la fibra muscular: es multinucleada por la fusión de mioblastos durante su formación, tiene abundantes mitocondrias por su demanda de ATP y su retículo sarcoplásmico almacena el calcio que dispara la contracción. El distractor más tentador es el último, porque intenta explicar los múltiples núcleos; una procariota no tiene núcleo alguno ni retículo. Dato para recordar: multinucleada más retículo con calcio es músculo.',
+    referencia: 'Cartilla 1, Tema 1, Subtema 1.2 — Orgánulos y sus funciones',
+    etiquetas: ['fibra muscular', 'retículo sarcoplásmico', 'mitocondria', 'identificación'],
+  },
+  {
+    id: 'A1-023',
+    modulo: 'a1-celula',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'aplicacion',
+    dificultad: 3,
+    enunciado:
+      'Si en la anafase una pareja de cromátidas no se separase, ¿qué consecuencia tendría en las células hijas?',
+    opciones: [
+      'Una recibiría un cromosoma de más y la otra uno de menos',
+      'Las dos recibirían la dotación correcta, porque la telofase corrige el reparto',
+      'Las dos quedarían haploides, con la mitad de los cromosomas de la madre',
+      'La célula no llegaría a dividirse y permanecería detenida en la interfase',
+    ],
+    correcta: 0,
+    explicacion:
+      'La anafase es donde se reparte el material genético, así que un fallo de separación deja a una célula hija con un cromosoma de más y a la otra con uno de menos. El distractor más tentador es el segundo, porque atribuye a la telofase una función correctora que no tiene: la telofase reconstruye envolturas y descondensa, no revisa el reparto. Dato para recordar: si el reparto falla en anafase, ya no hay etapa que lo arregle.',
+    referencia: 'Cartilla 1, Tema 1, Subtema 1.4 — Ciclo celular y mitosis',
+    etiquetas: ['anafase', 'mitosis', 'cromosomas', 'aplicación'],
+  },
+  {
+    id: 'A1-024',
+    modulo: 'a1-celula',
+    bloque: 'A',
+    tipo: 'ordenar',
+    nivel: 'aplicacion',
+    dificultad: 3,
+    enunciado: 'Ordene los momentos del ciclo celular completo, desde el crecimiento hasta la separación.',
+    elementos: [
+      'Interfase: la célula crece y duplica su material genético',
+      'Profase: la cromatina se condensa y se organiza el huso',
+      'Metafase: los cromosomas se alinean en el ecuador celular',
+      'Anafase: las cromátidas hermanas se reparten hacia los polos',
+      'Telofase y citocinesis: se rehacen los núcleos y se divide el citoplasma',
+    ],
+    ordenCorrecto: [0, 1, 2, 3, 4],
+    explicacion:
+      'El ciclo empieza mucho antes de que se vea nada al microscopio: la interfase ocupa la mayor parte del tiempo y es donde se duplica el ADN. El error más frecuente es colocarla al final, como si fuera el descanso entre divisiones, cuando es la preparación de la siguiente. Y la citocinesis va con la telofase pero es un proceso aparte, porque reparte el citoplasma y no los cromosomas. Dato para recordar: si el ADN no se duplicó antes, no hay mitosis posible.',
+    referencia: 'Cartilla 1, Tema 1, Subtema 1.4 — Ciclo celular y mitosis',
+    etiquetas: ['ciclo celular', 'interfase', 'mitosis', 'secuencia'],
+  },
+  {
+    id: 'A1-025',
+    modulo: 'a1-celula',
+    bloque: 'A',
+    tipo: 'multiple',
+    nivel: 'aplicacion',
+    dificultad: 2,
+    enunciado:
+      'Un cultivo contiene células sin núcleo definido y sin orgánulos membranosos. Seleccione las DOS estructuras que sí cabe esperar encontrar en ellas.',
+    opciones: [
+      'Ribosomas, aunque más pequeños que los de la célula eucariota',
+      'Membrana plasmática que delimita la célula y controla el intercambio',
+      'Mitocondrias en número reducido, adosadas a la cara interna de la pared',
+      'Aparato de Golgi simplificado, con menos cisternas de lo habitual',
+      'Retículo endoplasmático liso encargado de almacenar calcio intracelular',
+    ],
+    correctas: [0, 1],
+    explicacion:
+      'La descripción corresponde a una procariota, que conserva membrana plasmática y ribosomas —más pequeños que los eucariotas— porque necesita delimitarse y sintetizar proteínas. Los tres distractores nombran orgánulos con membrana, que es exactamente lo que el enunciado ha descartado, y el más tentador es la mitocondria porque cuesta imaginar una célula viva sin ella. Dato para recordar: sin orgánulos membranosos quedan la membrana, el citoplasma, el ADN y los ribosomas.',
+    referencia: 'Cartilla 1, Tema 1, Subtema 1.1 — Teoría celular y tipos de célula',
+    etiquetas: ['célula procariota', 'ribosoma', 'membrana plasmática', 'aplicación'],
+  },
+];

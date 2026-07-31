@@ -152,13 +152,59 @@ Los 8 módulos publicados con **28 ítems y 15 tarjetas cada uno**. Banco 228 �
 
 **Obligaciones nuevas que este paso genera:**
 
-- **Paso 17 — `datos-duros.ts` y `glosario.ts` no están exentos de ADR-014** (ADR-029). Quien escriba un módulo verifica también sus datos duros. Lo que queda sin revisar con bibliografía delante son los de los bloques A y B, y en particular **`DD-060` a `DD-074`, la serie de biomarcadores**: son rangos de laboratorio y varían con el método de medición.
+- ~~**Paso 17 — `datos-duros.ts` y `glosario.ts` no están exentos de ADR-014** (ADR-029)~~ **CERRADO el 2026-07-31.** La serie `DD-060` a `DD-074` se revisó y produjo cuatro correcciones: **DD-067** pasa a hs-PCR con sus tres cortes de riesgo, **DD-070** deja el umbral absoluto por la caída del 30 % sobre el basal propio, **DD-071** añade que su rango es de adulto joven y **DD-072** se separa por sexo. En estadística, **DD-083** recoge la varianza poblacional y la muestral.
 
 - **Paso 17 — dos tests dejaron de fijar un slug y pasaron a fijar la propiedad.** `censo.test.ts` («devuelve el módulo publicado con más banco») y `panel-inicio.test.tsx` (escalón 3) daban por hecho que **solo C5 estaba publicado** y comparaban contra `'c5-umbrales-zonas'`. Con 17 módulos publicados y **varios empatados en 28 ítems**, esa comparación probaba el desempate alfabético, no la función. Ahora comprueban que el elegido está entre los de banco máximo y que la acción principal apunta a un módulo **publicado**. **Lección para el 17: un test que compara contra un slug concreto del catálogo es un detector de pasos de contenido disfrazado de test.** Al escribir A y B, buscar los que queden.
 
 - **Paso 17 — el MDX rompe el build con `<` pegado a un dígito.** `<15 s` y `<1` hacen que MDX intente leer una etiqueta JSX y el prerender falla con «Unexpected character `1` before name». **Se escribe `< 15 s`, con espacio**, que es lo que C5 ya hacía en `< 65 %`. No lo detectan ni el validador ni `typecheck` ni los tests: **solo salta en `npm run build`**, y con 12 módulos por escribir conviene tenerlo presente desde el primer archivo.
 
 - **Paso 17 — el validador atrapó lo que el medidor de escritorio no ve.** Dos `emparejar` de C6 se escribieron con **3 elementos** y `esqItemEmparejar` exige **4–6**: los ítems se descartaban en silencio del recuento y el módulo aparecía con 26. La medición de cuotas por fuera del validador no sustituye a `npm run validar`, porque no corre los esquemas Zod.
+
+## Paso 17 — Bloques A y B · ✅ CERRADO el 2026-07-31
+
+Los 12 módulos publicados con **25 ítems y 15 tarjetas cada uno**. Banco 452 → **752**, tarjetas
+255 → **435**, glosario 76 → **123**. **Catálogo cerrado: 29 de 29 módulos.** `npm run validar`
+sale con **0 errores y 0 avisos** por primera vez.
+
+- ✅ **La numeración de `Tema/Subtema` de las Cartillas 1 y 2 se fijó ANTES de escribir**, que era
+  la obligación del paso 15. Ninguna referencia previa se tocó. El mapa está en `CONTENIDO.md`.
+- ✅ **La trampa de `emparejar` con menos de 4 elementos apareció tres veces** (b1, b5, b6) y la
+  atrapó el medidor de escritorio, que en este paso **sí corre Zod ítem a ítem** antes de cablear.
+- ✅ **La trampa del `<` pegado a un dígito en MDX: cero incidencias.** Se escribió con espacio
+  desde el primer archivo y el `build` pasó a la primera.
+- ✅ **ADR-029 cerrado.** Los datos duros de A y B revisados, con cinco correcciones en la serie de
+  biomarcadores y en estadística: DD-067, DD-070, DD-071, DD-072 y DD-083.
+- ✅ **El simulacro final ya reparte como el examen real** y `repartoIncumplido` se apaga.
+
+**Obligaciones nuevas que este paso genera:**
+
+- **Paso 18 — el aviso de `repartoIncumplido` ya no se enciende nunca, y eso es una rama sin
+  ejercitar.** Con los 29 módulos publicados, la portada de `/simulacros` no vuelve a mostrar el
+  aviso de reparto incompleto: es el estado correcto, pero significa que **esa rama del componente
+  queda sin cobertura en runtime**. Su test sigue en verde porque construye el censo a mano. Si
+  alguna vez hay que verla de nuevo, se fuerza con un censo parcial, no despublicando módulos.
+
+- **Paso 18 — la segunda caducidad de `panel-inicio.test.tsx`, y la lección ampliada.** El paso 16
+  anotó que un test no debe fijar un slug concreto del catálogo. Este paso encontró la variante sin
+  slug: el test afirmaba que la nota «Hay N de 29 módulos publicados» está **siempre** presente, y
+  al completarse el catálogo el componente dejó de mostrarla, con razón. **La regla completa es que
+  un test no debe dar por permanente ningún estado transitorio de la producción de contenido** —ni
+  qué módulo es el mayor, ni que queden módulos por publicar—. Quedan por barrer los tests que
+  asuman «hay contenido en preparación»: al cerrar el catálogo, esa suposición es falsa para
+  siempre.
+
+- **Paso 18.4 — `/ultima-noche` hereda cinco datos duros reescritos.** DD-067 y DD-070 ya no son
+  una cifra corta sino una frase con condiciones —tres cortes de riesgo el primero, una caída
+  porcentual sobre el basal propio el segundo—. La vista de datos duros los presenta como
+  «concepto → valor» en tarjeta rápida, así que conviene comprobar que **no se desbordan ni se
+  truncan a 375 px**, que es el ancho para el que se diseñó.
+
+- **Sin paso asignado — el sesgo invertido es el modo de fallo dominante ahora, no el directo.**
+  De los cinco módulos fuera de rango en la primera pasada, **tres lo estaban por abajo** (b1 al
+  6 %, a5 al 12 %, b4 al 13 %) y solo dos por arriba. Con la compuerta de ADR-028 puesta se escribe
+  con miedo a que la correcta destaque, y el resultado es el mismo exploit al revés. **El aviso por
+  debajo del 12 % ya no es una red teórica: es el que más salta.** Si algún día se revisa el
+  umbral, ese dato es la razón para no bajarlo.
 
 ## Paso 18.1 — PWA
 

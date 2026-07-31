@@ -23,6 +23,20 @@ export const BANCO: Record<string, () => Promise<Item[]>> = {
   'd6-flexibilidad': () => import('./d6-flexibilidad').then((m) => m.ITEMS),
   'd7-modelos-planificacion': () => import('./d7-modelos-planificacion').then((m) => m.ITEMS),
   'd8-estructuras': () => import('./d8-estructuras').then((m) => m.ITEMS),
+  'b1-fundamentos-pedagogia': () => import('./b1-fundamentos-pedagogia').then((m) => m.ITEMS),
+  'b2-principios': () => import('./b2-principios').then((m) => m.ITEMS),
+  'b3-modelos-pedagogicos': () => import('./b3-modelos-pedagogicos').then((m) => m.ITEMS),
+  'b4-componentes-didacticos': () => import('./b4-componentes-didacticos').then((m) => m.ITEMS),
+  'b5-estilos-ensenanza': () => import('./b5-estilos-ensenanza').then((m) => m.ITEMS),
+  'b6-aprendizaje-sesion': () => import('./b6-aprendizaje-sesion').then((m) => m.ITEMS),
+  'a1-celula': () => import('./a1-celula').then((m) => m.ITEMS),
+  'a2-terminologia-anatomica': () => import('./a2-terminologia-anatomica').then((m) => m.ITEMS),
+  'a3-tejidos-organos-sistemas': () =>
+    import('./a3-tejidos-organos-sistemas').then((m) => m.ITEMS),
+  'a4-nutrientes': () => import('./a4-nutrientes').then((m) => m.ITEMS),
+  'a5-sistemas-energeticos-biomarcadores': () =>
+    import('./a5-sistemas-energeticos-biomarcadores').then((m) => m.ITEMS),
+  'a6-estadistica': () => import('./a6-estadistica').then((m) => m.ITEMS),
   // Los 29 módulos se registran aquí a medida que su contenido existe.
   // C5 entra en el paso 8; el bloque D en el paso 15; el resto del bloque C en
   // el paso 16; los bloques A y B en el paso 17.

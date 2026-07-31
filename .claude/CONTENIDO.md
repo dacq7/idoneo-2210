@@ -11,18 +11,18 @@ Aplica a los 9 módulos de C, incluido el piloto C5.
 
 | Módulo | Bloque | Teoría | Tarjetas | Ítems | Glosario | Validado | Notas |
 |---|---|---|---|---|---|---|---|
-| a1-celula | A | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 17 |
-| a2-terminologia-anatomica | A | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 17 |
-| a3-tejidos-organos-sistemas | A | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 17 |
-| a4-nutrientes | A | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 17 |
-| a5-sistemas-energeticos-biomarcadores | A | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 17 |
-| a6-estadistica | A | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 17 |
-| b1-fundamentos-pedagogia | B | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 17 |
-| b2-principios | B | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 17 |
-| b3-modelos-pedagogicos | B | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 17 |
-| b4-componentes-didacticos | B | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 17 |
-| b5-estilos-ensenanza | B | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 17 |
-| b6-aprendizaje-sesion | B | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 17 |
+| a1-celula | A | ✅ | ✅ 15 | ✅ 25 | ✅ 5 | ✅ | **Paso 17 — integrado.** Cuotas en verde con `CUOTAS` (11/8/6 · dif 6/13/6 · 6 tipos, sin cálculo). Sesgo **28 %**. Sin datos duros propios. **ADR-014:** solo bacterias y arqueas son procariotas —protozoos y hongos son eucariotas—, «alga» no es un taxón y las cianobacterias son bacterias; el sarcómero y el alvéolo son estructuras, no células |
+| a2-terminologia-anatomica | A | ✅ | ✅ 15 | ✅ 25 | ✅ 5 | ✅ | **Paso 17 — integrado.** Cuotas en verde (11/8/6 · dif 6/13/6 · 6 tipos). Sesgo **28 %**. Sin datos duros propios. El eje del banco es que **el eje va perpendicular al plano**, que es el error que más se cobra |
+| a3-tejidos-organos-sistemas | A | ✅ | ✅ 15 | ✅ 25 | ✅ 5 | ✅ | **Paso 17 — integrado.** Cuotas en verde (11/8/6 · dif 6/13/6 · 6 tipos, con 4 emparejar por sus cuatro listas cerradas). Sesgo **29 %**. **ADR-014:** el cartílago reduce fricción y reparte carga, pero no es el amortiguador principal —lo son el hueso subcondral y el trabajo excéntrico—; la bursa es el saco con líquido sinovial, el menisco es fibrocartílago |
+| a4-nutrientes | A | ✅ | ✅ 15 | ✅ 25 | ✅ 4 | ✅ | **Paso 17 — integrado.** Cuotas en verde (11/8/6 · dif 6/13/6 · 6 tipos, con 2 de cálculo sobre 4/4/9 kcal/g). Sesgo **31 %**. **ADR-014:** «vegetales de hoja verde» es el descriptor del folato (B9), no de la riboflavina (B2), cuyo sello es inactivarse con la luz |
+| a5-sistemas-energeticos-biomarcadores | A | ✅ | ✅ 15 | ✅ 25 | ✅ 4 | ✅ | **Paso 17 — integrado.** Cuotas en verde (11/8/6 · dif 6/13/6 · 6 tipos). Sesgo **29 %**. Cubre DD-060 a DD-074. **ADR-014:** 30–32 ATP por glucosa, 30 en músculo esquelético. **ADR-029:** DD-067 pasa a hs-PCR con sus tres cortes, DD-070 a caída del 30 % sobre el basal propio, DD-071 con dependencia de la edad y DD-072 por sexo |
+| a6-estadistica | A | ✅ | ✅ 15 | ✅ 25 | ✅ 6 | ✅ | **Paso 17 — integrado.** Cuotas en verde (11/8/6 · dif 6/13/6 · 6 tipos, con **6 de cálculo**: es el módulo más cuantitativo de los 29). Sesgo **29 %**. Cubre DD-080 a DD-086. **ADR-014:** de 50 a 75 el aumento es del **50 %**, no del 150 %; la mediana exige ordenar la lista primero. **ADR-029:** DD-083 recoge la varianza poblacional y la muestral |
+| b1-fundamentos-pedagogia | B | ✅ | ✅ 15 | ✅ 25 | ✅ 4 | ✅ | **Paso 17 — integrado.** Cuotas en verde con `CUOTAS` (11/8/6 · dif 6/13/6 · 6 tipos, sin cálculo: el módulo es un diccionario). Sesgo **28 %**. **ADR-014:** Ley 2210 del **23 de mayo de 2022** |
+| b2-principios | B | ✅ | ✅ 15 | ✅ 25 | ✅ 2 | ✅ | **Paso 17 — integrado.** Cuotas en verde (11/8/6 · dif 6/13/6 · 6 tipos). Sesgo **33 %**. Glosario: `Multilateralidad`, `Especificidad` y `Supercompensación` ya estaban sembrados del paso 6 — **verificado, sin duplicado**; se integraron `Sobrecarga` y `Retornos en disminución` |
+| b3-modelos-pedagogicos | B | ✅ | ✅ 15 | ✅ 25 | ✅ 3 | ✅ | **Paso 17 — integrado.** Cuotas en verde (11/8/6 · dif 6/13/6 · 6 tipos, con 4 emparejar: el módulo es nominal y se pregunta qué propone cada modelo y quién lo firma). Sesgo **29 %** |
+| b4-componentes-didacticos | B | ✅ | ✅ 15 | ✅ 25 | ✅ 4 | ✅ | **Paso 17 — integrado.** Cuotas en verde (11/8/6 · dif 6/13/6 · **7 tipos**, único del bloque B con cálculo: la densidad sí tiene fórmula). Sesgo **31 %** |
+| b5-estilos-ensenanza | B | ✅ | ✅ 15 | ✅ 25 | ✅ 4 | ✅ | **Paso 17 — integrado.** Cuotas en verde (11/8/6 · dif 6/13/6 · 6 tipos, con 4 emparejar y 4 caso). Sesgo **29 %**, corregido desde el 47 % de la primera pasada |
+| b6-aprendizaje-sesion | B | ✅ | ✅ 15 | ✅ 25 | ✅ 4 | ✅ | **Paso 17 — integrado.** Cuotas en verde (11/8/6 · dif 6/13/6 · 6 tipos, con 3 ordenar por sus tres secuencias: fases técnicas, ciclo autorregulado y sesión). Sesgo **29 %**. **ADR-014:** una fase sensible es ventana de mayor rentabilidad, **no la única oportunidad** |
 | c1-vias-energeticas | C | ✅ | ✅ 15 | ✅ 28 | ✅ 4 | ✅ | **Paso 16 — integrado.** Cuotas en verde con `cuotasDelBloque('C')` (12/9/7 · dif 6/16/6 · los 7 tipos). Sesgo de longitud **33 %**. Cubre DD-001 a DD-008. **ADR-014:** enseña 30–32 ATP por glucosa (30 en músculo esquelético), fosfágeno 5–15 s y ATP libre 2–3 s, reutilizando la investigación de esta ficha. **ADR-029:** DD-007 corregido a ≈106 ATP |
 | c2-cardiovascular | C | ✅ | ✅ 15 | ✅ 28 | ✅ 4 | ✅ | **Paso 16 — integrado.** Cuotas en verde (12/9/7 · dif 5/18/5 · los 7 tipos). Sesgo **30 %**. Cubre DD-020 a DD-029, con las 5 fórmulas de FCmáx y su población. **ADR-014:** la FCmáx no sube con el entrenamiento. **ADR-029:** DD-020 corregido a 60–100 lpm |
 | c3-respiratorio-vo2 | C | ✅ | ✅ 15 | ✅ 28 | ✅ 4 | ✅ | **Paso 16 — integrado.** Cuotas en verde (12/9/7 · dif 4/18/6 · los 7 tipos). Sesgo **25 %**. Cubre DD-030 a DD-035. Reutiliza la investigación de Cooper y Course Navette ya verificada para `d4-resistencia` |
@@ -41,12 +41,20 @@ Aplica a los 9 módulos de C, incluido el piloto C5.
 | d7-modelos-planificacion | D | ✅ | ✅ 15 | ✅ 25 | ✅ 3 | ✅ | **Paso 15 — integrado.** Cuotas en verde con `CUOTAS` (11/8/6 · dif 6/12/7 · 7 tipos). Glosario integrado desde `/tmp/glosario-d7-d8.ts` |
 | d8-estructuras | D | ✅ | ✅ 15 | ✅ 25 | ✅ 4 | ✅ | **Paso 15 — integrado.** Cuotas en verde con `CUOTAS` (11/8/6 · dif 7/12/6 · 7 tipos). Los 2 ordenar cubren la jerarquía de estructuras y las partes de la sesión. Glosario integrado desde `/tmp/glosario-d7-d8.ts` |
 
-**Total:** 17 de 29 módulos completos (los 9 del bloque C + los 8 del bloque D) · 452 ítems ·
-255 tarjetas · 76 términos de glosario · 70 datos duros.
+**Total: los 29 módulos completos** · **752 ítems** · **435 tarjetas** · **123 términos de
+glosario** · 70 datos duros. El catálogo está cerrado.
 
-Los 17 módulos están cableados en `content/banco/indice.ts` y `content/tarjetas/indice.ts`, en
+Los 29 están cableados en `content/banco/indice.ts` y `content/tarjetas/indice.ts`, en
 `estadoContenido: 'completo'`, y el validador les corre las cuotas de `cuotasDelBloque(...)` en
-verde: **28 ítems para cada uno de los 9 del bloque C** y 25 para cada uno de los 8 de D.
+verde: **28 ítems para cada uno de los 9 del bloque C** y 25 para cada uno de los 20 restantes.
+`npm run validar` sale con **0 errores y 0 avisos**, que es la primera vez que ocurre: los avisos
+que quedaban eran todos «módulo en preparación» y «el blueprint necesita N ítems y hay 0».
+
+**El simulacro final ya reparte como el examen real.** Con 752 ítems en banco, `armarSimulacro`
+sirve las **100 cuotas por módulo desde su propio módulo**, sin recurrir al relleno, y además
+cierra exactas las tres cuotas de nivel (40/35/25) y las siete de tipo (65 única · 10 caso ·
+8 cálculo · 7 múltiple · 5 emparejar · 3 ordenar · 2 V/F). Lo mismo vale para el diagnóstico y
+para los cuatro simulacros de bloque. El aviso de `repartoIncumplido` de la portada **se apaga**.
 
 **Numeración de referencias del bloque C** (fijada ANTES de escribir el paso 16, que es la
 obligación que dejó el 15). Se construyó alrededor de las referencias que C5 ya tenía —`2.1` para la
@@ -63,6 +71,30 @@ tabla de FCmáx y `2.6.x` para las zonas—, así que ninguna referencia previa 
 
 Que C5 cite `2.1` —un subtema que desarrolla C2— es correcto y no es colisión: la `referencia`
 mapea el **temario de la cartilla**, no el módulo de la app.
+
+**Numeración de referencias del bloque A · Cartilla 1** (fijada ANTES de escribir el paso 17, que
+es la obligación heredada del 15). Ningún módulo comparte subtema con otro: A2 y A3 comparten el
+Tema 2 pero se reparten sus subtemas sin solaparse.
+
+| Tema | Contenido | Subtemas |
+|---|---|---|
+| **Tema 1** | Biología celular | 1.1 teoría celular y tipos · 1.2 orgánulos y sus funciones · 1.3 célula animal y vegetal · 1.4 ciclo celular y mitosis · 1.5 meiosis → **a1** |
+| **Tema 2** | Anatomía humana | 2.1 posición anatómica y términos de posición · 2.2 planos y ejes · 2.3 movimientos articulares → **a2** · 2.4 los cuatro tejidos · 2.5 sistema óseo y células del hueso · 2.6 articulaciones · 2.7 sistema muscular · 2.8 los once sistemas → **a3** |
+| **Tema 3** | Nutrición | 3.1 carbohidratos · 3.2 proteínas · 3.3 lípidos · 3.4 vitaminas · 3.5 minerales · 3.6 agua e hidratación → **a4** |
+| **Tema 4** | Sistemas energéticos y biomarcadores | 4.1 ATP y visión general · 4.2 anaeróbico aláctico · 4.3 anaeróbico láctico · 4.4 aeróbico · 4.5 biomarcadores de rendimiento · 4.6 de salud · 4.7 de estrés oxidativo · 4.8 hormonales → **a5** |
+| **Tema 5** | Estadística aplicada | 5.1 variables y muestra · 5.2 tendencia central · 5.3 dispersión · 5.4 validez, fiabilidad y objetividad · 5.5 proporcionalidad y porcentajes → **a6** |
+
+**Numeración de referencias del bloque B · Cartilla 2** (fijada ANTES de escribir). Un Tema por
+módulo, sin solapes:
+
+| Tema | Contenido | Subtemas |
+|---|---|---|
+| **Tema 1** | Fundamentos de la pedagogía del deporte | 1.1 deporte y pedagogía · 1.2 entrenamiento y entrenabilidad · 1.3 manifestaciones del deporte · 1.4 clases de entrenador · 1.5 fundamentos específicos → **b1** |
+| **Tema 2** | Principios | 2.1 pedagógicos · 2.2 infanto-juveniles · 2.3 biológicos → **b2** |
+| **Tema 3** | Modelos pedagógicos | 3.1 básicos y emergentes · 3.2 modelos de intervención · 3.3 modelos por autor → **b3** |
+| **Tema 4** | Componentes didácticos | 4.1 didáctica, metodología, método y objetivo · 4.2 fases del entrenamiento · 4.3 elementos de la acción motora · 4.4 principios de enseñanza → **b4** |
+| **Tema 5** | Estilos de enseñanza | 5.1 tradicionales · 5.2 de participación · 5.3 de implicación cognitiva · 5.4 de organización → **b5** |
+| **Tema 6** | Aprendizaje y sesión | 6.1 fases del aprendizaje de la técnica · 6.2 aprendizaje autorregulado · 6.3 fases sensibles · 6.4 la sesión por nivel → **b6** |
 
 **Numeración de referencias del bloque D** (fijada al integrar el paso 15, porque los cuatro
 escritores la habían asignado por separado y colisionaba): Tema 1 → d1 · Tema 2 → d2 ·

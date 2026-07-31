@@ -1,0 +1,557 @@
+// content/banco/a5-sistemas-energeticos-biomarcadores.ts
+// Bloque A · Módulo 5 — Sistemas aeróbico y anaeróbico · Biomarcadores.
+//
+// 25 ítems. Reparto exigido por verificarCuotas con n = 25:
+//   nivel      → 11 recuerdo (44 %) · 8 comprensión (32 %) · 6 aplicación (24 %)
+//   dificultad → 6 de nivel 1 · 13 de nivel 2 · 6 de nivel 3
+//   tipos      → 11 única · 4 emparejar · 3 múltiple · 3 caso · 2 cálculo · 2 V/F
+//
+// ADR-014 · dos puntos verificados que este módulo enseña: la vía aeróbica
+// rinde 30–32 ATP por glucosa, y 30 en músculo esquelético; y la relación
+// testosterona/cortisol se vigila por su caída del 30 % sobre el basal del
+// propio deportista, no por un umbral absoluto (ADR-029, DD-070).
+//
+// Los ítems son datos literales: nunca se generan con map(), plantillas ni
+// funciones auxiliares.
+import type { Item } from '@/lib/tipos';
+
+export const ITEMS: Item[] = [
+  {
+    id: 'A5-001',
+    modulo: 'a5-sistemas-energeticos-biomarcadores',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: '¿Cuánto tiempo sostiene el esfuerzo máximo el sistema anaeróbico aláctico?',
+    opciones: [
+      'Entre 5 y 15 segundos',
+      'Entre 30 segundos y 2 minutos de trabajo continuado',
+      'Entre 2 y 3 minutos, hasta que entra la vía aeróbica',
+      'Menos de 1 segundo, el tiempo de una sola contracción máxima',
+    ],
+    correcta: 0,
+    explicacion:
+      'El sistema de los fosfágenos sostiene entre 5 y 15 segundos de esfuerzo máximo, y ese rango depende de la intensidad real y de las reservas de fosfocreatina del día. El distractor más tentador es el segundo, que corresponde al sistema láctico. Conviene no confundir el sistema completo con el ATP libre, que solo alcanza para 2–3 segundos antes de que la fosfocreatina lo regenere. Dato para recordar: 2–3 s el ATP libre, 5–15 s el sistema entero.',
+    referencia: 'Cartilla 1, Tema 4, Subtema 4.2 — Sistema anaeróbico aláctico',
+    etiquetas: ['sistema aláctico', 'fosfocreatina', 'duración'],
+  },
+  {
+    id: 'A5-002',
+    modulo: 'a5-sistemas-energeticos-biomarcadores',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: '¿Qué subproducto genera el sistema anaeróbico láctico?',
+    opciones: [
+      'Lactato',
+      'Creatina y fosfato inorgánico, procedentes de la fosfocreatina',
+      'Dióxido de carbono y agua, resultado de la oxidación completa',
+      'Amoniaco, procedente de la degradación de los aminoácidos',
+    ],
+    correcta: 0,
+    explicacion:
+      'El sistema láctico se llama así porque produce lactato al degradar glucosa sin oxígeno. El distractor más tentador es el segundo, porque corresponde al otro sistema anaeróbico, el aláctico, cuyo nombre significa literalmente sin lactato. El tercero pertenece a la vía aeróbica. Dato para recordar: si el nombre lleva la palabra láctico, el subproducto está en el nombre.',
+    referencia: 'Cartilla 1, Tema 4, Subtema 4.3 — Sistema anaeróbico láctico',
+    etiquetas: ['sistema láctico', 'lactato', 'sistema aláctico'],
+  },
+  {
+    id: 'A5-003',
+    modulo: 'a5-sistemas-energeticos-biomarcadores',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: '¿Qué enzima cataliza la reacción de la fosfocreatina?',
+    opciones: [
+      'La creatina quinasa',
+      'La lactato deshidrogenasa, encargada de regenerar el ATP en anaerobiosis',
+      'La ATP sintasa, situada en la membrana interna de la mitocondria',
+      'La fosfofructoquinasa, que regula la velocidad de la glucólisis',
+    ],
+    correcta: 0,
+    explicacion:
+      'La creatina quinasa cataliza la reacción PCr + ADP que da creatina y ATP, y su nombre reaparece en la analítica como CK, marcador de daño muscular. Los tres distractores son enzimas reales del metabolismo energético, lo que hace exigente el ítem: la lactato deshidrogenasa actúa en la vía láctica, la ATP sintasa en la cadena respiratoria y la fosfofructoquinasa regula la glucólisis. Dato para recordar: la enzima del fosfágeno y el marcador CK son la misma.',
+    referencia: 'Cartilla 1, Tema 4, Subtema 4.2 — Sistema anaeróbico aláctico',
+    etiquetas: ['creatina quinasa', 'fosfocreatina', 'enzimas'],
+  },
+  {
+    id: 'A5-004',
+    modulo: 'a5-sistemas-energeticos-biomarcadores',
+    bloque: 'A',
+    tipo: 'vf',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: 'El sistema anaeróbico aláctico produce lactato como subproducto de su reacción.',
+    correcta: false,
+    explicacion:
+      'Falso, y el propio nombre lo desmiente: aláctico significa sin lactato. Los subproductos del sistema de los fosfágenos son creatina y fosfato inorgánico. El lactato es la firma del sistema láctico, que degrada glucosa sin oxígeno. Confundirlos es el error más frecuente del módulo, porque los dos son anaeróbicos y se estudian seguidos. Dato para recordar: el prefijo «a» significa ausencia, aquí y en anaeróbico.',
+    referencia: 'Cartilla 1, Tema 4, Subtema 4.2 — Sistema anaeróbico aláctico',
+    etiquetas: ['sistema aláctico', 'lactato', 'subproductos'],
+  },
+  {
+    id: 'A5-005',
+    modulo: 'a5-sistemas-energeticos-biomarcadores',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: '¿Cuál es el rango normal de glucosa en ayunas?',
+    opciones: [
+      '70–100 mg/dL, medidos tras un ayuno de al menos ocho horas de duración',
+      '100–140 mg/dL, medidos tras un ayuno de al menos ocho horas',
+      '40–70 mg/dL, valores propios del deportista entrenado en reposo',
+      '150–200 mg/dL, en cualquier persona sana sin patología metabólica',
+    ],
+    correcta: 0,
+    explicacion:
+      'El rango normal de glucosa en ayunas es 70–100 mg/dL. El distractor más tentador es el segundo, porque describe valores que existen y corresponden a alteración de la glucemia, no a normalidad. El tercero está por debajo del límite inferior y describiría hipoglucemia. Dato para recordar: 70 y 100 son las dos cifras, y el entrenamiento no desplaza ese rango hacia abajo.',
+    referencia: 'Cartilla 1, Tema 4, Subtema 4.6 — Biomarcadores de salud',
+    etiquetas: ['glucosa', 'biomarcadores', 'valores de referencia'],
+  },
+  {
+    id: 'A5-006',
+    modulo: 'a5-sistemas-energeticos-biomarcadores',
+    bloque: 'A',
+    tipo: 'emparejar',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: 'Relacione cada sistema energético con su sustrato principal.',
+    izquierda: ['Anaeróbico aláctico', 'Anaeróbico láctico', 'Aeróbico', 'Ninguno de los tres'],
+    derecha: [
+      'ATP libre y fosfocreatina',
+      'Glucosa y glucógeno, sin oxígeno',
+      'Carbohidratos y grasas, con oxígeno',
+      'Las proteínas como sustrato principal de un sistema propio',
+    ],
+    pares: [
+      [0, 0],
+      [1, 1],
+      [2, 2],
+      [3, 3],
+    ],
+    explicacion:
+      'Cada sistema se identifica por su sustrato antes que por su duración, y ahí está la clave: solo el aeróbico puede oxidar grasa, porque es el único que usa oxígeno. La cuarta fila existe para descartar una idea extendida: las proteínas pueden aportar energía en situaciones concretas, pero no constituyen un sistema energético propio. Dato para recordar: si la pregunta habla de grasa como sustrato, el sistema es aeróbico.',
+    referencia: 'Cartilla 1, Tema 4, Subtema 4.1 — ATP y visión general',
+    etiquetas: ['sistemas energéticos', 'sustrato', 'clasificación'],
+  },
+  {
+    id: 'A5-007',
+    modulo: 'a5-sistemas-energeticos-biomarcadores',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado:
+      '¿Cuántos ATP netos produce la glucólisis anaeróbica por cada molécula de glucosa?',
+    opciones: [
+      '2, una vez descontado el ATP que la propia vía invierte al comenzar',
+      '30, la misma cantidad que la vía aeróbica en músculo esquelético',
+      '36, según la razón clásica de fosforilación por átomo de oxígeno',
+      '4, sin descontar el ATP invertido al comienzo de la vía',
+    ],
+    correcta: 0,
+    explicacion:
+      'La glucólisis anaeróbica rinde 2 ATP netos, y la palabra neto es la que decide: la vía produce 4 pero invierte 2 al principio. El distractor más tentador es precisamente el cuarto, que da la cifra bruta. El segundo corresponde a la vía aeróbica completa. Dato para recordar: 2 frente a 30 es la diferencia de eficiencia que explica por qué el láctico solo aguanta un par de minutos.',
+    referencia: 'Cartilla 1, Tema 4, Subtema 4.3 — Sistema anaeróbico láctico',
+    etiquetas: ['glucólisis', 'ATP', 'sistema láctico'],
+  },
+  {
+    id: 'A5-008',
+    modulo: 'a5-sistemas-energeticos-biomarcadores',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: '¿Cuál es el rango normal de lactato en sangre en reposo?',
+    opciones: [
+      '0,5–2,2 mmol/L',
+      '4–6 mmol/L, el valor de referencia del umbral anaeróbico clásico',
+      '8–12 mmol/L, los valores que se alcanzan tras un esfuerzo máximo',
+      '0,05–0,20 mmol/L, cifras propias del deportista muy entrenado',
+    ],
+    correcta: 0,
+    explicacion:
+      'En reposo el lactato se sitúa entre 0,5 y 2,2 mmol/L. El distractor más tentador es el segundo, porque los 4 mmol/L son una referencia clásica muy repetida, pero corresponden al umbral y no al reposo. El tercero describe valores de esfuerzo máximo. Dato para recordar: el lactato en reposo es bajo pero no cero, porque siempre hay producción basal.',
+    referencia: 'Cartilla 1, Tema 4, Subtema 4.5 — Biomarcadores de rendimiento',
+    etiquetas: ['lactato', 'biomarcadores', 'valores de referencia'],
+  },
+  {
+    id: 'A5-009',
+    modulo: 'a5-sistemas-energeticos-biomarcadores',
+    bloque: 'A',
+    tipo: 'multiple',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: 'Seleccione los TRES biomarcadores de la familia hormonal.',
+    opciones: [
+      'Testosterona total',
+      'Cortisol matutino',
+      'IGF-1',
+      'Creatina quinasa (CK)',
+      'Malondialdehído (MDA)',
+    ],
+    correctas: [0, 1, 2],
+    explicacion:
+      'Testosterona, cortisol e IGF-1 son marcadores hormonales, y su interés está en el balance entre construcción y destrucción. Los dos distractores pertenecen a otras familias: la CK informa de daño muscular y el malondialdehído de estrés oxidativo. El más tentador es la CK, porque también sube tras el entrenamiento duro y se lee junto a los hormonales en el mismo informe. Dato para recordar: la familia la fija lo que mide, no cuándo se pide.',
+    referencia: 'Cartilla 1, Tema 4, Subtema 4.8 — Biomarcadores hormonales',
+    etiquetas: ['biomarcadores hormonales', 'cortisol', 'IGF-1'],
+  },
+  {
+    id: 'A5-010',
+    modulo: 'a5-sistemas-energeticos-biomarcadores',
+    bloque: 'A',
+    tipo: 'emparejar',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: 'Relacione cada biomarcador con su familia.',
+    izquierda: ['Creatina quinasa (CK)', 'Ferritina', 'Malondialdehído (MDA)', 'Cortisol'],
+    derecha: [
+      'Rendimiento y daño muscular',
+      'Salud',
+      'Estrés oxidativo',
+      'Hormonal',
+    ],
+    pares: [
+      [0, 0],
+      [1, 1],
+      [2, 2],
+      [3, 3],
+    ],
+    explicacion:
+      'La familia que peor se identifica es la de estrés oxidativo, porque sus dos marcadores —malondialdehído y relación GSH/GSSG— son los menos familiares. La ferritina se coloca a veces entre los de rendimiento por su relación con el transporte de oxígeno: informa del depósito de hierro, que es un asunto de salud. Dato para recordar: la CK mide daño, la ferritina depósito, el MDA oxidación y el cortisol catabolismo.',
+    referencia: 'Cartilla 1, Tema 4, Subtema 4.7 — Biomarcadores de estrés oxidativo',
+    etiquetas: ['biomarcadores', 'estrés oxidativo', 'clasificación'],
+  },
+  {
+    id: 'A5-011',
+    modulo: 'a5-sistemas-energeticos-biomarcadores',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: '¿Cuánto dura el ATP libre almacenado en la fibra muscular?',
+    opciones: [
+      '2–3 segundos',
+      '5–15 segundos, el mismo margen que ofrece el sistema de los fosfágenos',
+      '30 segundos, hasta que entra en juego la glucólisis anaeróbica',
+      'No se almacena ATP en la fibra: se sintetiza en el momento de usarlo',
+    ],
+    correcta: 0,
+    explicacion:
+      'El ATP ya presente en la fibra, sin regenerar nada, alcanza para 2 o 3 segundos. El distractor más tentador es el segundo, porque confunde el ATP libre con el sistema fosfágeno completo, que incluye la fosfocreatina que lo regenera y llega a 5–15 s. Y el cuarto niega un hecho básico: sí hay ATP almacenado, solo que poquísimo. Dato para recordar: la fosfocreatina es lo que estira 2–3 s hasta el rango de 5–15.',
+    referencia: 'Cartilla 1, Tema 4, Subtema 4.2 — Sistema anaeróbico aláctico',
+    etiquetas: ['ATP', 'sistema aláctico', 'fosfocreatina'],
+  },
+  {
+    id: 'A5-012',
+    modulo: 'a5-sistemas-energeticos-biomarcadores',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado:
+      '¿Cuántos ATP rinde una molécula de glucosa por vía aeróbica en el músculo esquelético?',
+    opciones: [
+      '30, porque el músculo emplea la lanzadera de glicerol-3-fosfato para los electrones',
+      '32, porque el músculo emplea la lanzadera de malato-aspartato',
+      '36, según la razón clásica de tres ATP por cada NADH producido',
+      '38, el valor máximo teórico de la oxidación completa de la glucosa',
+    ],
+    correcta: 0,
+    explicacion:
+      'La vía aeróbica rinde entre 30 y 32 ATP, y dentro de ese rango decide la lanzadera que use el tejido: el músculo esquelético emplea la de glicerol-3-fosfato y rinde 30, mientras que corazón, hígado y riñón usan la de malato-aspartato y llegan a 32. El distractor más tentador es el segundo, que acierta el mecanismo y se equivoca de tejido. Dato para recordar: para un entrenador, la cifra del músculo es 30.',
+    referencia: 'Cartilla 1, Tema 4, Subtema 4.4 — Sistema aeróbico',
+    etiquetas: ['ATP', 'sistema aeróbico', 'lanzadera'],
+  },
+  {
+    id: 'A5-013',
+    modulo: 'a5-sistemas-energeticos-biomarcadores',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado:
+      '¿Cómo se interpreta correctamente la relación testosterona/cortisol de un deportista?',
+    opciones: [
+      'Comparándola con el valor basal del propio deportista: una caída del 30 % o más señala sobrecarga',
+      'Comparándola con un umbral fijo universal, por debajo del cual hay sobrecarga en cualquier persona',
+      'Comparándola con la media del grupo de entrenamiento en la misma fecha de medición',
+      'Comparándola con los valores de referencia de laboratorio de cada hormona por separado',
+    ],
+    correcta: 0,
+    explicacion:
+      'El marcador solo tiene sentido si existe una medición previa del mismo deportista con la que comparar: lo que se vigila es la caída del cociente respecto a su propia línea de base, y un descenso del 30 % o más señala sobrecarga. El distractor más tentador es el segundo, porque un umbral fijo sería más cómodo de aplicar; el cociente depende de las unidades de medida y de la persona. Dato para recordar: un análisis aislado no dice nada.',
+    referencia: 'Cartilla 1, Tema 4, Subtema 4.8 — Biomarcadores hormonales',
+    etiquetas: ['testosterona', 'cortisol', 'sobrecarga', 'biomarcadores hormonales'],
+  },
+  {
+    id: 'A5-014',
+    modulo: 'a5-sistemas-energeticos-biomarcadores',
+    bloque: 'A',
+    tipo: 'calculo',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado:
+      'La relación testosterona/cortisol basal de un deportista era 0,60. En el último control ha bajado a 0,39. Calcule el descenso porcentual respecto a su valor basal.',
+    respuesta: 35,
+    tolerancia: 1,
+    unidad: '%',
+    pasos: [
+      'Descenso absoluto = 0,60 − 0,39 = 0,21',
+      'Descenso porcentual = (descenso / valor basal) × 100',
+      'Descenso porcentual = (0,21 / 0,60) × 100 = 35 %',
+    ],
+    explicacion:
+      'El error habitual es dividir entre el valor nuevo en lugar de entre el basal, lo que daría 54 % y exageraría el deterioro: el denominador siempre es el punto de partida. Con un 35 % de caída se supera el umbral del 30 % que señala sobrecarga, así que el dato obliga a revisar la carga y la recuperación. Dato para recordar: lo que se compara es el deportista consigo mismo, no con una tabla.',
+    referencia: 'Cartilla 1, Tema 4, Subtema 4.8 — Biomarcadores hormonales',
+    etiquetas: ['testosterona', 'cortisol', 'cálculo', 'sobrecarga'],
+  },
+  {
+    id: 'A5-015',
+    modulo: 'a5-sistemas-energeticos-biomarcadores',
+    bloque: 'A',
+    tipo: 'vf',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado:
+      'Los tres sistemas energéticos se activan de forma sucesiva: primero el aláctico, después el láctico y por último el aeróbico.',
+    correcta: false,
+    explicacion:
+      'Falso. Los tres funcionan a la vez desde el primer instante del esfuerzo, y lo que cambia es cuál domina en cada momento: en el primer segundo de un sprint ya trabaja el aeróbico, aunque su contribución sea despreciable, y a los diez minutos de carrera continua el aláctico sigue disponible para un cambio de ritmo. Dato para recordar: la sucesión describe el predominio, no la activación.',
+    referencia: 'Cartilla 1, Tema 4, Subtema 4.1 — ATP y visión general',
+    etiquetas: ['sistemas energéticos', 'predominio', 'metabolismo'],
+  },
+  {
+    id: 'A5-016',
+    modulo: 'a5-sistemas-energeticos-biomarcadores',
+    bloque: 'A',
+    tipo: 'multiple',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado:
+      'Seleccione las DOS afirmaciones correctas sobre la creatina quinasa (CK) tras una sesión exigente.',
+    opciones: [
+      'Su elevación indica daño muscular, sobre todo tras trabajo excéntrico',
+      'Lo que más informa es su cinética: cuánto tarda en volver a la línea de base',
+      'Una elevación aislada confirma por sí sola la existencia de una lesión',
+      'Sus valores de referencia son idénticos en hombres y en mujeres',
+      'Es un marcador hormonal que informa del balance anabólico del deportista',
+    ],
+    correctas: [0, 1],
+    explicacion:
+      'La CK sube tras el daño muscular y su lectura útil es la cinética de retorno, no el pico aislado. La tercera opción es el error clínico clásico, porque una CK alta indica trabajo y no necesariamente lesión. La cuarta es falsa, ya que los rangos son 55–170 U/L en hombres y 30–135 en mujeres. Y la quinta la coloca en la familia equivocada. Dato para recordar: la CK mide daño, y el daño forma parte del entrenamiento.',
+    referencia: 'Cartilla 1, Tema 4, Subtema 4.5 — Biomarcadores de rendimiento',
+    etiquetas: ['creatina quinasa', 'daño muscular', 'biomarcadores'],
+  },
+  {
+    id: 'A5-017',
+    modulo: 'a5-sistemas-energeticos-biomarcadores',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'comprension',
+    dificultad: 3,
+    enunciado:
+      '¿Por qué el sistema láctico sostiene el esfuerzo mucho menos tiempo que el aeróbico pese a usar el mismo sustrato de partida?',
+    opciones: [
+      'Porque sin oxígeno la glucosa rinde 2 ATP netos frente a los 30 de la vía aeróbica',
+      'Porque el músculo agota sus reservas de glucógeno en menos de dos minutos de trabajo',
+      'Porque el lactato producido bloquea de inmediato la entrada de glucosa a la fibra',
+      'Porque la vía láctica solo puede emplear glucosa sanguínea y no glucógeno muscular',
+    ],
+    correcta: 0,
+    explicacion:
+      'La diferencia es de eficiencia: la misma molécula de glucosa rinde 2 ATP netos sin oxígeno y 30 con él en el músculo esquelético, así que la vía anaeróbica consume el sustrato mucho más rápido para obtener lo mismo. El distractor más tentador es el segundo, porque el agotamiento del glucógeno es real en esfuerzos largos, no en dos minutos. Dato para recordar: la potencia se paga con capacidad, y 2 frente a 30 es el precio.',
+    referencia: 'Cartilla 1, Tema 4, Subtema 4.3 — Sistema anaeróbico láctico',
+    etiquetas: ['sistema láctico', 'sistema aeróbico', 'eficiencia'],
+  },
+  {
+    id: 'A5-018',
+    modulo: 'a5-sistemas-energeticos-biomarcadores',
+    bloque: 'A',
+    tipo: 'caso',
+    nivel: 'comprension',
+    dificultad: 3,
+    viñeta:
+      'Una fondista presenta hemoglobina de 13,0 g/dL y hematocrito del 39 %, ambos dentro del rango femenino de referencia. Su ferritina, en cambio, es de 8 ng/mL. Refiere cansancio persistente y dificultad para sostener sus ritmos habituales.',
+    enunciado: '¿Cómo debe leerse esa analítica?',
+    opciones: [
+      'El depósito de hierro está agotado aunque la hemoglobina aún no lo refleje',
+      'La analítica es normal en su conjunto y el cansancio tiene otra causa',
+      'La hemoglobina baja explica el cuadro y la ferritina es un dato secundario',
+      'El hematocrito del 39 % está por debajo del rango femenino e indica anemia',
+    ],
+    correcta: 0,
+    explicacion:
+      'La ferritina es el depósito de hierro y se vacía mucho antes de que la hemoglobina descienda: con 8 ng/mL, frente a un rango femenino de 12–150, el depósito está agotado aunque el hemograma parezca correcto. El distractor más tentador es el segundo, porque los dos valores del hemograma están efectivamente dentro de rango. Dato para recordar: la ferritina avisa primero, y esperar a que caiga la hemoglobina es llegar tarde.',
+    referencia: 'Cartilla 1, Tema 4, Subtema 4.6 — Biomarcadores de salud',
+    etiquetas: ['ferritina', 'hemoglobina', 'hierro', 'biomarcadores de salud'],
+  },
+  {
+    id: 'A5-019',
+    modulo: 'a5-sistemas-energeticos-biomarcadores',
+    bloque: 'A',
+    tipo: 'emparejar',
+    nivel: 'comprension',
+    dificultad: 3,
+    enunciado: 'Relacione cada esfuerzo con el sistema energético que predomina.',
+    izquierda: [
+      'Un lanzamiento de peso completo, de menos de 3 segundos',
+      'Una serie de 400 metros lisos a máxima intensidad',
+      'Una vuelta de 90 minutos en bicicleta a ritmo cómodo',
+      'Una serie de 8 segundos de sprint con 3 minutos de pausa',
+    ],
+    derecha: [
+      'ATP libre almacenado en la fibra',
+      'Anaeróbico láctico',
+      'Aeróbico',
+      'Anaeróbico aláctico, con la fosfocreatina como protagonista',
+    ],
+    pares: [
+      [0, 0],
+      [1, 1],
+      [2, 2],
+      [3, 3],
+    ],
+    explicacion:
+      'Los dos primeros pares se resuelven por duración: menos de 3 segundos entra en el margen del ATP libre y una serie de 400 metros cae de lleno en el rango del láctico. Los dos últimos separan lo que suele fundirse: 8 segundos con pausa larga es trabajo del sistema fosfágeno, con la fosfocreatina reponiéndose durante el descanso. Dato para recordar: la pausa larga es lo que permite que el aláctico se repita serie tras serie.',
+    referencia: 'Cartilla 1, Tema 4, Subtema 4.1 — ATP y visión general',
+    etiquetas: ['sistemas energéticos', 'duración', 'clasificación'],
+  },
+  {
+    id: 'A5-020',
+    modulo: 'a5-sistemas-energeticos-biomarcadores',
+    bloque: 'A',
+    tipo: 'calculo',
+    nivel: 'aplicacion',
+    dificultad: 2,
+    enunciado:
+      '¿Cuántas moléculas de ATP obtiene el músculo esquelético al oxidar por completo 6 moléculas de glucosa por vía aeróbica?',
+    respuesta: 180,
+    tolerancia: 1,
+    unidad: 'ATP',
+    pasos: [
+      'En músculo esquelético, cada molécula de glucosa rinde 30 ATP por vía aeróbica',
+      'Total = 30 ATP/glucosa × 6 glucosas',
+      'Total = 180 ATP',
+    ],
+    explicacion:
+      'El cálculo es sencillo y lo difícil es elegir el factor correcto: en músculo esquelético son 30 por la lanzadera de glicerol-3-fosfato, no 32, que corresponde a corazón, hígado y riñón. Usar 32 daría 192 y usar la cifra clásica de 36 daría 216, las dos incorrectas para este tejido. Dato para recordar: si la pregunta dice músculo esquelético, el factor es 30.',
+    referencia: 'Cartilla 1, Tema 4, Subtema 4.4 — Sistema aeróbico',
+    etiquetas: ['ATP', 'sistema aeróbico', 'cálculo', 'aplicación'],
+  },
+  {
+    id: 'A5-021',
+    modulo: 'a5-sistemas-energeticos-biomarcadores',
+    bloque: 'A',
+    tipo: 'caso',
+    nivel: 'aplicacion',
+    dificultad: 2,
+    viñeta:
+      'Un entrenador quiere trabajar la potencia máxima de sus velocistas y programa series de 6 segundos a intensidad máxima. Duda entre dejar 30 segundos de pausa o 3 minutos entre repeticiones.',
+    enunciado: '¿Qué pausa corresponde y por qué?',
+    opciones: [
+      'Tres minutos, para que la fosfocreatina se reponga y cada serie vuelva a ser máxima',
+      'Treinta segundos, para acumular fatiga y aumentar el estímulo sobre la potencia',
+      'Treinta segundos, porque el sistema aláctico no necesita pausa para recuperarse',
+      'Tres minutos, porque a los 6 segundos ya predomina la glucólisis anaeróbica',
+    ],
+    correcta: 0,
+    explicacion:
+      'Trabajar potencia máxima exige que cada repetición sea realmente máxima, y eso depende de que la fosfocreatina se haya repuesto: con pausas cortas el deportista entra en la vía láctica y deja de entrenar lo que se buscaba. El distractor más tentador es el segundo, porque acumular fatiga suena a más estímulo; sería un trabajo distinto, de tolerancia al lactato. Dato para recordar: pausa larga para potencia, pausa corta para capacidad láctica.',
+    referencia: 'Cartilla 1, Tema 4, Subtema 4.2 — Sistema anaeróbico aláctico',
+    etiquetas: ['sistema aláctico', 'fosfocreatina', 'prescripción', 'aplicación'],
+  },
+  {
+    id: 'A5-022',
+    modulo: 'a5-sistemas-energeticos-biomarcadores',
+    bloque: 'A',
+    tipo: 'caso',
+    nivel: 'aplicacion',
+    dificultad: 3,
+    viñeta:
+      'Un jugador trae una analítica con CK de 480 U/L, tomada la mañana siguiente a una sesión con mucho trabajo excéntrico. No refiere dolor localizado ni impotencia funcional, y el resto de valores está en rango.',
+    enunciado: '¿Cómo corresponde interpretar ese dato?',
+    opciones: [
+      'Como daño muscular esperable tras la sesión: lo que hay que vigilar es cuánto tarda en normalizarse',
+      'Como confirmación de una lesión muscular que exige suspender el entrenamiento de inmediato',
+      'Como un error de laboratorio, porque la CK no puede superar el rango de referencia en un deportista',
+      'Como un marcador hormonal alterado que indica sobrecarga acumulada de varias semanas',
+    ],
+    correcta: 0,
+    explicacion:
+      'La CK sube tras el trabajo excéntrico y esa elevación indica daño muscular, que forma parte del entrenamiento y no equivale a lesión: sin dolor localizado ni impotencia funcional, el dato aislado no diagnostica nada. Lo que informa es la cinética, es decir cuánto tarda en volver a la línea de base. El distractor más tentador es el segundo, porque el valor triplica el rango superior. Dato para recordar: la CK mide trabajo, no diagnostica.',
+    referencia: 'Cartilla 1, Tema 4, Subtema 4.5 — Biomarcadores de rendimiento',
+    etiquetas: ['creatina quinasa', 'daño muscular', 'interpretación', 'aplicación'],
+  },
+  {
+    id: 'A5-023',
+    modulo: 'a5-sistemas-energeticos-biomarcadores',
+    bloque: 'A',
+    tipo: 'unica',
+    nivel: 'aplicacion',
+    dificultad: 3,
+    enunciado:
+      'Un entrenador quiere usar la relación testosterona/cortisol para vigilar la carga de su grupo. ¿Qué necesita antes de que el marcador le sirva?',
+    opciones: [
+      'Una medición basal de cada deportista con la que comparar los controles siguientes',
+      'Una tabla con los umbrales normales del cociente para su rango de edad y sexo',
+      'Un análisis del grupo completo el mismo día, para calcular la media de referencia',
+      'Los valores de referencia de laboratorio de la testosterona y del cortisol por separado',
+    ],
+    correcta: 0,
+    explicacion:
+      'El cociente se interpreta por su caída respecto al valor basal del propio deportista, así que sin una medición previa no hay nada con lo que comparar y el control siguiente no informa. El distractor más tentador es el segundo, porque una tabla de umbrales sería la herramienta más cómoda; no existe un umbral universal, ya que el valor depende de las unidades y de la persona. Dato para recordar: primero la línea de base, después el seguimiento.',
+    referencia: 'Cartilla 1, Tema 4, Subtema 4.8 — Biomarcadores hormonales',
+    etiquetas: ['testosterona', 'cortisol', 'control de la carga', 'aplicación'],
+  },
+  {
+    id: 'A5-024',
+    modulo: 'a5-sistemas-energeticos-biomarcadores',
+    bloque: 'A',
+    tipo: 'emparejar',
+    nivel: 'aplicacion',
+    dificultad: 3,
+    enunciado: 'Relacione cada biomarcador con lo que informa al entrenador.',
+    izquierda: ['Ferritina', 'Lactato en esfuerzo', 'hs-PCR', 'Relación GSH/GSSG'],
+    derecha: [
+      'Estado del depósito de hierro; cae antes que la hemoglobina',
+      'Base para situar los umbrales de intensidad del deportista',
+      'Inflamación sistémica de bajo grado y riesgo cardiovascular',
+      'Equilibrio antioxidante frente al daño por radicales libres',
+    ],
+    pares: [
+      [0, 0],
+      [1, 1],
+      [2, 2],
+      [3, 3],
+    ],
+    explicacion:
+      'Los cuatro pertenecen a familias distintas y por eso responden a preguntas distintas: depósito, intensidad, inflamación y oxidación. El par que más se falla es la hs-PCR, que suele leerse como marcador de infección aguda: sus tres tramos —menos de 1, entre 1 y 3, y más de 3 mg/L— son de riesgo cardiovascular. El lactato en esfuerzo conecta este módulo con los umbrales del bloque C.',
+    referencia: 'Cartilla 1, Tema 4, Subtema 4.6 — Biomarcadores de salud',
+    etiquetas: ['biomarcadores', 'ferritina', 'lactato', 'clasificación'],
+  },
+  {
+    id: 'A5-025',
+    modulo: 'a5-sistemas-energeticos-biomarcadores',
+    bloque: 'A',
+    tipo: 'multiple',
+    nivel: 'aplicacion',
+    dificultad: 2,
+    enunciado:
+      'Un entrenador diseña una tarea de 45 segundos a intensidad muy alta. Seleccione las DOS afirmaciones correctas sobre el sistema que predominará.',
+    opciones: [
+      'Predominará el anaeróbico láctico, cuyo rango va de 30 segundos a 2 minutos',
+      'El sustrato principal será la glucosa y el glucógeno, degradados sin oxígeno',
+      'El subproducto característico será la creatina, procedente de la fosfocreatina',
+      'El rendimiento energético será de 30 ATP por molécula de glucosa empleada',
+      'El sistema aeróbico permanecerá completamente inactivo durante toda la tarea',
+    ],
+    correctas: [0, 1],
+    explicacion:
+      'Cuarenta y cinco segundos a intensidad muy alta caen de lleno en el rango del sistema láctico, que degrada glucosa y glucógeno sin oxígeno. La tercera opción atribuye a esa vía el subproducto del sistema aláctico, la cuarta le asigna el rendimiento de la vía aeróbica y la quinta afirma algo falso, porque los tres sistemas funcionan a la vez y solo cambia cuál domina. Dato para recordar: predominar no es actuar en exclusiva.',
+    referencia: 'Cartilla 1, Tema 4, Subtema 4.3 — Sistema anaeróbico láctico',
+    etiquetas: ['sistema láctico', 'sistemas energéticos', 'prescripción', 'aplicación'],
+  },
+];

@@ -1,0 +1,551 @@
+// content/banco/b2-principios.ts
+// Bloque B · Módulo 2 — Principios pedagógicos, infanto-juveniles y biológicos.
+//
+// 25 ítems. Reparto exigido por verificarCuotas con n = 25:
+//   nivel      → 11 recuerdo (44 %) · 8 comprensión (32 %) · 6 aplicación (24 %)
+//   dificultad → 6 de nivel 1 · 13 de nivel 2 · 6 de nivel 3
+//   tipos      → 12 única · 3 caso · 3 emparejar · 3 múltiple · 2 ordenar · 2 V/F
+//
+// Sin ítems de cálculo: los principios son cualitativos y no tienen magnitud
+// que calcular. El eje del módulo son las cuatro parejas que el examen cruza:
+// sobrecarga/progresión, especificidad/especialización, supercompensación/
+// adaptación y retornos en disminución/reversibilidad.
+//
+// Los ítems son datos literales: nunca se generan con map(), plantillas ni
+// funciones auxiliares.
+import type { Item } from '@/lib/tipos';
+
+export const ITEMS: Item[] = [
+  {
+    id: 'B2-001',
+    modulo: 'b2-principios',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: '¿Qué establece el principio de sobrecarga?',
+    opciones: [
+      'Que el estímulo debe superar el nivel al que el organismo ya está habituado',
+      'Que la carga debe aumentarse de forma gradual a lo largo de las semanas',
+      'Que el organismo queda por encima de su punto de partida tras recuperarse',
+      'Que la carga debe repartirse entre varias capacidades a la vez en la sesión',
+    ],
+    correcta: 0,
+    explicacion:
+      'La sobrecarga es la condición puntual del estímulo: si la carga de hoy no supera lo que el organismo ya tolera, no hay adaptación. El distractor más tentador es el segundo, que describe la progresión: son principios distintos y complementarios, porque la sobrecarga dice cuánto hoy y la progresión cuánto más y cuándo. Dato para recordar: sobrecarga sin progresión estanca, progresión sin sobrecarga es aumentar la nada.',
+    referencia: 'Cartilla 2, Tema 2, Subtema 2.3 — Principios biológicos',
+    etiquetas: ['sobrecarga', 'principios biológicos', 'definición'],
+  },
+  {
+    id: 'B2-002',
+    modulo: 'b2-principios',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: '¿Qué describe el principio de supercompensación?',
+    opciones: [
+      'El restablecimiento del organismo por encima del nivel inicial tras la carga y su recuperación',
+      'La acumulación de fatiga que se produce cuando las cargas se suceden sin descanso',
+      'El aumento de la carga de trabajo en cada uno de los microciclos de la temporada',
+      'La pérdida progresiva de las adaptaciones cuando el estímulo deja de aplicarse',
+    ],
+    correcta: 0,
+    explicacion:
+      'La supercompensación es que el organismo no vuelve a su punto de partida tras recuperarse, sino que lo supera durante un tiempo: es el mecanismo que explica la mejora. El distractor más tentador es el cuarto, que describe la reversibilidad, el fenómeno contrario. Y hay un eslabón que se olvida: si no llega un estímulo nuevo dentro de la ventana, el nivel vuelve al inicial. Dato para recordar: la supercompensación caduca.',
+    referencia: 'Cartilla 2, Tema 2, Subtema 2.3 — Principios biológicos',
+    etiquetas: ['supercompensación', 'principios biológicos', 'adaptación'],
+  },
+  {
+    id: 'B2-003',
+    modulo: 'b2-principios',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: '¿Qué defiende el principio de multilateralidad?',
+    opciones: [
+      'Una preparación multifacética, con variedad de conductas motrices y métodos',
+      'La aplicación simultánea de cargas de fuerza y de resistencia en cada sesión',
+      'La participación del deportista en varias competiciones de distinta modalidad',
+      'El reparto del volumen semanal entre todas las zonas de intensidad disponibles',
+    ],
+    correcta: 0,
+    explicacion:
+      'La multilateralidad pide variedad de conductas motrices, técnicas y métodos, y es especialmente pertinente en las primeras etapas de la vida deportiva. El distractor más tentador es el segundo, porque confunde variedad de contenidos con simultaneidad dentro de la sesión: se puede ser multilateral repartiendo el trabajo a lo largo de la semana. Dato para recordar: la multilateralidad es lo que contrapesa la especialización temprana.',
+    referencia: 'Cartilla 2, Tema 2, Subtema 2.3 — Principios biológicos',
+    etiquetas: ['multilateralidad', 'principios biológicos', 'formación'],
+  },
+  {
+    id: 'B2-004',
+    modulo: 'b2-principios',
+    bloque: 'B',
+    tipo: 'vf',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado:
+      'El principio de especialización recomienda concentrar el entrenamiento en una prueba concreta antes de haber desarrollado las cualidades básicas.',
+    correcta: false,
+    explicacion:
+      'Falso, y está invertido a propósito. La especialización se aplica después de haber desarrollado las cualidades básicas, no antes: es una decisión de carrera, no una ley fisiológica, y adelantarla es el error clásico de la formación deportiva. El principio que gobierna la etapa previa es el de multilateralidad. Dato para recordar: primero repertorio amplio, después especialización.',
+    referencia: 'Cartilla 2, Tema 2, Subtema 2.3 — Principios biológicos',
+    etiquetas: ['especialización', 'multilateralidad', 'formación'],
+  },
+  {
+    id: 'B2-005',
+    modulo: 'b2-principios',
+    bloque: 'B',
+    tipo: 'emparejar',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: 'Relacione cada principio pedagógico con lo que exige.',
+    izquierda: [
+      'Participación activa y consciente',
+      'Sistematicidad',
+      'Accesibilidad e individualización',
+      'Solidez y permanencia',
+    ],
+    derecha: [
+      'Que el deportista sepa qué hace y para qué lo hace',
+      'Orden: de lo simple a lo complejo y de lo conocido a lo nuevo',
+      'Que la tarea esté al alcance de quien la ejecuta',
+      'Que lo aprendido se consolide y no se evapore con el tiempo',
+    ],
+    pares: [
+      [0, 0],
+      [1, 1],
+      [2, 2],
+      [3, 3],
+    ],
+    explicacion:
+      'Los cuatro pedagógicos hablan de cómo se enseña, no de cómo responde el organismo, que es lo que distingue esta familia de la biológica. El par que más se falla es sistematicidad con accesibilidad, porque los dos suenan a «adaptar la dificultad»: la sistematicidad ordena la secuencia de contenidos y la accesibilidad ajusta el nivel a la persona. Dato para recordar: sistematicidad es el orden, accesibilidad es el alcance.',
+    referencia: 'Cartilla 2, Tema 2, Subtema 2.1 — Principios pedagógicos',
+    etiquetas: ['principios pedagógicos', 'clasificación', 'enseñanza'],
+  },
+  {
+    id: 'B2-006',
+    modulo: 'b2-principios',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 1,
+    enunciado: '¿Qué afirma el principio de reversibilidad?',
+    opciones: [
+      'Que lo ganado con el entrenamiento se pierde al cesar el estímulo',
+      'Que cada vez cuesta más mejorar a medida que sube el nivel deportivo',
+      'Que un mismo estímulo produce respuestas distintas en cada deportista',
+      'Que las cargas y los descansos deben sucederse de forma ordenada',
+    ],
+    correcta: 0,
+    explicacion:
+      'La reversibilidad dice que las adaptaciones se pierden si el estímulo deja de aplicarse, y además se pierden más rápido de lo que costó ganarlas. El distractor más tentador es el segundo, que describe los retornos en disminución: aquel habla de cuánto cuesta mejorar, este de cuánto dura lo mejorado. Son dos principios distintos que el examen presenta juntos. Dato para recordar: reversibilidad es lo que se pierde al parar.',
+    referencia: 'Cartilla 2, Tema 2, Subtema 2.3 — Principios biológicos',
+    etiquetas: ['reversibilidad', 'principios biológicos', 'continuidad'],
+  },
+  {
+    id: 'B2-007',
+    modulo: 'b2-principios',
+    bloque: 'B',
+    tipo: 'ordenar',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: 'Ordene las fases del proceso de supercompensación.',
+    elementos: [
+      'Aplicación de la carga de entrenamiento',
+      'Descenso del rendimiento por la fatiga que la carga provoca',
+      'Recuperación y restablecimiento de las reservas consumidas',
+      'Supercompensación: el organismo queda por encima del nivel inicial',
+      'Retorno al nivel inicial si no llega un estímulo nuevo',
+    ],
+    ordenCorrecto: [0, 1, 2, 3, 4],
+    explicacion:
+      'La secuencia empieza con la carga y termina con un eslabón que casi nadie recuerda: si no llega un estímulo nuevo dentro de la ventana de supercompensación, el nivel vuelve al inicial y lo ganado se pierde. El error más común es colocar el descenso por fatiga después de la recuperación, cuando es lo primero que ocurre tras la carga. Dato para recordar: ese quinto paso es la razón de que el entrenamiento tenga que ser continuo.',
+    referencia: 'Cartilla 2, Tema 2, Subtema 2.3 — Principios biológicos',
+    etiquetas: ['supercompensación', 'secuencia', 'continuidad'],
+  },
+  {
+    id: 'B2-008',
+    modulo: 'b2-principios',
+    bloque: 'B',
+    tipo: 'multiple',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: 'Seleccione las TRES afirmaciones que corresponden a principios infanto-juveniles.',
+    opciones: [
+      'La carga se adecua a la edad biológica y no a la cronológica del deportista',
+      'La formación multilateral precede a cualquier intento de especialización',
+      'La salud y la seguridad del joven tienen prioridad sobre el resultado deportivo',
+      'La intensidad debe primar sobre el volumen desde las primeras etapas formativas',
+      'La competición semanal marca la estructura del microciclo en toda la categoría',
+    ],
+    correctas: [0, 1, 2],
+    explicacion:
+      'Los tres primeros son principios infanto-juveniles reconocibles: edad biológica, multilateralidad previa y prioridad de la salud. Los dos distractores invierten la lógica de la etapa formativa, porque en ella el volumen y la variedad preceden a la intensidad, y el calendario de competición se subordina a la formación en vez de gobernarla. Dato para recordar: en formación, la competición es un contenido más, no el eje del plan.',
+    referencia: 'Cartilla 2, Tema 2, Subtema 2.2 — Principios infanto-juveniles',
+    etiquetas: ['principios infanto-juveniles', 'formación', 'salud'],
+  },
+  {
+    id: 'B2-009',
+    modulo: 'b2-principios',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: '¿Qué describe el principio de los retornos en disminución?',
+    opciones: [
+      'Que a medida que sube el nivel del deportista, la misma carga produce cada vez menos mejora',
+      'Que las adaptaciones desaparecen cuando el entrenamiento se interrumpe durante semanas',
+      'Que el rendimiento cae de forma transitoria en los días siguientes a una carga alta',
+      'Que las cargas muy elevadas producen mejoras menores que las cargas moderadas',
+    ],
+    correcta: 0,
+    explicacion:
+      'Los retornos en disminución, o rendimientos decrecientes, dicen que el margen de mejora se estrecha conforme sube el nivel: la misma carga rinde cada vez menos. El distractor más tentador es el segundo, que es la reversibilidad. El tercero describe la fatiga aguda, y el cuarto es sencillamente falso. Dato para recordar: es la entrenabilidad del módulo B1 vista desde el otro lado, y por eso existe el principio de variabilidad.',
+    referencia: 'Cartilla 2, Tema 2, Subtema 2.3 — Principios biológicos',
+    etiquetas: ['retornos en disminución', 'entrenabilidad', 'principios biológicos'],
+  },
+  {
+    id: 'B2-010',
+    modulo: 'b2-principios',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: 'Según el principio de accesibilidad, ¿cómo debe ser una tarea bien planteada?',
+    opciones: [
+      'Alcanzable con esfuerzo por quien la ejecuta, ni trivial ni imposible',
+      'Sencilla, de modo que ningún integrante del grupo llegue a fallar en ella',
+      'Idéntica para todo el grupo, para que la comparación entre ellos sea justa',
+      'Progresivamente más difícil dentro de la misma sesión de entrenamiento',
+    ],
+    correcta: 0,
+    explicacion:
+      'Accesible no significa fácil: significa que está al alcance con esfuerzo. Si nadie falla, la tarea no está enseñando nada; si nadie la consigue, tampoco. El distractor más tentador es el segundo, porque «accesible» se lee espontáneamente como «sin dificultad». El tercero contradice además la individualización, que va emparejada con este mismo principio. Dato para recordar: el error se busca, no se evita.',
+    referencia: 'Cartilla 2, Tema 2, Subtema 2.1 — Principios pedagógicos',
+    etiquetas: ['accesibilidad', 'individualización', 'principios pedagógicos'],
+  },
+  {
+    id: 'B2-011',
+    modulo: 'b2-principios',
+    bloque: 'B',
+    tipo: 'emparejar',
+    nivel: 'recuerdo',
+    dificultad: 2,
+    enunciado: 'Relacione cada principio biológico con el enunciado que lo formula.',
+    izquierda: ['Especificidad', 'Variabilidad', 'Individualización', 'Continuidad'],
+    derecha: [
+      'Las adaptaciones responden a las características concretas del estímulo aplicado',
+      'Hay que variar los estímulos para evitar que el organismo se estanque',
+      'La carga se ajusta a cada deportista porque no todos responden igual',
+      'El efecto del entrenamiento exige sostenerse en el tiempo sin parones largos',
+    ],
+    pares: [
+      [0, 0],
+      [1, 1],
+      [2, 2],
+      [3, 3],
+    ],
+    explicacion:
+      'El par que más se falla es variabilidad con especificidad, porque parecen contradictorios: uno pide variar y el otro entrenar exactamente lo que se quiere mejorar. No se contradicen, se ordenan: la especificidad decide qué cualidad se busca y la variabilidad, cómo se estimula sin que el organismo se acostumbre. Dato para recordar: variar el medio no es cambiar el objetivo.',
+    referencia: 'Cartilla 2, Tema 2, Subtema 2.3 — Principios biológicos',
+    etiquetas: ['principios biológicos', 'especificidad', 'variabilidad', 'clasificación'],
+  },
+  {
+    id: 'B2-012',
+    modulo: 'b2-principios',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado:
+      'Un entrenador mantiene durante ocho meses exactamente la misma carga, que al principio era exigente para su grupo. ¿Qué principio está incumpliendo?',
+    opciones: [
+      'El de progresión, porque la carga no aumenta con el paso del tiempo',
+      'El de sobrecarga, porque la carga inicial no llegaba a ser un estímulo',
+      'El de especificidad, porque la carga no reproduce el gesto competitivo',
+      'El de individualización, porque aplica la misma carga a todo el grupo',
+    ],
+    correcta: 0,
+    explicacion:
+      'La carga inicial sí era sobrecarga —el enunciado dice que era exigente—, así que lo que falla es que nunca se incrementó: eso es la progresión. El distractor más tentador es el segundo, porque a los ocho meses esa carga ya no supone estímulo, y es cierto; pero la causa de que haya dejado de serlo es la ausencia de progresión, no un error de dosificación inicial. Dato para recordar: la sobrecarga se define hoy, la progresión se define en el calendario.',
+    referencia: 'Cartilla 2, Tema 2, Subtema 2.3 — Principios biológicos',
+    etiquetas: ['progresión', 'sobrecarga', 'principios biológicos'],
+  },
+  {
+    id: 'B2-013',
+    modulo: 'b2-principios',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado:
+      'Un nadador que solo entrena en piscina mejora poco su rendimiento en aguas abiertas. ¿Qué principio lo explica?',
+    opciones: [
+      'La especificidad, porque las adaptaciones responden a las características concretas del estímulo entrenado',
+      'La especialización, porque el nadador debería elegir una sola de las dos modalidades disponibles',
+      'La variabilidad, porque su entrenamiento no incorpora suficiente cambio de estímulos',
+      'La reversibilidad, porque las adaptaciones a aguas abiertas se han ido perdiendo',
+    ],
+    correcta: 0,
+    explicacion:
+      'La especificidad es una ley: se mejora en aquello que se entrena y en las condiciones en que se entrena, y la piscina no reproduce el oleaje, la orientación ni la temperatura del agua abierta. El distractor más tentador es la especialización, que suena parecida y significa otra cosa: es una decisión de carrera sobre en qué concentrarse, no una explicación de por qué no transfiere la adaptación. Dato para recordar: especificidad es ley, especialización es elección.',
+    referencia: 'Cartilla 2, Tema 2, Subtema 2.3 — Principios biológicos',
+    etiquetas: ['especificidad', 'especialización', 'transferencia'],
+  },
+  {
+    id: 'B2-014',
+    modulo: 'b2-principios',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado:
+      'En una categoría sub-14, dos jugadores nacidos el mismo mes toleran cargas muy distintas. ¿Qué principio lo justifica?',
+    opciones: [
+      'La adecuación a la edad biológica, que puede diferir años de la cronológica',
+      'La progresión, que exige aumentar la carga a ritmos distintos en cada caso',
+      'La multilateralidad, que a esa edad reparte el trabajo entre varias capacidades',
+      'La accesibilidad, que obliga a plantear tareas del mismo nivel para el grupo',
+    ],
+    correcta: 0,
+    explicacion:
+      'La edad del carné no informa del estado madurativo: dos chicos nacidos el mismo mes pueden llevarse años de maduración, y lo que en uno es estímulo adecuado en el otro es sobrecarga. El distractor más tentador es el de progresión, porque también habla de ritmos distintos; pero la progresión describe cómo sube la carga en el tiempo, no por qué dos deportistas de la misma edad la toleran distinto. Dato para recordar: el más grande de la categoría suele ser el que maduró antes, no el mejor.',
+    referencia: 'Cartilla 2, Tema 2, Subtema 2.2 — Principios infanto-juveniles',
+    etiquetas: ['edad biológica', 'principios infanto-juveniles', 'individualización'],
+  },
+  {
+    id: 'B2-015',
+    modulo: 'b2-principios',
+    bloque: 'B',
+    tipo: 'multiple',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado: 'Seleccione las DOS afirmaciones correctas sobre la supercompensación.',
+    opciones: [
+      'El organismo queda temporalmente por encima del nivel que tenía antes de la carga',
+      'Si no llega un nuevo estímulo dentro de la ventana, el nivel vuelve al punto inicial',
+      'Se produce durante la sesión de entrenamiento, en el momento de aplicar la carga',
+      'Su magnitud es independiente de la carga aplicada y del descanso concedido',
+      'Aparece solo en deportistas de alto nivel, no en principiantes ni en aficionados',
+    ],
+    correctas: [0, 1],
+    explicacion:
+      'Las dos primeras describen el fenómeno completo: superación temporal del nivel previo y caducidad si no llega estímulo nuevo. La tercera confunde el momento, porque la supercompensación ocurre en la recuperación y no durante la sesión. La cuarta niega la relación entre carga, descanso y magnitud del efecto, que es lo que permite planificar. Y la quinta es falsa: el mecanismo es general, y de hecho es más visible en el principiante. Dato para recordar: la mejora se produce descansando.',
+    referencia: 'Cartilla 2, Tema 2, Subtema 2.3 — Principios biológicos',
+    etiquetas: ['supercompensación', 'recuperación', 'principios biológicos'],
+  },
+  {
+    id: 'B2-016',
+    modulo: 'b2-principios',
+    bloque: 'B',
+    tipo: 'vf',
+    nivel: 'comprension',
+    dificultad: 2,
+    enunciado:
+      'Según el principio de alternancia y recuperación, los días de descanso son una interrupción del plan de entrenamiento que conviene reducir al mínimo.',
+    correcta: false,
+    explicacion:
+      'Falso. El descanso forma parte del plan y no lo interrumpe: es el momento en que ocurre la recuperación y, con ella, la adaptación. El principio de alternancia pide precisamente que cargas y descansos se sucedan de forma ordenada. Reducir el descanso al mínimo impide que la supercompensación llegue a producirse y acumula fatiga en su lugar. Dato para recordar: el descanso está programado, no concedido.',
+    referencia: 'Cartilla 2, Tema 2, Subtema 2.3 — Principios biológicos',
+    etiquetas: ['alternancia', 'recuperación', 'principios biológicos'],
+  },
+  {
+    id: 'B2-017',
+    modulo: 'b2-principios',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'comprension',
+    dificultad: 3,
+    enunciado:
+      '¿Por qué un parón largo entre dos bloques de entrenamiento cuesta más de lo que aparenta?',
+    opciones: [
+      'Porque la supercompensación caduca y el nivel vuelve al punto de partida',
+      'Porque la fatiga acumulada aumenta durante los períodos sin entrenamiento',
+      'Porque el organismo pierde la capacidad de responder a estímulos nuevos',
+      'Porque el descanso prolongado eleva el umbral de sobrecarga del deportista',
+    ],
+    correcta: 0,
+    explicacion:
+      'La supercompensación tiene ventana: si el estímulo siguiente no llega a tiempo, el organismo regresa a su nivel inicial y lo ganado se pierde, que es también lo que dice el principio de reversibilidad. El distractor más tentador es el cuarto, porque suena técnico y usa el vocabulario correcto; lo que ocurre es lo contrario, ya que tras un parón el umbral baja y una carga menor vuelve a ser estímulo. Dato para recordar: continuidad y supercompensación son la misma exigencia.',
+    referencia: 'Cartilla 2, Tema 2, Subtema 2.3 — Principios biológicos',
+    etiquetas: ['continuidad', 'supercompensación', 'reversibilidad'],
+  },
+  {
+    id: 'B2-018',
+    modulo: 'b2-principios',
+    bloque: 'B',
+    tipo: 'caso',
+    nivel: 'comprension',
+    dificultad: 3,
+    viñeta:
+      'Un corredor lleva cuatro años con el mismo plan anual, que en su primera temporada le bajó tres minutos la marca de 10 km. El segundo año mejoró cuarenta segundos, el tercero quince, y este año no ha mejorado nada. Entrena las mismas sesiones, con la misma seriedad y sin lesiones.',
+    enunciado: '¿Qué principio explica mejor la curva de mejora descrita?',
+    opciones: [
+      'Retornos en disminución: a mayor nivel, la misma carga produce cada vez menos mejora',
+      'Reversibilidad: las adaptaciones logradas se han ido perdiendo temporada tras temporada',
+      'Sobrecarga: el plan nunca llegó a superar el umbral de estímulo del corredor',
+      'Especificidad: el plan no reproduce las demandas concretas de la prueba de 10 km',
+    ],
+    correcta: 0,
+    explicacion:
+      'La curva descrita —mejoras grandes al principio y cada vez menores con el mismo trabajo— es la firma de los retornos en disminución. El distractor más tentador es la reversibilidad, porque también describe un deterioro; pero el corredor no ha perdido nivel, simplemente ha dejado de ganarlo. Y la sobrecarga se cumplió al menos el primer año, cuando el plan sí produjo una mejora enorme. Dato para recordar: la respuesta operativa es la variabilidad, cambiar el estímulo y no solo su magnitud.',
+    referencia: 'Cartilla 2, Tema 2, Subtema 2.3 — Principios biológicos',
+    etiquetas: ['retornos en disminución', 'variabilidad', 'estancamiento'],
+  },
+  {
+    id: 'B2-019',
+    modulo: 'b2-principios',
+    bloque: 'B',
+    tipo: 'emparejar',
+    nivel: 'comprension',
+    dificultad: 3,
+    enunciado: 'Relacione cada situación con el principio biológico que la explica.',
+    izquierda: [
+      'Tras seis semanas sin entrenar, el deportista ha perdido buena parte de lo ganado',
+      'El ciclista mejora en la bicicleta pero no en la carrera a pie',
+      'Cada temporada hace falta más carga para lograr la misma mejora',
+      'Tras la carga y el descanso, el deportista rinde por encima de su nivel previo',
+    ],
+    derecha: ['Reversibilidad', 'Especificidad', 'Retornos en disminución', 'Supercompensación'],
+    pares: [
+      [0, 0],
+      [1, 1],
+      [2, 2],
+      [3, 3],
+    ],
+    explicacion:
+      'La pareja que se cruza es reversibilidad con retornos en disminución: la primera describe perder lo ganado al parar, la segunda que cada vez cueste más ganarlo entrenando. Una habla de cuánto dura la adaptación y la otra de cuánto cuesta producirla. La especificidad se reconoce por la ausencia de transferencia entre gestos distintos. Dato para recordar: si el deportista bajó de nivel, es reversibilidad; si solo dejó de subir, son retornos en disminución.',
+    referencia: 'Cartilla 2, Tema 2, Subtema 2.3 — Principios biológicos',
+    etiquetas: ['principios biológicos', 'reversibilidad', 'retornos en disminución', 'clasificación'],
+  },
+  {
+    id: 'B2-020',
+    modulo: 'b2-principios',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'aplicacion',
+    dificultad: 2,
+    enunciado:
+      'Un grupo lleva tres mesociclos con el mismo método de resistencia y ha dejado de progresar, sin signos de fatiga acumulada. ¿Qué ajuste corresponde?',
+    opciones: [
+      'Cambiar el tipo de estímulo aplicando el principio de variabilidad, no solo subir el volumen',
+      'Suspender el entrenamiento dos semanas para permitir que aparezca la supercompensación',
+      'Aumentar la carga semanal un 30 % de golpe para superar el umbral de sobrecarga',
+      'Especializar a cada deportista en la distancia en la que mejores registros obtuvo',
+    ],
+    correcta: 0,
+    explicacion:
+      'El estancamiento sin fatiga señala que el organismo se ha habituado al estímulo, y la respuesta del principio de variabilidad es cambiar el tipo de estímulo antes que su magnitud. El distractor más tentador es el tercero, porque sube la carga y suena a sobrecarga bien aplicada: un salto brusco del 30 % viola la progresión y multiplica el riesgo de lesión. Dato para recordar: cuando el problema es la costumbre, más de lo mismo no la rompe.',
+    referencia: 'Cartilla 2, Tema 2, Subtema 2.3 — Principios biológicos',
+    etiquetas: ['variabilidad', 'estancamiento', 'prescripción'],
+  },
+  {
+    id: 'B2-021',
+    modulo: 'b2-principios',
+    bloque: 'B',
+    tipo: 'caso',
+    nivel: 'aplicacion',
+    dificultad: 2,
+    viñeta:
+      'Un club propone que sus jugadores de 11 años entrenen exclusivamente como porteros desde esta temporada, con cinco sesiones semanales de trabajo específico de portería y sin participar en el resto de tareas del equipo. El argumento es que así llegarán mejor formados a la categoría juvenil.',
+    enunciado: '¿Qué objeción de principio corresponde plantear?',
+    opciones: [
+      'Que la especialización va después de la formación multilateral, no antes',
+      'Que la carga semanal de cinco sesiones supera lo tolerable a esa edad',
+      'Que el trabajo de portería no cumple el principio de especificidad del fútbol',
+      'Que el club incumple el principio de continuidad al cambiar el plan de temporada',
+    ],
+    correcta: 0,
+    explicacion:
+      'A los 11 años el principio que gobierna es la multilateralidad: primero un repertorio motor amplio y después la especialización, que es una decisión de carrera y no una ley. El distractor más tentador es el segundo, porque el volumen sí es discutible; pero cinco sesiones pueden ser perfectamente asumibles si su contenido es variado, así que el problema no es cuántas sino de qué. Dato para recordar: la objeción es al contenido único, no al número de sesiones.',
+    referencia: 'Cartilla 2, Tema 2, Subtema 2.2 — Principios infanto-juveniles',
+    etiquetas: ['multilateralidad', 'especialización', 'formación', 'infanto-juvenil'],
+  },
+  {
+    id: 'B2-022',
+    modulo: 'b2-principios',
+    bloque: 'B',
+    tipo: 'caso',
+    nivel: 'aplicacion',
+    dificultad: 3,
+    viñeta:
+      'Una jugadora vuelve tras cinco semanas de baja por un asunto familiar, sin lesión ni enfermedad. Su entrenador quiere reincorporarla directamente a las cargas que hacía antes de irse, porque «las tenía perfectamente asimiladas» cuando se marchó.',
+    enunciado: '¿Qué corresponde hacer y con qué principio se justifica?',
+    opciones: [
+      'Reincorporarla con cargas menores y progresar de nuevo, porque la reversibilidad ya actuó',
+      'Reincorporarla con las cargas previas, porque la adaptación lograda es estable en el tiempo',
+      'Reincorporarla con cargas mayores, para recuperar el retraso acumulado frente al grupo',
+      'Mantenerla al margen del grupo hasta completar un mesociclo de trabajo individual',
+    ],
+    correcta: 0,
+    explicacion:
+      'Cinco semanas sin estímulo bastan para que la reversibilidad haya reducido buena parte de las adaptaciones, y además se pierden más rápido de lo que costó ganarlas: la carga previa ya no le corresponde. El distractor más tentador es el segundo, porque confunde adaptación con permanencia; la adaptación es estable mientras el estímulo continúa, no después. Dato para recordar: volver a la carga anterior es la vía más corta a la lesión por reincorporación.',
+    referencia: 'Cartilla 2, Tema 2, Subtema 2.3 — Principios biológicos',
+    etiquetas: ['reversibilidad', 'progresión', 'reincorporación'],
+  },
+  {
+    id: 'B2-023',
+    modulo: 'b2-principios',
+    bloque: 'B',
+    tipo: 'unica',
+    nivel: 'aplicacion',
+    dificultad: 3,
+    enunciado:
+      'Un entrenador explica antes de cada ejercicio qué se busca con él y pide al grupo que valore al final si lo consiguió. ¿Qué principio pedagógico está aplicando?',
+    opciones: [
+      'Participación activa y consciente',
+      'Sistematicidad, porque ordena el contenido de la sesión',
+      'Solidez y permanencia, porque refuerza el recuerdo de lo trabajado',
+      'Accesibilidad, porque adapta el ejercicio al nivel de cada deportista',
+    ],
+    correcta: 0,
+    explicacion:
+      'Que el deportista sepa qué hace, para qué lo hace y valore el resultado es la definición operativa de la participación activa y consciente. El distractor más tentador es el tercero, porque la reflexión final sí ayuda a consolidar; pero la solidez se refiere al repaso y la consolidación de lo aprendido a lo largo del tiempo, no al hecho de explicar el objetivo antes de empezar. Dato para recordar: explicar el porqué es participación consciente, repasar lo viejo es solidez.',
+    referencia: 'Cartilla 2, Tema 2, Subtema 2.1 — Principios pedagógicos',
+    etiquetas: ['participación activa', 'principios pedagógicos', 'sesión'],
+  },
+  {
+    id: 'B2-024',
+    modulo: 'b2-principios',
+    bloque: 'B',
+    tipo: 'ordenar',
+    nivel: 'aplicacion',
+    dificultad: 3,
+    enunciado:
+      'Ordene la progresión de una tarea nueva conforme al principio de sistematicidad.',
+    elementos: [
+      'Ejecución del gesto de forma analítica, sin oposición y a velocidad reducida',
+      'Ejecución del gesto completo a velocidad real, todavía sin oposición',
+      'Ejecución con oposición pasiva, que ocupa el espacio pero no disputa',
+      'Ejecución con oposición activa en situación reducida de juego',
+      'Ejecución en situación real de competición, con oposición y marcador',
+    ],
+    ordenCorrecto: [0, 1, 2, 3, 4],
+    explicacion:
+      'La sistematicidad ordena de lo simple a lo complejo y de lo conocido a lo nuevo, y aquí se traduce en añadir un elemento de dificultad cada vez: primero la velocidad, después la oposición y por último el contexto competitivo. El error habitual es introducir la oposición activa antes de que el gesto se ejecute a velocidad real, con lo que el deportista nunca llega a automatizarlo. Dato para recordar: un elemento nuevo cada paso, no dos.',
+    referencia: 'Cartilla 2, Tema 2, Subtema 2.1 — Principios pedagógicos',
+    etiquetas: ['sistematicidad', 'progresión', 'enseñanza', 'aplicación'],
+  },
+  {
+    id: 'B2-025',
+    modulo: 'b2-principios',
+    bloque: 'B',
+    tipo: 'multiple',
+    nivel: 'aplicacion',
+    dificultad: 2,
+    enunciado:
+      'Un entrenador debe justificar ante la dirección deportiva por qué su grupo sub-12 no compite todos los fines de semana. Seleccione las DOS razones de principio que puede alegar.',
+    opciones: [
+      'La salud y la seguridad del joven tienen prioridad sobre el resultado deportivo',
+      'El objetivo de la etapa es el rendimiento a largo plazo, no ganar la categoría de este año',
+      'La competición no aporta ninguna carga de entrenamiento aprovechable a esa edad',
+      'A los doce años la entrenabilidad es tan baja que competir no produce ninguna mejora',
+      'El principio de especificidad desaconseja competir antes de dominar la técnica completa',
+    ],
+    correctas: [0, 1],
+    explicacion:
+      'Las dos primeras son principios infanto-juveniles literales y bastan para sostener la decisión. Los tres distractores son afirmaciones falsas que además le harían perder el argumento: la competición sí aporta carga y control a cualquier edad, la entrenabilidad a los doce años es alta, y la especificidad no dice nada sobre esperar a dominar la técnica. Dato para recordar: se limita el calendario por criterio formativo, no porque competir no sirva.',
+    referencia: 'Cartilla 2, Tema 2, Subtema 2.2 — Principios infanto-juveniles',
+    etiquetas: ['principios infanto-juveniles', 'competición', 'formación', 'aplicación'],
+  },
+];
