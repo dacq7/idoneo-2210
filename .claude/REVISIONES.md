@@ -483,3 +483,11 @@ Arreglado con un escalón nuevo en segunda posición, que distingue «hoy» de �
 **Mutación de los arreglos: 4 mutantes, 4 muertos.**
 
 **Lo que confirmó bien:** **116 de 116 rutas de módulo** (29 × 4) responden 200 con contenido real —no esqueleto—, la proyección de siete campos mantiene el canario verde, y el estado corrupto no produce ninguna pantalla en blanco: versión futura → cuarentena, JSON basura → renderiza, sesión ilegible → se autolimpia.
+
+---
+
+## Paso 15 — Contenido del bloque D — 2026-07-31
+
+| Paso | Fecha | typecheck | test | validar | build | Veredicto | Deuda abierta |
+|---|---|---|---|---|---|---|---|
+| 15 | 2026-07-31 | ✅ | ✅ 676 | ✅ 0 err | ❌ | RECHAZADO | 🔴 `max-lines` en `panel-inicio.test.tsx` (306/300) rompe lint y build — regresión, `main` pasa limpio · 🟡 sesgo de longitud: la correcta es la opción más larga en 80/128 (62 %) frente al 25 % de azar; deuda heredada de C5 (76 %), no introducida aquí |

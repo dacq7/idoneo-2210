@@ -24,9 +24,9 @@ export const ITEMS: Item[] = [
     enunciado: '¿Cuál es el objetivo del trabajo en la zona R0?',
     opciones: [
       'Calentamiento, recuperación activa y eliminación de desechos metabólicos',
-      'Optimizar la oxidación de las grasas como sustrato principal',
-      'Aumentar la tolerancia a la acumulación de lactato',
-      'Desarrollar la potencia aeróbica máxima',
+      'Optimizar la oxidación de las grasas, que aportan el 20–40 % del total',
+      'Aumentar la tolerancia al lactato en el entorno del MLSS',
+      'Desarrollar la potencia aeróbica máxima cerca del 90–95 % del VO₂máx',
     ],
     correcta: 0,
     explicacion:
@@ -142,9 +142,9 @@ export const ITEMS: Item[] = [
       'Un fondista entrena de forma continua al 70 % de su VO₂máx. ¿Qué adaptación busca prioritariamente ese trabajo?',
     opciones: [
       'Optimizar la oxidación de grasas y aumentar los triglicéridos intramusculares',
-      'Aumentar la tolerancia al lactato por encima del MLSS',
-      'Incrementar la potencia aeróbica máxima trabajando cerca del VO₂máx',
-      'Reponer los depósitos de fosfocreatina tras esfuerzos explosivos',
+      'Aumentar la tolerancia al lactato por encima del MLSS, 20–30 min',
+      'Incrementar la potencia aeróbica máxima con series cercanas al VO₂máx',
+      'Reponer los depósitos de fosfocreatina entre esfuerzos de menos de 15 s',
     ],
     correcta: 0,
     explicacion:
@@ -181,7 +181,12 @@ export const ITEMS: Item[] = [
     nivel: 'recuerdo',
     dificultad: 1,
     enunciado: '¿En qué zona de entrenamiento se ubican el HIIT y el SIT?',
-    opciones: ['R3 / R3+', 'R0', 'R1', 'R2'],
+    opciones: [
+      'R3 / R3+ — 90–95 %',
+      'R0 — por debajo del 65 %',
+      'R1 — 65–75 %, en el entorno del VT1',
+      'R2 — 80–90 % de la FCmáx, en el entorno del VT2',
+    ],
     correcta: 0,
     explicacion:
       'Tanto el HIIT como el SIT se ubican en R3/R3+ (90–95 %), la zona de la potencia aeróbica. El distractor más tentador es R2, porque el trabajo interválico duro "se siente" como un esfuerzo sostenido de umbral; la diferencia está en que el HIIT busca acercarse al VO₂máx, no sostenerse por debajo del MLSS. Dato para recordar: R2 es el techo de lo sostenible, R3 es donde se rompe ese techo a intervalos.',
@@ -199,9 +204,9 @@ export const ITEMS: Item[] = [
     opciones: [
       'Aumento de la densidad capilar',
       'Aumento de la densidad mitocondrial y de la actividad de las enzimas oxidativas',
-      'Aumento de los triglicéridos intramusculares',
-      'Aumento de la volemia y del volumen sistólico',
-      'Eliminación acelerada de desechos metabólicos tras el esfuerzo',
+      'Aumento de los triglicéridos intramusculares disponibles como reserva dentro de la fibra',
+      'Aumento de la volemia y del volumen sistólico gracias a un mayor llenado ventricular',
+      'Eliminación acelerada de los desechos metabólicos acumulados durante el esfuerzo previo',
     ],
     correctas: [0, 1],
     explicacion:
@@ -242,9 +247,9 @@ export const ITEMS: Item[] = [
     enunciado: '¿Qué distingue al modelo de distribución polarizado del modelo "entre umbrales"?',
     opciones: [
       'El polarizado concentra el volumen por debajo del VT1 y el resto por encima del VT2, evitando la zona intermedia',
-      'El polarizado reparte el volumen de forma pareja entre las cuatro zonas de entrenamiento',
-      'El polarizado concentra el trabajo justamente en la zona situada entre VT1 y VT2',
-      'El polarizado prioriza el volumen total sobre la intensidad en todas las sesiones',
+      'El polarizado reparte el volumen de forma pareja entre las cuatro zonas, con cerca del 25 % del tiempo en cada una',
+      'El polarizado concentra el trabajo justamente en la zona situada entre VT1 y VT2, sosteniendo un ritmo cómodamente duro',
+      'El polarizado prioriza el volumen total sobre la intensidad y mantiene cerca del 90 % del trabajo por debajo del VT1',
     ],
     correcta: 0,
     explicacion:
@@ -284,9 +289,9 @@ export const ITEMS: Item[] = [
     enunciado: '¿Qué describe el máximo estado estable de lactato (MLSS)?',
     opciones: [
       'La intensidad más alta a la que la concentración de lactato en sangre se mantiene constante en el tiempo',
-      'La concentración de lactato que se alcanza al final de un esfuerzo máximo',
-      'La intensidad a la que el lactato en sangre vuelve a los valores de reposo tras el esfuerzo',
-      'La cantidad de lactato que el hígado puede reconvertir en glucosa por minuto',
+      'La concentración de lactato en sangre que se alcanza al final de un test incremental hasta el agotamiento',
+      'La intensidad a la que el lactato en sangre vuelve a los valores de reposo durante la recuperación activa',
+      'La cantidad de lactato que el hígado puede reconvertir en glucosa por minuto mediante el ciclo de Cori',
     ],
     correcta: 0,
     explicacion:
@@ -325,9 +330,9 @@ export const ITEMS: Item[] = [
     enunciado: '¿Por qué la zona R1 es donde la oxidación de lípidos alcanza su máximo?',
     opciones: [
       'Porque la intensidad basta para movilizar ácidos grasos y sigue siendo baja para que el oxígeno disponible alcance a oxidarlos',
-      'Porque a esa intensidad el músculo agota primero el glucógeno y se ve obligado a recurrir a la grasa',
-      'Porque por debajo del 65 % los ácidos grasos no se pueden movilizar desde el tejido adiposo',
-      'Porque la producción de lactato bloquea la entrada de glucosa a la fibra muscular',
+      'Porque a esa intensidad el músculo agota primero sus depósitos de glucógeno y se ve obligado a recurrir a la grasa como reserva',
+      'Porque por debajo del 65 % los ácidos grasos no llegan a movilizarse desde el tejido adiposo y solo se oxidan a partir del VT1',
+      'Porque la producción de lactato bloquea la entrada de glucosa a la fibra muscular y deja la grasa como única fuente disponible',
     ],
     correcta: 0,
     explicacion:
@@ -422,9 +427,9 @@ export const ITEMS: Item[] = [
     enunciado: '¿Qué reparto semanal es coherente con el modelo polarizado?',
     opciones: [
       'Alrededor de 9,5 h por debajo de VT1 y 2,5 h por encima de VT2, sin trabajo en la zona intermedia',
-      'Alrededor de 6 h por debajo de VT1, 4 h en la zona intermedia y 2 h por encima de VT2',
-      'Reducir el volumen total a 6 h y concentrarlas todas por encima del VT2',
-      'Mantener las 12 h repartidas por igual entre las cuatro zonas de entrenamiento',
+      'Alrededor de 6 h por debajo de VT1, 4 h en la zona intermedia entre umbrales y 2 h por encima de VT2',
+      'Reducir el volumen total a 6 h y concentrarlas todas por encima del VT2, en sesiones interválicas cortas',
+      'Mantener las 12 h repartidas por igual entre las cuatro zonas de entrenamiento, con 3 h en cada una',
     ],
     correcta: 0,
     explicacion:
@@ -443,7 +448,7 @@ export const ITEMS: Item[] = [
     opciones: [
       'La velocidad de desplazamiento más baja a la que ya se alcanza el VO₂máx',
       'La velocidad máxima que un deportista puede sostener durante una hora',
-      'La velocidad a la que se sitúa el umbral aeróbico o VT1',
+      'La velocidad a la que se sitúa el umbral aeróbico o VT1, entre 65 y 75 %',
       'La velocidad punta alcanzada en un sprint de 30 metros lanzados',
     ],
     correcta: 0,
@@ -464,8 +469,8 @@ export const ITEMS: Item[] = [
       'El VT1 marca el punto en que la ventilación empieza a crecer más rápido que el consumo de oxígeno',
       'Por encima del VT2 el lactato se acumula más rápido de lo que el organismo lo elimina',
       'El MLSS se sitúa en el entorno del VT2',
-      'En deportistas entrenados el VT2 se ubica por debajo del VT1',
-      'Por debajo del VT1 el sustrato dominante es el glucógeno muscular',
+      'En deportistas entrenados el VT2 se ubica por debajo del VT1, porque el umbral se desplaza con la adaptación',
+      'Por debajo del VT1 el sustrato dominante es el glucógeno muscular, con una participación lipídica mínima',
     ],
     correctas: [0, 1, 2],
     explicacion:
@@ -507,9 +512,9 @@ export const ITEMS: Item[] = [
       'El SIT emplea repeticiones muy cortas a intensidad máxima, y sin embargo se ubica junto al HIIT en el trabajo de R3/R3+. ¿Cuál es la razón?',
     opciones: [
       'Su objetivo adaptativo es la potencia aeróbica: la repetición del estímulo con recuperaciones largas lleva el consumo de oxígeno cerca del VO₂máx',
-      'Cada repetición se sostiene con el sistema anaeróbico aláctico, que también forma parte del metabolismo aeróbico',
-      'Durante el sprint la frecuencia cardíaca se mantiene entre el 65 y el 75 % de la máxima',
-      'El sustrato dominante durante cada sprint son los triglicéridos intramusculares',
+      'Cada repetición se sostiene con el sistema anaeróbico aláctico, que por su corta duración también forma parte del metabolismo aeróbico',
+      'Durante el sprint la frecuencia cardíaca se mantiene entre el 65 y el 75 % de la máxima, el mismo rango que caracteriza a la zona R1',
+      'El sustrato dominante durante cada sprint son los triglicéridos intramusculares, igual que en el trabajo continuo de baja intensidad',
     ],
     correcta: 0,
     explicacion:
@@ -530,9 +535,9 @@ export const ITEMS: Item[] = [
       '¿Qué explica mejor el estancamiento desde el punto de vista de la distribución de la intensidad?',
     opciones: [
       'Acumula fatiga suficiente para comprometer las sesiones duras, pero no estímulo suficiente para elevar el techo aeróbico',
-      'Trabaja por debajo del VT1, de modo que el estímulo es demasiado suave para producir adaptación',
-      'La zona intermedia impide por completo la oxidación de grasas y agota las reservas de glucógeno',
-      'Al no superar nunca el 65 % de su FCmáx no llega a activar las adaptaciones cardiovasculares',
+      'Trabaja por debajo del VT1, de modo que el estímulo resulta demasiado suave para producir adaptación tras los primeros meses',
+      'La zona intermedia impide por completo la oxidación de grasas y agota semana a semana las reservas de glucógeno muscular',
+      'Al no superar nunca el 65 % de su FCmáx no llega a activar las adaptaciones cardiovasculares centrales del entrenamiento',
     ],
     correcta: 0,
     explicacion:

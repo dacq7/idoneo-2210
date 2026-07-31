@@ -126,6 +126,21 @@ Las dos obligaciones heredadas, cerradas: el diagnóstico persiste su `IntentoSi
 
 - **A-23 · lo que sí hereda este paso, y es más caro que lo anterior.** El remedio de A-22 (`overflow-wrap: anywhere` en `.prose-idoneo table`) partía palabras normales en las cabeceras: «Zon/a», «Aeróbi/co», «Sustrat/o». Ya arreglado en el Paso 8b repartiendo el valor por rol de celda (`th: normal` · `td: break-word` · `td::before: normal`). **La lección operativa para 29 módulos de tablas:** un cambio de maquetación tipográfica sobre `table` llega por herencia a rótulos y valores por igual, y son roles con necesidades opuestas. Al tocar el CSS de tabla, se comprueba con **una tabla ancha real a 375 px**, no con una de dos columnas. Ver A-23 en `ACCESIBILIDAD.md`.
 
+## Paso 15 — Bloque D · ✅ CERRADO el 2026-07-31
+
+Los 8 módulos publicados: 25 ítems y 15 tarjetas cada uno. Banco 28 → 228, glosario 22 → 49.
+
+**Obligaciones nuevas, y la primera es la que más importa:**
+
+- **Pasos 16 y 17 — FIJAR LA NUMERACIÓN DE `Tema/Subtema` DEL BLOQUE ANTES DE REPARTIR EL TRABAJO.** Con cuatro escritores en paralelo cada uno numeró por su cuenta y **«Subtema 3.4» acabó apuntando a fuerza Y a flexibilidad**, «Subtema 4.1» a resistencia Y a planificación. La `referencia` es el mapa con el que el usuario verifica el dato en la cartilla: una que apunta a dos sitios no sirve. Costó remapear 50 campos. Esquema ya fijado para D: **Tema 3 = capacidades (3.1 fuerza · 3.2 resistencia · 3.3 velocidad · 3.4 flexibilidad)**, **Tema 4 = planificación (4.1 modelos · 4.2 estructuras)**.
+
+- ~~**Pasos 16 y 17 — el sesgo de longitud de la opción correcta.**~~ **RESUELTO el 2026-07-31, ADR-028.** Ya no es deuda: es compuerta. `medirSesgoLongitud` falla el build por encima del **50 %** por módulo (aviso desde 40 %), umbrales derivados del azar medido (28,2 %) y de 2σ con n=18. Los 228 ítems existentes se repasaron de **66 % → 35 %** sin que ninguna explicación perdiera un carácter. Los 522 que faltan nacen con la compuerta puesta, y la regla está en `CLAUDE.md` §14.4 y en `CONTENIDO.md`. Texto original, por si hace falta el contexto:
+
+- ~~**Deuda de la PLANTILLA**~~ §14.4 dice «la correcta nunca puede ser la más larga y detallada» y el bloque D la incumple en el **62,5 %** de los ítems… pero **C5, la plantilla de oro, lo incumple en el 76 %**. Medido por el `code-reviewer`. O sea: el bloque D salió mejor que el modelo que se le mandó replicar, y aun así es una pista explotable — a 750 ítems, un usuario espabilado aprende a marcar la larga sin leer.
+  **Barajar no lo cura**: `presentarItem` cambia el orden, no la longitud. Los peores son `d4-resistencia` (75 %) y `d6-flexibilidad` (69 %); los ids están en la bitácora del revisor. Para 16–17: **instruir al `technical-writer` de que iguale longitudes**, y decidir si se repasa C5 y D o se acepta la deuda declarada.
+
+- **Verificable contra el material oficial:** los subtemas de `referencia` se asignaron por coherencia temática, no contra la numeración real de la Cartilla 4. Corregirlo sería un renombrado mecánico de un campo, sin tocar contenido.
+
 ## Paso 16 — Resto del bloque C
 
 - Los 8 módulos restantes del bloque C (C1–C4, C6–C9) heredan el mínimo de **28 ítems** (ADR-005 hueco 5). Con `cuotasDelBloque` enforzándolo, el entregable "≥28 cada uno" pasa de promesa a compuerta.

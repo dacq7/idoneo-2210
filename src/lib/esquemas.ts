@@ -241,6 +241,144 @@ export function cuotasDelBloque(bloque: BloqueId): ReglasCuota {
   return bloque === 'C' ? CUOTAS_BLOQUE_C : CUOTAS;
 }
 
+/* ─── Sesgo de longitud de la opción correcta ─────────────────────── */
+
+/**
+ * Umbral por módulo a partir del cual el sesgo es un **error de build**.
+ *
+ * No es un número redondo elegido a ojo. Medido sobre los 164 ítems con
+ * opciones que había al cerrar el bloque D:
+ *
+ * | | |
+ * |---|---|
+ * | Azar esperado (Σ correctas/opciones ÷ n) | **28,2 %** |
+ * | Desviación con n = 18, que es un módulo típico | 1σ = 10,6 puntos |
+ * | Lo más alto que llega el azar a 2σ | **49 %** |
+ *
+ * De ahí el 50 %: un módulo bien escrito lo cruza por casualidad menos del
+ * 3 % de las veces, así que cuando salta es sesgo sistemático y no mala
+ * suerte. Y de ahí el aviso en 40 %, que es ~1σ: señal temprana sin ruido.
+ */
+export const UMBRAL_SESGO_ERROR = 0.5;
+export const UMBRAL_SESGO_AVISO = 0.4;
+
+/**
+ * Y el límite por ABAJO, que es menos obvio y también importa.
+ *
+ * Lo encontró el `technical-writer` al repasar C5: en su primera pasada lo dejó
+ * en el **15 %**, con los distractores 6,5 caracteres más largos de media que
+ * la correcta. Eso no es arreglar el sesgo, **es invertirlo** — a ese nivel
+ * «descartar la más larga» acierta el 85 % de las veces, que es el mismo
+ * exploit del revés y con la misma consecuencia: se aprueba sin leer.
+ *
+ * Por eso el objetivo nunca fue «minimizar la proporción», sino **acercarla al
+ * azar** (28,2 %). Un módulo al 5 % está tan escrito con patrón como uno al
+ * 80 %, solo que al contrario.
+ *
+ * Va como AVISO y no como error, a diferencia del techo. El sesgo invertido no
+ * aparece escribiendo con normalidad —nadie engorda distractores sin querer—,
+ * así que solo puede salir de un repaso como este; un error bloquearía módulos
+ * legítimos que por muestra pequeña caigan bajo. 12 % está a ~1,5σ por debajo
+ * del azar con n = 18.
+ */
+export const UMBRAL_SESGO_INVERTIDO = 0.12;
+
+export interface SesgoLongitud {
+  /** Ítems con opciones comparables: `unica`, `caso` y `multiple`. */
+  conOpciones: number;
+  /** Aquellos en que la opción MÁS LARGA es una de las correctas. */
+  correctaMasLarga: number;
+  /** 0–1. Compárese con el azar esperado, ~0,28. */
+  proporcion: number;
+  /** Ids de los ítems que sesgan, para poder ir a arreglarlos. */
+  ids: string[];
+  /** Longitud media de las correctas y de los distractores, en caracteres. */
+  largoMedioCorrecta: number;
+  largoMedioDistractor: number;
+}
+
+/**
+ * Mide si la opción correcta es sistemáticamente la más larga.
+ *
+ * ══ POR QUÉ ESTO ES UNA COMPUERTA Y NO UN CONSEJO ══
+ * §14.4 ya pedía «longitud pareja — la correcta nunca puede ser la más larga y
+ * detallada», y aun así el banco llegó al **66 %** con C5 —la plantilla de
+ * oro— en el **80 %**. Una regla escrita que nadie mide no se cumple.
+ *
+ * Y el daño es directo al producto: a 750 ítems, un usuario espabilado aprende
+ * a marcar la más larga sin leer el enunciado. Eso rompe lo que la app vende,
+ * que es medir de verdad. **Barajar no lo cura**: `presentarItem` cambia el
+ * orden de las opciones, no su longitud.
+ *
+ * El arreglo tampoco es acortar la correcta hasta que pierda precisión —eso
+ * degrada el contenido para satisfacer una métrica—, sino **engordar los
+ * distractores hasta que sean igual de específicos**. Un distractor plausible
+ * tiene el mismo nivel de detalle que la correcta; si es más corto, casi
+ * siempre es porque está peor escrito.
+ *
+ * Solo cuenta los tipos con opciones comparables. `vf` tiene dos valores fijos,
+ * y en `calculo`, `ordenar` y `emparejar` no hay «opción correcta» que medir.
+ */
+export function medirSesgoLongitud(items: readonly Item[]): SesgoLongitud {
+  let conOpciones = 0;
+  let correctaMasLarga = 0;
+  let sumaC = 0;
+  let nC = 0;
+  let sumaD = 0;
+  let nD = 0;
+  const ids: string[] = [];
+
+  for (const item of items) {
+    let correctas: number[];
+    let opciones: readonly string[];
+
+    if (item.tipo === 'unica' || item.tipo === 'caso') {
+      correctas = [item.correcta];
+      opciones = item.opciones;
+    } else if (item.tipo === 'multiple') {
+      correctas = item.correctas;
+      opciones = item.opciones;
+    } else {
+      continue;
+    }
+
+    conOpciones += 1;
+    const largos = opciones.map((o) => o.length);
+    const maximo = Math.max(...largos);
+
+    // `indexOf` del máximo: si hay empate en la longitud máxima, la primera
+    // que lo alcanza decide. Un empate significa que NO hay pista —dos
+    // opciones igual de largas no distinguen nada—, así que si la correcta
+    // empata con un distractor no debe contar como sesgo. De ahí que se mire
+    // si la correcta es la ÚNICA que alcanza el máximo.
+    const cuantasEnElMaximo = largos.filter((l) => l === maximo).length;
+    const laMasLarga = largos.indexOf(maximo);
+    if (cuantasEnElMaximo === 1 && correctas.includes(laMasLarga)) {
+      correctaMasLarga += 1;
+      ids.push(item.id);
+    }
+
+    for (let i = 0; i < opciones.length; i += 1) {
+      if (correctas.includes(i)) {
+        sumaC += largos[i];
+        nC += 1;
+      } else {
+        sumaD += largos[i];
+        nD += 1;
+      }
+    }
+  }
+
+  return {
+    conOpciones,
+    correctaMasLarga,
+    proporcion: conOpciones === 0 ? 0 : correctaMasLarga / conOpciones,
+    ids,
+    largoMedioCorrecta: nC === 0 ? 0 : Math.round((sumaC / nC) * 10) / 10,
+    largoMedioDistractor: nD === 0 ? 0 : Math.round((sumaD / nD) * 10) / 10,
+  };
+}
+
 /** Verifica las cuotas de un módulo. Devuelve la lista de incumplimientos
  *  (vacía = pasa). Se usa en scripts/validar-banco.ts y en los tests. */
 export function verificarCuotas(items: Item[], reglas: ReglasCuota = CUOTAS): string[] {

@@ -471,7 +471,7 @@ export const MODULOS: Modulo[] = [
     ],
     conceptosClave: ['Metodología del entrenamiento', 'Nivel de formación', 'Altos logros', 'Ley 2210 de 2022'],
     prerequisitos: [],
-    estadoContenido: 'en-preparacion',
+    estadoContenido: 'completo',
   },
   {
     slug: 'd2-carga',
@@ -488,7 +488,7 @@ export const MODULOS: Modulo[] = [
     ],
     conceptosClave: ['Densidad', 'Carga interna', 'Carga externa', 'Escala de Borg (RPE)'],
     prerequisitos: ['d1-conceptualizacion'],
-    estadoContenido: 'en-preparacion',
+    estadoContenido: 'completo',
   },
   {
     slug: 'd3-fuerza',
@@ -504,7 +504,7 @@ export const MODULOS: Modulo[] = [
     ],
     conceptosClave: ['Fuerza máxima', 'Fuerza explosiva', 'Test de 1RM'],
     prerequisitos: ['d2-carga'],
-    estadoContenido: 'en-preparacion',
+    estadoContenido: 'completo',
   },
   {
     slug: 'd4-resistencia',
@@ -520,7 +520,7 @@ export const MODULOS: Modulo[] = [
     ],
     conceptosClave: ['Resistencia aeróbica', 'Método interválico', 'Test de Cooper', 'Course Navette'],
     prerequisitos: ['d2-carga', 'c5-umbrales-zonas'],
-    estadoContenido: 'en-preparacion',
+    estadoContenido: 'completo',
   },
   {
     slug: 'd5-velocidad',
@@ -536,7 +536,7 @@ export const MODULOS: Modulo[] = [
     ],
     conceptosClave: ['Velocidad de reacción', 'Velocidad gestual', 'Resistencia a la velocidad'],
     prerequisitos: ['d2-carga'],
-    estadoContenido: 'en-preparacion',
+    estadoContenido: 'completo',
   },
   {
     slug: 'd6-flexibilidad',
@@ -553,7 +553,7 @@ export const MODULOS: Modulo[] = [
     ],
     conceptosClave: ['Movilidad articular', 'Elasticidad muscular', 'FNP', 'Sit and reach'],
     prerequisitos: ['d2-carga'],
-    estadoContenido: 'en-preparacion',
+    estadoContenido: 'completo',
   },
   {
     slug: 'd7-modelos-planificacion',
@@ -569,7 +569,7 @@ export const MODULOS: Modulo[] = [
     ],
     conceptosClave: ['Modelo tradicional', 'Modelo contemporáneo', 'Pico de rendimiento'],
     prerequisitos: ['d1-conceptualizacion'],
-    estadoContenido: 'en-preparacion',
+    estadoContenido: 'completo',
   },
   {
     slug: 'd8-estructuras',
@@ -585,7 +585,7 @@ export const MODULOS: Modulo[] = [
     ],
     conceptosClave: ['Macrociclo', 'Mesociclo', 'Microciclo', 'Vuelta a la calma'],
     prerequisitos: ['d7-modelos-planificacion'],
-    estadoContenido: 'en-preparacion',
+    estadoContenido: 'completo',
   },
 ];
 

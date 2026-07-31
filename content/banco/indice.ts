@@ -6,8 +6,16 @@ import type { Item } from '@/lib/tipos';
 
 export const BANCO: Record<string, () => Promise<Item[]>> = {
   'c5-umbrales-zonas': () => import('./c5-umbrales-zonas').then((m) => m.ITEMS),
+  'd1-conceptualizacion': () => import('./d1-conceptualizacion').then((m) => m.ITEMS),
+  'd2-carga': () => import('./d2-carga').then((m) => m.ITEMS),
+  'd3-fuerza': () => import('./d3-fuerza').then((m) => m.ITEMS),
+  'd4-resistencia': () => import('./d4-resistencia').then((m) => m.ITEMS),
+  'd5-velocidad': () => import('./d5-velocidad').then((m) => m.ITEMS),
+  'd6-flexibilidad': () => import('./d6-flexibilidad').then((m) => m.ITEMS),
+  'd7-modelos-planificacion': () => import('./d7-modelos-planificacion').then((m) => m.ITEMS),
+  'd8-estructuras': () => import('./d8-estructuras').then((m) => m.ITEMS),
   // Los 29 módulos se registran aquí a medida que su contenido existe.
-  // C5 entra en el paso 8; los 28 restantes en los pasos 15–17.
+  // C5 entra en el paso 8; el bloque D en el paso 15; el resto en los pasos 16–17.
 };
 
 export async function cargarBancoModulo(slug: string): Promise<Item[]> {

@@ -5623,7 +5623,22 @@ Reglas de redacción, no negociables:
 
 **Del enunciado.** Se entiende sin leer las opciones. Nada de "¿cuál de las siguientes afirmaciones es correcta?" sin contexto. Las negaciones se evitan; si son inevitables van en **negrita**. Sin pistas gramaticales: el artículo o el género del enunciado no debe delatar la correcta. Lenguaje de entrenador de campo, no de académico.
 
-**De los distractores.** Los tres son plausibles: conceptos del mismo campo semántico que se confunden en la práctica. Longitud pareja — la correcta nunca puede ser la más larga y detallada. Cada distractor corresponde a un error real de quien estudió a medias. Prohibido "todas las anteriores" y "ninguna de las anteriores".
+**De los distractores.** Los tres son plausibles: conceptos del mismo campo semántico que se confunden en la práctica. Cada distractor corresponde a un error real de quien estudió a medias. Prohibido "todas las anteriores" y "ninguna de las anteriores".
+
+**Longitud pareja — y esto se MIDE en el build, no se confía.** La correcta no puede ser sistemáticamente la más larga y detallada. Esta regla existía desde el principio y aun así el banco llegó al **66 %** de ítems donde la correcta era la más larga, con C5 —la plantilla de oro— en el **80 %**, frente a un **28,2 %** esperado por azar. Una regla escrita que nadie mide no se cumple.
+
+El daño es directo al producto: a 750 ítems, un usuario espabilado aprende a marcar la más larga sin leer el enunciado, y eso rompe lo único que la app vende, que es medir de verdad. **Barajar no lo cura**: `presentarItem` cambia el orden de las opciones, no su longitud.
+
+`scripts/validar-banco.ts` lo comprueba con `medirSesgoLongitud` y **falla el build si un módulo pasa del 50 %** (avisa desde el 40 %). Los umbrales salen de la medición, no del gusto: con ~18 ítems con opciones por módulo, el azar llega al 49 % a dos desviaciones estándar, así que por encima de 50 % es sesgo sistemático y no mala suerte.
+
+**Cómo se arregla, que es lo que más importa.** NO acortando la correcta: recortarla hasta que quepa le quita la precisión que la hace correcta, y degrada el contenido para satisfacer una métrica. Se arregla **engordando los distractores hasta que sean igual de específicos**. Un distractor plausible tiene el mismo nivel de detalle que la correcta; si es más corto, casi siempre es porque está peor escrito:
+
+- ❌ correcta: «Optimizar la oxidación de las grasas y aumentar los triglicéridos intramusculares» · distractor: «Aumentar la tolerancia al lactato»
+- ✅ ese mismo distractor: «Aumentar la tolerancia al lactato por encima del MLSS, sostenido 20–30 min»
+
+Sigue siendo falso para ese enunciado, y ahora obliga a leer para descartarlo. Un empate de longitud entre la correcta y un distractor **no cuenta como sesgo**: dos opciones igual de largas no distinguen nada, así que igualar basta.
+
+**Y no te pases de frenada.** El objetivo es **parecerse al azar (~28 %), no minimizar la cifra**: si la correcta casi nunca es la más larga, «descartar la más larga» se vuelve una heurística ganadora y has reintroducido la misma pista al revés. El validador avisa por debajo del 12 %.
 
 **De la explicación.** Estructura fija: *por qué la correcta lo es* → *por qué falla el distractor más tentador* → *dato para recordar*. Mínimo 200 caracteres. Cita cartilla y subtema en `referencia`, que es el mapa del temario. El cuerpo de la explicación **no habla de las cartillas**: enseña el dato verdadero (ADR-014).
 

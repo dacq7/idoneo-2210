@@ -63,22 +63,43 @@ describe('censarModulosPara', () => {
   });
 
   it('incluye los módulos vacíos en vez de omitirlos', async () => {
-    // Es lo que permite que la portada diga «faltan 16» en vez de callarse los
+    // Es lo que permite que la portada diga «faltan N» en vez de callarse los
     // módulos sin contenido.
+    //
+    // El conteo se DERIVA del catálogo, no se escribe a mano: la versión
+    // anterior fijaba `MODULOS.length - 1` porque solo C5 estaba publicado, y
+    // caducó en el Paso 15 al publicar el bloque D entero. Un test que hay que
+    // reescribir cada vez que se publica contenido no está midiendo el código.
+    const publicados = MODULOS.filter((m) => m.estadoContenido === 'completo').length;
     const censo = await censarModulosPara(DIAGNOSTICO);
     expect(censo).toHaveLength(MODULOS.length);
-    expect(censo.filter((m) => m.disponibles === 0).length).toBe(MODULOS.length - 1);
+    expect(censo.filter((m) => m.disponibles === 0).length).toBe(MODULOS.length - publicados);
   });
 
-  it('el veredicto que produce es inviable Y exacto con el contenido de hoy', async () => {
+  it('el veredicto que produce es EXACTO y cuadra con el censo real', async () => {
     // El circuito completo: censo real → viabilidad real. Es lo que ve el
     // usuario en la portada del diagnóstico.
+    //
+    // Lo que se fija es la RELACIÓN entre censo y veredicto, no un número. La
+    // versión anterior afirmaba `totalDisponible === ELEGIBLES_C5` y `viable:
+    // false`, y las dos cosas caducaron al publicar el bloque D: los números
+    // del contenido cambian a propósito en los pasos 15–17, la aritmética no.
     const censo = await censarModulosPara(DIAGNOSTICO);
     const v = diagnosticarViabilidad(DIAGNOSTICO, censo);
-    expect(v.viable).toBe(false);
+    const suma = censo.reduce((t, m) => t + m.disponibles, 0);
+
     expect(v.exacto).toBe(true);
-    expect(v.totalDisponible).toBe(ELEGIBLES_C5);
-    expect(v.faltan).toBe(DIAGNOSTICO.totalItems - ELEGIBLES_C5);
+    expect(v.totalDisponible).toBe(suma);
+    expect(v.viable).toBe(suma >= DIAGNOSTICO.totalItems);
+    expect(v.faltan).toBe(Math.max(0, DIAGNOSTICO.totalItems - suma));
+  });
+
+  it('el censo filtrado sigue contando MENOS que los publicados en C5', async () => {
+    // La regresión que ADR-025 existe para impedir, fijada sobre un módulo
+    // concreto en vez de sobre el total —que ahora crece con cada paso—.
+    const censo = await censarModulosPara(DIAGNOSTICO, ['c5-umbrales-zonas']);
+    expect(censo[0].disponibles).toBe(ELEGIBLES_C5);
+    expect(censo[0].disponibles).toBeLessThan(ITEMS.length);
   });
 
   it('los cuatro simulacros de bloque siguen siendo exactos sin filtro', async () => {

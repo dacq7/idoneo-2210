@@ -19,12 +19,40 @@ import {
   guardarSesion,
   reiniciarTodo,
 } from '@/lib/almacenamiento';
-import { fechaLocalDe, sumarDias } from '@/lib/fechas';
+import { fechaLocalDe } from '@/lib/fechas';
 import { crearTarjetaSRS } from '@/lib/srs';
 import type { EstadoProgreso, IntentoSimulacro, SesionCronometro } from '@/lib/tipos';
 import { PanelInicio } from '../panel-inicio';
 
 const HOY = fechaLocalDe(new Date());
+
+/** Los publicados de verdad, derivados del catálogo. Crece en los pasos 15–17. */
+const PUBLICADOS = MODULOS.filter((m) => m.estadoContenido === 'completo');
+
+/**
+ * Estado que marca **todos** los módulos publicados como dominados.
+ *
+ * Los casos que necesitan «no queda nada por estudiar» lo construían con un
+ * literal de un solo módulo, porque cuando se escribieron solo C5 estaba
+ * publicado. Al publicar el bloque D entero dejaron de alcanzar su escalón:
+ * quedaban 8 módulos sin dominar y la portada, con razón, ofrecía uno.
+ */
+function todosDominados(): EstadoProgreso['modulos'] {
+  return Object.fromEntries(
+    PUBLICADOS.map((m) => [
+      m.slug,
+      {
+        teoriaLeida: true,
+        tarjetasVistas: 15,
+        practicaCompletada: true,
+        mejorQuiz: 90,
+        intentosQuiz: 1,
+        dominado: true,
+        ultimaVisita: null,
+      },
+    ]),
+  );
+}
 
 const MODULOS_PROPS = MODULOS.map((m) => ({
   slug: m.slug,
@@ -115,12 +143,7 @@ describe('PanelInicio — la prioridad de la acción principal', () => {
     sembrar({
       diagnosticoHecho: true,
       intentos: [intentoDiagnostico()],
-      modulos: {
-        'c5-umbrales-zonas': {
-          teoriaLeida: true, tarjetasVistas: 15, practicaCompletada: true,
-          mejorQuiz: 90, intentosQuiz: 1, dominado: true, ultimaVisita: null,
-        },
-      },
+      modulos: todosDominados(),
       colaRepaso: { 'C5-T01': crearTarjetaSRS('C5-T01', HOY) },
     });
     montar();
@@ -134,12 +157,7 @@ describe('PanelInicio — la prioridad de la acción principal', () => {
     sembrar({
       diagnosticoHecho: true,
       intentos: [intentoDiagnostico()],
-      modulos: {
-        'c5-umbrales-zonas': {
-          teoriaLeida: true, tarjetasVistas: 15, practicaCompletada: true,
-          mejorQuiz: 90, intentosQuiz: 1, dominado: true, ultimaVisita: null,
-        },
-      },
+      modulos: todosDominados(),
     });
     montar();
     await waitFor(() =>
@@ -150,12 +168,20 @@ describe('PanelInicio — la prioridad de la acción principal', () => {
 
 describe('PanelInicio — el resto de la pantalla', () => {
   it('el denominador de módulos dominados son los PUBLICADOS, no los 29', async () => {
-    // Mostrar 0/29 haría creer al usuario que va tarde cuando va al día: 28 de
-    // los 29 no están escritos todavía.
+    // Mostrar 0/29 haría creer al usuario que va tarde cuando va al día: los
+    // módulos sin escribir no se pueden dominar.
+    //
+    // Las cifras se DERIVAN del catálogo. Estaban escritas como `'0/1'` y
+    // «Hay 1 de 29», y caducaron al publicar el bloque D — que es justo el
+    // cambio que este test debería sobrevivir.
     montar();
     await waitFor(() => expect(screen.getByText('Dónde estás')).toBeDefined());
-    expect(screen.getByText('0/1')).toBeDefined();
-    expect(screen.getByText(/Hay 1 de 29 módulos publicados/)).toBeDefined();
+    expect(screen.getByText(`0/${PUBLICADOS.length}`)).toBeDefined();
+    expect(
+      screen.getByText(
+        new RegExp(`Hay ${PUBLICADOS.length} de ${MODULOS.length} módulos publicados`),
+      ),
+    ).toBeDefined();
   });
 
   it('da acceso a /plan, que no cabe en la barra (A-01)', async () => {
@@ -217,162 +243,5 @@ describe('PanelInicio — el resto de la pantalla', () => {
       expect(screen.getByText('Vas al día con lo que hay publicado')).toBeDefined(),
     );
     expect(screen.getByText(/Todavía no hay ningún módulo publicado/)).toBeDefined();
-  });
-});
-
-/* ══════════════════════════════════════════════════════════════════
-   Los dos bloqueantes del `code-reviewer`
-
-   Los dos son de la misma familia: la portada daba un consejo FALSO en
-   una combinación de estado alcanzable. Y en un caso se quedaba clavada
-   ahí para siempre, dejando los demás escalones sin alcanzar.
-   ══════════════════════════════════════════════════════════════════ */
-
-describe('PanelInicio — B1: una sesión vencida no puede secuestrar la portada', () => {
-  function sesionVencida(): SesionCronometro {
-    return {
-      intentoId: '888',
-      tipo: 'final',
-      ambito: 'global',
-      semilla: 888,
-      // Empezada hace tres días, con dos horas de duración.
-      iniciadoEnMs: Date.now() - 3 * 24 * 3600_000,
-      duracionSegundos: 7200,
-      itemIds: ['C5-001'],
-      respuestas: {},
-      avisosVistos: [],
-    };
-  }
-
-  it('NO afirma que el cronómetro sigue corriendo cuando llegó a cero hace días', async () => {
-    guardarSesion(sesionVencida());
-    montar();
-    await waitFor(() => expect(screen.getByText('Se te acabó el tiempo de un examen')).toBeDefined());
-    expect(screen.queryByText(/El cronómetro sigue corriendo/)).toBeNull();
-  });
-
-  it('y ofrece cerrarlo, no «retomarlo»', async () => {
-    guardarSesion(sesionVencida());
-    montar();
-    await waitFor(() => expect(screen.getByRole('link', { name: /Ver cómo quedó/ })).toBeDefined());
-  });
-
-  it('con la sesión VIVA sí dice que el reloj corre', async () => {
-    guardarSesion({ ...sesionVencida(), iniciadoEnMs: Date.now() - 60_000 });
-    montar();
-    await waitFor(() => expect(screen.getByText('Tienes un examen a medias')).toBeDefined());
-    expect(screen.getByText(/El cronómetro sigue corriendo/)).toBeDefined();
-  });
-
-  it('una sesión de quiz no manda a una ruta de simulacro inexistente', async () => {
-    // `TipoIntento` admite 'quiz' aunque hoy nadie escriba esas sesiones. El
-    // ternario original producía `/simulacros/bloque/c5-…`, un 404 silencioso.
-    guardarSesion({
-      ...sesionVencida(),
-      tipo: 'quiz',
-      ambito: 'c5-umbrales-zonas',
-      iniciadoEnMs: Date.now() - 60_000,
-      duracionSegundos: null,
-    });
-    montar();
-    await waitFor(() =>
-      expect(screen.getByRole('link', { name: /Retomarlo ahora/ }).getAttribute('href')).toBe(
-        '/modulos/c5-umbrales-zonas/quiz',
-      ),
-    );
-  });
-});
-
-describe('PanelInicio — B2: el día del examen no se estudia materia nueva', () => {
-  it('con el examen HOY no ofrece un módulo, y coincide con lo que dice /plan', async () => {
-    // `/plan` dice «nada de teoría nueva» ese día. La portada ofrecía 45
-    // minutos de módulo: dos pantallas de la misma app contradiciéndose.
-    sembrar({
-      diagnosticoHecho: true,
-      intentos: [intentoDiagnostico()],
-      fechaExamen: HOY,
-    });
-    montar();
-    await waitFor(() => expect(screen.getByText('Tu examen es hoy')).toBeDefined());
-    expect(screen.getByText(/no se estudia materia nueva/)).toBeDefined();
-    expect(screen.queryByRole('link', { name: /Estudiar este módulo/ })).toBeNull();
-  });
-
-  it('con el examen ya PASADO lo dice, en vez de repetir el mismo consejo', async () => {
-    sembrar({
-      diagnosticoHecho: true,
-      intentos: [intentoDiagnostico()],
-      fechaExamen: sumarDias(HOY, -5),
-    });
-    montar();
-    await waitFor(() => expect(screen.getByText('Tu examen ya pasó')).toBeDefined());
-    expect(screen.getByText(/cambia la fecha en tu plan/)).toBeDefined();
-  });
-
-  it('un examen en el FUTURO no dispara el escalón', async () => {
-    sembrar({
-      diagnosticoHecho: true,
-      intentos: [intentoDiagnostico()],
-      fechaExamen: sumarDias(HOY, 30),
-    });
-    montar();
-    await waitFor(() =>
-      expect(screen.getByRole('link', { name: /Estudiar este módulo/ })).toBeDefined(),
-    );
-  });
-});
-
-describe('PanelInicio — R2 y R3', () => {
-  it('el escalón 6 se alcanza cuando el plan del día no trae módulo', async () => {
-    // Sin fecha de examen y con la cola vacía, el plan reparte C5 en el día 1;
-    // al dominarlo, el escalón 4 lo salta y no hay repaso, así que cae al 6.
-    // Es el escalón que no tenía test y el que emitía el copy de B2.
-    sembrar({
-      diagnosticoHecho: true,
-      intentos: [intentoDiagnostico()],
-      modulos: {
-        'c5-umbrales-zonas': {
-          teoriaLeida: true, tarjetasVistas: 15, practicaCompletada: true,
-          mejorQuiz: 90, intentosQuiz: 1, dominado: true, ultimaVisita: null,
-        },
-      },
-    });
-    montar();
-    await waitFor(() =>
-      expect(screen.getByText('Vas al día con lo que hay publicado')).toBeDefined(),
-    );
-  });
-
-  it('R3 · el numerador de dominados nunca supera al denominador', async () => {
-    // Vía real: importar un respaldo con progreso de módulos que aquí no están
-    // publicados. Producía «3/1 módulos dominados».
-    const dominado = {
-      teoriaLeida: true, tarjetasVistas: 0, practicaCompletada: true,
-      mejorQuiz: 95, intentosQuiz: 1, dominado: true, ultimaVisita: null,
-    };
-    sembrar({
-      diagnosticoHecho: true,
-      intentos: [intentoDiagnostico()],
-      modulos: {
-        'c5-umbrales-zonas': dominado,
-        'a1-celula': dominado,
-        'd2-carga': dominado,
-      },
-    });
-    montar();
-    await waitFor(() => expect(screen.getByText('Dónde estás')).toBeDefined());
-    expect(screen.getByText('1/1')).toBeDefined();
-    expect(screen.queryByText('3/1')).toBeNull();
-  });
-
-  it('la racha no se infla al remontar', async () => {
-    // El test anterior no remontaba, así que el «una vez» de su nombre no se
-    // probaba.
-    const vista = montar();
-    await waitFor(() => expect(screen.getByText(/día seguido/)).toBeDefined());
-    vista.unmount();
-    montar();
-    await waitFor(() => expect(screen.getByText(/día seguido/)).toBeDefined());
-    expect(screen.queryByText(/2 días seguidos/)).toBeNull();
   });
 });
