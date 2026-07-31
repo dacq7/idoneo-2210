@@ -45,7 +45,14 @@ Los 7 tipos × 4 estados, el controlador de sesión y las etapas 3 y 4 de C5. AD
 - **El `<kbd>` a 12 px mide 4,93:1.** Pasa, con **0,43 de margen**. Cualquier retoque de `--muted` lo tumba: si se toca ese token, se remide.
 - **A la tercera copia, extraer el botón propio.** Van dos: `sesion/boton.tsx` y el de `mazo-tarjetas.tsx`.
 
+## Paso 10 — Motor SRS y /repaso · ✅ CERRADO el 2026-07-30
+
+- **`CLAUDE.md` §7.2 quedó desalineado en tres puntos y no se editó** (ADR-017): la normalización de `hoy` en `crearTarjetaSRS` y la acotación del intervalo. No se replica —§7.2 se copia una sola vez— y los tests lo fijan.
+- **El canario de ADR-010 es ahora `npm run canario`**, no un `grep`. Desde este paso hay contenido en chunks de cliente **a propósito** (`import()` diferido en `/repaso`), y el grep viejo da falso positivo. Correrlo **después** de `npm run build`.
+
 ## Paso 11 — Cronómetro y sesión persistente
+
+- **§7.4 llega aquí, y conviene ejercitarlo con sospecha.** Van cuatro desviaciones del código literal de `src/lib/` en el blueprint (ADR-003, ADR-005, ADR-015, ADR-017), y las tres de motores comparten forma: **fallan en los bordes, no en el caso feliz**, y todas necesitaron lo mismo — normalizar la entrada y acotar la salida. El cronómetro tiene los dos: recibe `ahoraMs` de fuera y produce umbrales de aviso.
 
 - ~~`<AlertaContradiccion>` es prematuro, no código muerto~~ **borrado por ADR-014.** El panel de retroalimentación de este paso muestra veredicto → `explicacion` → `pasos` si es cálculo → `referencia`, y **nada más**: el campo `contradiccion` de `ItemBase` ya no existe. **§13 del blueprint sigue describiendo el cuadro en el panel: no copiarlo.**
 
@@ -57,7 +64,6 @@ Los 7 tipos × 4 estados, el controlador de sesión y las etapas 3 y 4 de C5. AD
 - `leerSesion` **no es libre de efectos**: se autolimpia con `borrarCrudo` si el payload es corrupto. El `dialogo-reanudar` debe llamarla desde un efecto, nunca en render.
 - `reactStrictMode` ya está activo desde el Paso 2, precisamente para que el doble disparo de efectos aparezca aquí y no en producción.
 
-## Paso 11 — Cronómetro y sesión persistente
 
 - **El banco entero viaja en la carga útil RSC**, y con 100 ítems sobre 29 módulos no escala: `/practica` pesa **17.1 kB gz de HTML** contra 9.1 de `/tarjetas`. El simulacro final es el caso difícil y llega aquí, así que es el momento de decidir si se sigue sirviendo desde el servidor o se carga con `import()` bajo interacción, como propone §2.2.
 - **El puntaje se calcula hoy en `usar-sesion.ts`** con la fórmula de §7.5. `src/lib/informe.ts` nace en el Paso 12 y es su dueño: esa línea se sustituye por la llamada. Está marcado en el archivo.

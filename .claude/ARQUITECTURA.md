@@ -422,9 +422,47 @@ Si devuelve algo, un componente cliente volvió a importar `content/`.
 > `intentarMigrar`). Medido: `conceptosClave` devuelve 1 chunk y `osteomuscular`
 > devuelve 0, con el bundle sano.
 >
+> **Tercera corrección — 2026-07-30, Paso 10. El `grep` deja de valer y se
+> sustituye por un script.** Hasta el Paso 9 bastaba con buscar cadenas en
+> `.next/static/chunks/` porque **ningún** contenido llegaba a un chunk de
+> cliente. El Paso 10 lo cambió: `/repaso` carga las tarjetas y los ítems que su
+> cola menciona con `import()` dinámico —para lo que §2.2 y §10.2 regla 4 hicieron
+> `banco/` y `tarjetas/` client-safe—, así que desde hoy hay contenido en esa
+> carpeta **a propósito** y un grep a secas da falso positivo.
+>
+> La distinción que importa no es «¿está en un chunk?» sino **«¿lo descarga el
+> usuario sin pedirlo?»**. `scripts/canario-frontera.ts` (`npm run canario`) mira
+> solo los chunks que `app-build-manifest.json` declara por ruta —los de carga
+> ansiosa— y deja fuera los que Next parte por un `import()`. Busca dos sondas:
+> `osteomuscular` (`content/estructura.ts`) y `Malondialdehído`
+> (`content/datos-duros.ts`). **No** busca cadenas de `banco/` ni `tarjetas/`:
+> esas viajan al cliente por diseño y buscarlas reintroduce el falso positivo.
+>
+> **Verificado por mutación:** se añadió `import { MODULOS } from '@/content/estructura'`
+> a `riel-bloques.tsx` —la fuga real del Paso 6— y el canario la señaló en
+> `layout-*.js` con su archivo y su causa. Restaurado, vuelve a verde.
+>
+> **Cuarta corrección — 2026-07-30, cierre del Paso 10. La sonda `Malondialdehído`
+> nació muerta.** El minificador **escapa todo carácter no ASCII** de los literales
+> de cadena: `í` sale como `\xed`, `ó` como `\xf3`. Una sonda acentuada no aparece
+> nunca literal en un chunk, así que **nunca podía casar**. Desde ADR-014 el canario
+> venía informando «frontera intacta» sin haber comprobado una sola cadena de
+> `content/datos-duros.ts`.
+>
+> La nota de la segunda corrección decía «verificado por mutación», y lo estaba —
+> pero **solo para `osteomuscular`**, que es ASCII y sí funciona. Verificar una sonda
+> de dos no es verificar el canario, y esa es la lección: una comprobación ejercitada
+> a medias da la misma sensación de seguridad que una completa.
+>
+> La sustituye **`Mioglobina`** (`DD-066`), que cumple los tres criterios de siempre y
+> además es ASCII. Y para que no se repita, el script **aborta** si alguna sonda tiene
+> un carácter fuera de ASCII imprimible: mejor romper que mentir en verde. Con test
+> propio en `scripts/__tests__/canario-frontera.test.ts`.
+>
 > **Segunda corrección — 2026-07-30, ADR-014.** El canario complementario que
 > sondeaba `content/erratas.ts` (`diceLaCartilla`, «Las cartillas se contradicen»)
-> quedó sin objeto: el archivo ya no existe. Lo sustituye **`Malondialdehído`**
+> quedó sin objeto: el archivo ya no existe. Lo sustituyó **`Malondialdehído`** ⚠️ *(sonda
+> inválida — ver la cuarta corrección más abajo; hoy es `Mioglobina`)*
 > (valor de `DD-073` en `content/datos-duros.ts`), que cumple los tres criterios:
 > es un **valor** y no un nombre de campo —los nombres de campo viajan
 > legítimamente dentro de los esquemas de Zod, que es lo que quemó a
@@ -844,3 +882,60 @@ Así que la regla no se relaja, **se acota**: el proyecto `componentes` existe p
 **Suite: 382 → 385.** Los tres nuevos son de componente.
 
 **Consecuencia para los pasos siguientes.** El Paso 11 mete auto-envío por temporizador y reanudación de sesión —dos cosas que solo existen en el ciclo de vida— y el Paso 12 mete gráficas. Los dos tienen ahora dónde poner su test de ciclo de vida sin volver a abrir esta discusión. Lo que **no** cambia es §19: la UI no se prueba exhaustivamente en v1, y la checklist manual del 18.10 sigue siendo la verificación de la interfaz.
+
+---
+
+## ADR-017 · El motor SRS se desvía de §7.2 en tres puntos, todos de persistencia
+
+**Estado:** Aceptada
+**Fecha:** 2026-07-30 · **Autor:** hilo principal, sobre el hallazgo del `code-reviewer`
+
+**Contexto.** `src/lib/srs.ts` se instaló con el **§7.2 literal** y su batería de tests lo ejercitó por primera vez. Los tres defectos que aparecieron comparten forma: **el motor produce estados que el esquema de persistencia rechaza o que la cola no vuelve a ver**. Ninguno se manifiesta como excepción al escribir; todos se cobran después, cuando el progreso ya está guardado.
+
+**1 · `crearTarjetaSRS` copiaba `hoy` sin normalizar.** Es el único punto del motor que escribe una fecha sin pasar por `sumarDias`, que ya recorta. Si un handler le pasa `new Date().toISOString()` —lo natural, y lo que el resto de la app usa como `ahoraISO`—, la tarjeta nace con `proximaRevision: '2026-07-30T15:42:11.000Z'`. Dos consecuencias, y la segunda es peor que la primera:
+
+- `esqTarjetaSRS` la rechaza (`RE_FECHA`), así que **todo el `EstadoProgreso` va a cuarentena** en la siguiente lectura (ADR-008).
+- Y aunque sobreviviera: `colaDelDia` compara **strings**, y `'2026-07-30T15:…' <= '2026-07-30'` es `false`. La tarjeta **nunca vuelve a la cola**. Silenciosa: el usuario ve «nada que repasar hoy» y el `proximoEnDias` dice 0.
+
+Arreglo: `proximaRevision: soloFecha(hoy)`.
+
+**2 · El intervalo desbordaba hasta lanzar.** Con la facilidad en el techo la progresión es `3·8·22·62·174·487…`; en el acierto **18** `sumarDias` emite un año expandido (`'+112632-03'`) que falla `RE_FECHA` sin avisar, y en el **19** `new Date(…).toISOString()` lanza `RangeError` **dentro de un handler**. No hace falta estudiar 19 aciertos para llegar: `esqTarjetaSRS` valida `intervaloDias` con `int().min(0)` y **sin techo**, así que un respaldo importado con un valor absurdo pasa Zod y revienta en la primera revisión acertada.
+
+**3 · Intervalo 0 y la cola no drena.** `{ repeticiones: 5, intervaloDias: 0 }` pasa el esquema. Al acertar, `round(0 × EF) = 0` → `proximaRevision = hoy` → la tarjeta reaparece hoy, indefinidamente.
+
+Los dos últimos se cierran en una expresión: `Math.min(MAX_INTERVALO_DIAS, Math.max(1, …))`, con `MAX_INTERVALO_DIAS = 36_500` (100 años). El techo es **defensivo, no pedagógico**: una tarjeta a 100 años ya está retirada de hecho, así que no cambia ningún comportamiento alcanzable estudiando. La API pública solo **gana** una constante.
+
+**Decisión adicional, y va en sentido contrario al instinto: `esqTarjetaSRS` NO recibe un `.max()`.**
+
+Sería la simetría obvia —si el motor no genera más de 36.500, que el esquema no acepte más— y es **exactamente lo que no hay que hacer aquí**. `esqTarjetaSRS` se evalúa dentro de `esqEstadoProgreso`, así que un `intervaloDias` fuera de rango no invalida *esa tarjeta*: **invalida el estado entero** y manda a cuarentena todo el progreso del usuario (ADR-008). Un dato absurdo en una tarjeta suelta no debe costar el historial de intentos, la racha y el resto de la cola.
+
+La capa correcta es la que ya se arregló: **el motor lo acota al escribir.** Un `intervaloDias` heredado de un respaldo raro entra, no rompe nada —`colaDelDia` solo compara fechas— y queda acotado en la primera revisión. Validar en la puerta habría convertido un dato inofensivo en una pérdida de progreso, que es justo lo que ADR-008 existe para impedir.
+
+**Cuarta desviación del código literal del blueprint**, tras ADR-003 (§5), ADR-005 (§8) y ADR-015 (§7.3). Se repite el patrón y ya no es casualidad: **los archivos de `src/lib/` del blueprint fallan en los bordes**, no en el caso feliz, y los tres motores han necesitado el mismo tipo de arreglo — normalización de entrada y acotación de salida. El §7.4 (cronómetro) llega en el Paso 11 y conviene ejercitarlo con la misma sospecha.
+
+`CLAUDE.md` §7.2 queda desalineado y **no se editó**: como en ADR-015, el defecto **no se replica** —§7.2 se copia una sola vez y ya está copiada— y los tests lo fijan. Anotado en `PENDIENTES.md`.
+
+**Verificado por mutación:** los tres arreglos revertidos uno a uno, con 2, 1 y 3 tests cayendo respectivamente. **55 tests nuevos** para este motor; suite de 388 → 443.
+
+---
+
+## ADR-018 · El mazo de tarjetas programa con `registrarRevision`, no con `encolar`
+
+**Estado:** Aceptada
+**Fecha:** 2026-07-30 · **Autor:** hilo principal
+
+**Contexto.** §7.2 dice que `encolar` se llama con «toda tarjeta vista en la etapa Tarjetas» y con «todo ítem fallado en práctica, quiz o simulacro». El segundo enganche se implementó así. **El primero no**, y la diferencia importa.
+
+`encolar` crea la tarjeta con `proximaRevision = hoy`. Si el mazo de un módulo encola sus 15 tarjetas, **las 15 vencen inmediatamente**: el usuario termina la etapa 2, entra en `/repaso` un minuto después y se encuentra las mismas 15 que acaba de ver. Eso no es repaso espaciado, es repetición inmediata, y vacía de sentido la ruta que este paso construye.
+
+**Decisión:** el mazo llama **`registrarRevision`**, que crea *y programa* según la respuesta del usuario («la sabía» / «no la sabía»). Una tarjeta acertada sale a 1 día; una fallada, también a 1 día pero con la facilidad ya penalizada. El cierre de sesión de práctica/quiz sigue con `encolar`, que ahí sí es lo correcto: **lo que fallas hoy se repasa hoy**.
+
+La asimetría no es un descuido, es la diferencia entre los dos gestos: ver una tarjeta **es** una revisión y trae su veredicto; fallar un ítem **no** es una revisión, es el motivo por el que el elemento entra en la cola.
+
+**El defecto que esto abrió, y su arreglo.** `registrarRevision` **no es idempotente** —a diferencia de `encolar`, que por contrato no toca lo que ya existe—, así que estudiar el mazo a las 8 y repetirlo a las 9 contaba **dos** revisiones sin espaciado real: `repeticiones` 1→2, intervalo 1→3 días. El SM-2 empieza a afirmar que el usuario recuerda algo que no ha tenido tiempo de olvidar, que es exactamente la forma de romper un algoritmo de espaciado sin que nada falle.
+
+Había una guarda (`esRepaso`) pero solo cubría la pasada de falladas **dentro** de la sesión, no una segunda visita a la ruta.
+
+**Arreglo: solo se programa lo que de verdad toca hoy.** Si la tarjeta ya tiene `proximaRevision > hoy`, no se re-registra. Es la semántica correcta del SRS —una tarjeta que no ha vencido no se revisa— y cubre las dos vías, la de dentro de la sesión y la de la segunda visita.
+
+**Quinta desviación del código literal del blueprint**, tras ADR-003, ADR-005, ADR-015 y ADR-017. `CLAUDE.md` §7.2 sigue documentando el `encolar` para las tarjetas y **no se editó**: es una nota en prosa, no código copiable, y el comportamiento correcto queda fijado por el comentario del enganche y por este ADR.
