@@ -939,3 +939,106 @@ Había una guarda (`esRepaso`) pero solo cubría la pasada de falladas **dentro*
 **Arreglo: solo se programa lo que de verdad toca hoy.** Si la tarjeta ya tiene `proximaRevision > hoy`, no se re-registra. Es la semántica correcta del SRS —una tarjeta que no ha vencido no se revisa— y cubre las dos vías, la de dentro de la sesión y la de la segunda visita.
 
 **Quinta desviación del código literal del blueprint**, tras ADR-003, ADR-005, ADR-015 y ADR-017. `CLAUDE.md` §7.2 sigue documentando el `encolar` para las tarjetas y **no se editó**: es una nota en prosa, no código copiable, y el comportamiento correcto queda fijado por el comentario del enganche y por este ADR.
+
+---
+
+## ADR-019 · La sesión cronometrada se valida al leerla, y una sesión ilegible se descarta
+
+**Estado:** Aceptada
+**Fecha:** 2026-07-30 · **Autor:** Paso 11
+
+**Contexto.** `PENDIENTES.md` dejaba dos cosas anotadas para este paso, y resultaron ser la misma:
+
+1. §6 hace `JSON.parse(crudo) as SesionCronometro` **sin validar**, y no existía `esqSesionCronometro`.
+2. §7.4 llega aquí y «conviene ejercitarlo con sospecha», porque las cuatro desviaciones previas de `src/lib/` (ADR-003, ADR-005, ADR-015, ADR-017) comparten forma: **fallan en los bordes** y todas necesitaron lo mismo, normalizar la entrada y acotar la salida.
+
+**El defecto, que es el peor posible en este paso.** Con un payload como `{"foo":1}`, `leerSesion()` devolvía un objeto sin `duracionSegundos`. Entonces `restantes()` calcula `undefined - 0` → `NaN`, y **`NaN <= 0` es `false`**, así que `seAcabo()` responde «todavía no» **para siempre**. El simulacro no se auto-envía nunca: el usuario ve `--:--`, se queda sin cronómetro y su intento no se cierra. Nada en pantalla lo delata, que es la firma de todos los defectos de esta familia.
+
+**Decisión, en dos capas.**
+
+- **`esqSesionCronometro` en `esquemas-progreso.ts`.** `iniciadoEnMs` y `duracionSegundos` son `z.number().finite()`, que es exactamente lo que impide el `NaN`. La sesión que no valida se descarta y se limpia.
+- **El motor acota igual.** `restantes()` devuelve 0 ante una duración no finita y `transcurridos()` devuelve 0 ante un `iniciadoEnMs` corrupto. No sobra: la sesión también se construye en memoria, y un `duracionSegundos` derivado de un `blueprint.minutos` inesperado no pasa por Zod.
+
+**Y una decisión que va en sentido contrario a ADR-017, por la razón contraria.** ADR-017 decidió deliberadamente **no** poner un `.max()` a `intervaloDias`, porque `esqTarjetaSRS` se evalúa dentro de `esqEstadoProgreso` y un dato absurdo en una tarjeta suelta habría mandado a cuarentena **todo el progreso** del usuario. Aquí la situación es la inversa: `SesionCronometro` vive en su **propia clave**, así que rechazarla no toca ni un intento, ni la racha, ni la cola de repaso. Lo que se pierde es un simulacro en curso ya ilegible, y la alternativa —dejarlo pasar— es un cronómetro que no termina.
+
+Dicho de otra forma: **la regla no es «validar poco» ni «validar mucho», es validar en la capa cuyo radio de daño corresponde al dato.** ADR-017 y ADR-019 aplican el mismo criterio y salen distintas porque las claves son distintas.
+
+**Detalle de la salida acotada.** `marcarAvisoVisto` filtra `avisosVistos` a los tres umbrales conocidos. Sin eso, un valor heredado de un respaldo raro crecería en cada escritura, y esta es **la ruta que más escribe de toda la app**: una vez por respuesta durante 120 minutos.
+
+**Sexta desviación del código literal del blueprint.** `CLAUDE.md` §7.4 y §6 quedan desalineados y **no se editaron**: como en ADR-015 y ADR-017, el código no se replica —se copia una sola vez y ya está copiado— y los tests lo fijan. Anotado en `PENDIENTES.md`.
+
+**Verificado por mutación:** revertidos uno a uno, caen 2 tests (acotación del motor) y 4 (validación al leer). Suite 456 → 527.
+
+---
+
+## ADR-020 · El simulacro tiene su propio controlador, separado de práctica y quiz
+
+**Estado:** Aceptada
+**Fecha:** 2026-07-30 · **Autor:** Paso 11
+
+**Contexto.** §10.1 asigna un único `ControladorSesion` a las cinco sesiones del producto —práctica, quiz, diagnóstico y los dos simulacros—, y la cabecera del archivo del Paso 9 lo anticipaba así: «el cronómetro, el diálogo de reanudar y la escritura de `SesionCronometro` llegan con el Paso 11 y entran por aquí sin cambiar el contrato».
+
+No entraron. Al construirlo se ve por qué.
+
+**Decisión:** `controlador-simulacro.tsx` es un componente aparte. Dos razones, ninguna estética:
+
+- **Tamaño medido.** `controlador-sesion.tsx` ya ocupa 391 líneas. Sumarle cronómetro, persistencia por respuesta, reanudación, panel de navegación, auto-envío y carga diferida lo dejaría muy por encima de las 300 que fija la regla de código 1 de `CLAUDE.md`.
+- **Las responsabilidades divergen de verdad.** Práctica y quiz reciben su banco **por prop desde el servidor** y no persisten nada hasta el final. El simulacro **carga el banco con `import()` bajo interacción** y escribe tras cada respuesta. No es el mismo componente con un `if`: son dos ciclos de vida distintos.
+
+**Lo que sí se comparte, que es lo que importa:** `useSesion` (la máquina de estado de una tanda), `EnvoltorioItem`, `Boton` y `ResumenSesion`. **No hay una segunda implementación de la tanda**, que era el riesgo real de partir.
+
+`useSesion` gana dos cosas para esto, ambas aditivas y sin tocar a sus consumidores actuales: `SesionInicial` (reanudar con respuestas e índice) e `irA` (el salto del panel de navegación). El estado inicial se lee con un inicializador perezoso de `useState`, es decir **una sola vez al montar**: mirarlo en cada render haría que cada escritura en `localStorage` reinyectara el valor guardado y machacara lo que el usuario está tecleando.
+
+**Alternativas descartadas:**
+
+- **Ampliar `ControladorSesion` con banderas.** Es lo que decía el plan; produce un componente de ~700 líneas con dos modos que no comparten casi nada de su ciclo de vida.
+- **Extraer una base común y heredar.** La parte común ya está extraída y se llama `useSesion`. Una capa más sería abstracción sin segundo caso que la justifique.
+
+**Consecuencia:** `CLAUDE.md` §10.1 queda desalineado en una fila (la que asigna `ControladorSesion` a `/simulacros/*`) y **no se editó**, por el criterio de siempre: es una tabla descriptiva, no código copiable, y su instrucción literal no está en el camino de ejecución de ningún paso futuro.
+
+---
+
+## ADR-021 · `esquemas.ts` y `almacenamiento.ts` se parten por consumidor, no por tema
+
+**Estado:** Aceptada
+**Fecha:** 2026-07-30 · **Autor:** Paso 11
+
+**Contexto.** `PENDIENTES.md` traía esta deuda desde el Paso 9, con la decisión aplazada expresamente «al Paso 11»: `src/lib/esquemas.ts` manda al navegador los siete esquemas de ítem, más tarjetas y glosario, **donde ninguno se usa**; en cliente solo hace falta `esqEstadoProgreso`, que `almacenamiento.ts` importa para validar el progreso al leerlo (§6). La nota decía que partirlo «sí es arquitectura y choca con §22 regla 2, así que se reportó en vez de hacerse».
+
+**Lo que forzó la decisión fue una medición de este paso, no una preferencia.** `OcultaEnSimulacro` (el envoltorio que oculta el pie durante un simulacro, ADR-001) vive en `Shell`, así que `almacenamiento.ts` pasó a estar en el grafo del **layout raíz**: su peso dejó de pagarlo una ruta para pagarlo **todas**, incluida la portada.
+
+| | `/layout` js gz |
+|---|---|
+| Antes del paso | 132.0 kB |
+| Con `OcultaEnSimulacro` importando `almacenamiento.ts` | **148.4 kB** (+16.4) |
+| Tras esta decisión | **132.5 kB** (+0.5) |
+
+Diagnosticado con sondas, no por deducción: `grep "exactamente 4 opciones"` encontraba los esquemas de ítem en un chunk de carga ansiosa del layout, y `grep "ZodError"` encontraba Zod.
+
+**Decisión: tres archivos nuevos, cero líneas de lógica tocadas.**
+
+| Archivo | Qué lleva | Quién lo importa |
+|---|---|---|
+| `src/lib/esquemas-progreso.ts` | progreso, intentos, cola SRS, `esqSesionCronometro` | `almacenamiento.ts` |
+| `src/lib/almacenamiento-crudo.ts` | claves, `memoria`, `localStorageUsable`, leer/escribir/borrar en crudo | `almacenamiento.ts`, `sesion-activa.ts` |
+| `src/lib/sesion-activa.ts` | `haySesionEnCurso`, `suscribirSesion`, `notificarSesion` — **sin Zod** | `OcultaEnSimulacro` |
+
+`esquemas.ts` re-exporta el archivo de progreso (`export * from './esquemas-progreso'`) y `almacenamiento.ts` re-exporta el canal de sesión, así que **ningún consumidor existente cambia**.
+
+**Por qué esto no choca con §22 regla 2** («copiar el código de §4 a §8 tal cual»). Los esquemas son byte-idénticos y sus exports siguen saliendo del mismo sitio: lo único que cambia es **qué archivo los hospeda**, que es una decisión de empaquetado y no de lógica. La regla existe para que nadie «mejore» un motor y le rompa un invariante; aquí no se tocó ni un `.min()`.
+
+**La línea de corte es el consumidor, no el tema.** Un `esquemas-contenido.ts` / `esquemas-progreso.ts` partido por asunto habría sido igual de bonito y no habría resuelto nada: lo que decide el peso del bundle es **quién importa qué**, y el corte tiene que caer ahí.
+
+**El estado degradado se comparte a propósito.** `memoria` y `localStorageUsable` viven en `almacenamiento-crudo.ts` y los dos módulos usan la misma instancia. Si `sesion-activa.ts` tuviera su copia, una escritura fallida por disco lleno degradaría un módulo y no el otro — y volveríamos al defecto de ADR-008 por otra puerta, que es exactamente el que este paso promete blindar.
+
+**§22 regla 4 sigue intacta:** «todo acceso a `localStorage` pasa por `lib/almacenamiento`». **Nadie fuera de `src/lib/` importa `almacenamiento-crudo.ts`**; los componentes siguen llamando a `almacenamiento.ts` o a `sesion-activa.ts`.
+
+**Efecto medido en el resto de rutas** (la partición de esquemas beneficia a todas las que tocan progreso):
+
+| Ruta | Antes | Después |
+|---|---|---|
+| `/modulos/[slug]` | 134.2 | **133.0** |
+| `/modulos/[slug]/tarjetas` | 136.7 | **135.6** |
+| `/repaso` | 144.5 | **143.7** |
+
+**Consecuencia para los pasos siguientes:** cualquier archivo nuevo de `src/lib/` que vaya a ser importado desde el layout raíz debe declarar qué arrastra. El canario de ADR-010 no cubre esto —vigila contenido, no dependencias—, así que la comprobación es la métrica de `/layout` js gz de `COMPONENTES.md`.

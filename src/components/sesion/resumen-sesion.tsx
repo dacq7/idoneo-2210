@@ -43,6 +43,44 @@ function mensajeQuiz(puntaje: number): string {
   return `Esto no es cuestión de repetir el quiz hasta que salga: con menos de 60 lo que falta es la lectura. Vuelve a la teoría del módulo y a las tarjetas, y deja el quiz para después. El quiz mide, no enseña.`;
 }
 
+/** [A-31] `'suelta'` es el simulacro, y caía en la rama de la práctica: el
+ *  titular decía «Terminaste la práctica» y el botón «Repetir la práctica»
+ *  después de un examen cronometrado de dos horas. Peor aún, ese `<h2>` es el
+ *  elemento que RECIBE EL FOCO al cerrar, así que en el auto-envío es lo primero
+ *  que oye quien usa lector de pantalla. */
+const TITULO: Record<Props['clase'], string> = {
+  quiz: 'Terminaste el quiz',
+  practica: 'Terminaste la práctica',
+  suelta: 'Terminaste el simulacro',
+};
+
+const ETIQUETA_REPETIR: Record<Props['clase'], string> = {
+  quiz: 'Repetir el quiz',
+  practica: 'Repetir la práctica',
+  suelta: 'Hacer otro simulacro',
+};
+
+/**
+ * Retroalimentación honesta (§22 regla 11), y aquí con una advertencia que las
+ * otras dos no necesitan: este puntaje **no es el veredicto**. La escala de
+ * §7.5 y su `NOTA_VEREDICTO` —los cortes son criterios internos, no el puntaje
+ * oficial de COLEF— llegan con el informe del Paso 12. Hasta entonces se da el
+ * dato desnudo y no se insinúa un pronóstico que todavía no se puede sostener.
+ */
+function mensajeSimulacro(puntaje: number, sinResponder: number): string {
+  const enBlanco =
+    sinResponder > 0
+      ? ` Lo que dejaste en blanco cuenta como fallo: ${sinResponder} ${sinResponder === 1 ? 'ítem' : 'ítems'} sin responder es tiempo mal repartido, y eso también se entrena.`
+      : '';
+  if (puntaje >= 85) {
+    return `Buen resultado.${enBlanco} Aun así, un simulacro no es el examen: repítelo dentro de unos días con otras preguntas y mira si el puntaje aguanta.`;
+  }
+  if (puntaje >= 60) {
+    return `Tienes la base y te faltan los datos exactos.${enBlanco} Abajo están las que fallaste, con su explicación: esas son tu plan de estudio de esta semana.`;
+  }
+  return `El simulacro es para medir, no para estudiar.${enBlanco} Con este resultado lo que toca es volver a los módulos más flojos, no repetir el simulacro hasta que salga mejor.`;
+}
+
 function mensajePractica(correctas: number, total: number): string {
   if (correctas === total) {
     return 'La práctica no mide, así que este resultado no dice que domines el módulo: dice que las explicaciones te cuadraron mientras las tenías delante. La medición es el quiz.';
@@ -62,12 +100,16 @@ export function ResumenSesion({ ref, resumen, clase, volver, siguiente, onRepeti
         {/* tabIndex -1: recibe el foco al cerrar la tanda, para que el cambio de
             pantalla se anuncie y no haya que buscar dónde quedó el hilo. */}
         <h2 ref={ref} tabIndex={-1}>
-          {clase === 'quiz' ? 'Terminaste el quiz' : 'Terminaste la práctica'}
+          {TITULO[clase]}
         </h2>
 
         <p className="text-[0.9375rem]">
           Acertaste <strong className="font-semibold">{correctas}</strong> de {total}
-          {clase === 'quiz' ? (
+          {/* [A-31] El puntaje se muestra en todo lo que MIDE, no solo en el
+              quiz. Un simulacro que cierra sin decir su porcentaje —y el auto-
+              envío cierra sin que nadie pulse nada— deja al usuario sin el
+              único dato por el que hizo 120 minutos de examen. */}
+          {clase === 'quiz' || clase === 'suelta' ? (
             <>
               {' '}
               · <span className="font-mono font-semibold">{puntaje}</span> de 100
@@ -86,13 +128,17 @@ export function ResumenSesion({ ref, resumen, clase, volver, siguiente, onRepeti
         </p>
 
         <p className="text-muted-foreground">
-          {clase === 'quiz' ? mensajeQuiz(puntaje) : mensajePractica(correctas, total)}
+          {clase === 'quiz'
+            ? mensajeQuiz(puntaje)
+            : clase === 'suelta'
+              ? mensajeSimulacro(puntaje, sinResponder)
+              : mensajePractica(correctas, total)}
         </p>
 
         <div className="flex flex-col gap-2 sm:flex-row">
           <Boton onClick={onRepetir} variante="contorno" className="min-h-11 flex-1">
             <RotateCcw className="size-4" aria-hidden="true" />
-            {clase === 'quiz' ? 'Repetir el quiz' : 'Repetir la práctica'}
+            {ETIQUETA_REPETIR[clase]}
           </Boton>
           {siguiente ? (
             <Link

@@ -76,13 +76,38 @@ export interface Sesion {
   comprobar: () => void;
   avanzar: () => void;
   retroceder: () => void;
+  /** Salta a un ítem por índice. Lo usa el panel de navegación del simulacro. */
+  irA: (indice: number) => void;
   /** Cierra la sesión y devuelve el resumen para que el controlador lo persista. */
   terminar: () => ResumenSesion;
 }
 
-export function useSesion(items: readonly Item[]): Sesion {
-  const [indice, setIndice] = useState(0);
-  const [respuestas, setRespuestas] = useState<Record<string, RespuestaEnSesion>>({});
+/**
+ * Estado con el que arranca una sesión **reanudada**. Lo aporta el Paso 11:
+ * un simulacro cronometrado que se recupera de `localStorage` tras cerrar la
+ * pestaña vuelve con sus respuestas y en el ítem donde se quedó.
+ *
+ * Se lee **una sola vez, al montar**. Después la sesión es dueña de su estado:
+ * volver a mirarlo en cada render haría que cada escritura en `localStorage`
+ * reinyectara el valor guardado y machacara lo que el usuario está tecleando.
+ */
+export interface SesionInicial {
+  indice: number;
+  respuestas: Record<string, RespuestaEnSesion>;
+}
+
+export function useSesion(items: readonly Item[], inicial?: SesionInicial): Sesion {
+  // `useState(() => …)`: el inicializador perezoso corre solo en el primer
+  // render. Es lo que fija «se lee una vez al montar» en el idioma de React, en
+  // lugar de confiarlo a un efecto que llegaría un render tarde — y en ese
+  // render el usuario ya vería la tanda en blanco antes de que aparecieran sus
+  // respuestas.
+  const [indice, setIndice] = useState(() =>
+    inicial === undefined ? 0 : Math.min(Math.max(inicial.indice, 0), Math.max(items.length - 1, 0)),
+  );
+  const [respuestas, setRespuestas] = useState<Record<string, RespuestaEnSesion>>(
+    () => inicial?.respuestas ?? {},
+  );
   const [comprobados, setComprobados] = useState<readonly string[]>([]);
   const [terminada, setTerminada] = useState(false);
   const [resumen, setResumen] = useState<ResumenSesion | null>(null);
@@ -153,6 +178,9 @@ export function useSesion(items: readonly Item[]): Sesion {
 
   const avanzar = useCallback(() => mover(indice + 1), [mover, indice]);
   const retroceder = useCallback(() => mover(indice - 1), [mover, indice]);
+  // `mover` ya acota el destino al rango válido, así que un índice fuera de
+  // rango del panel de navegación no puede dejar la sesión sin ítem.
+  const irA = useCallback((destino: number) => mover(destino), [mover]);
 
   const terminar = useCallback((): ResumenSesion => {
     // Idempotente: la segunda llamada devuelve el mismo resumen sin recalcular.
@@ -224,6 +252,7 @@ export function useSesion(items: readonly Item[]): Sesion {
     comprobar,
     avanzar,
     retroceder,
+    irA,
     terminar,
   };
 }

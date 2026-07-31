@@ -366,3 +366,35 @@ quien sí audita.
 **No comiteé nada.** El único cambio de código que apliqué está en `scripts/canario-frontera.ts`
 (sonda + guardián + export) más `scripts/__tests__/canario-frontera.test.ts`. Las seis compuertas
 se repitieron en verde después.
+
+---
+
+## Paso 11 — Cronómetro, sesión persistente y simulacros — 2026-07-30
+
+**Veredicto del `code-reviewer`: APROBADO CON RESERVAS.** Sin bloqueantes. Compuertas re-ejecutadas por él sobre el árbol final: typecheck · lint · 529 tests · build · canario, las cinco en verde.
+
+**Aviso de proceso que dejó anotado, y es justo:** revisó índice + árbol de trabajo porque la rama no tenía commits, y `simulacro-en-curso.tsx` cambió a mitad de su revisión —yo estaba derivando el índice de reanudación, que era justo un hueco que iba a reportar—. Volvió a correr las cinco compuertas después. Lección para el próximo paso: **comitear antes de pedir revisión**, o el revisor audita un objetivo móvil.
+
+**Los 7 invariantes, verificados por él con sonda ejecutada.** Los tres que más importaban:
+
+- **Auto-envío**: probado en el peor caso —hijo sin desmontar, `onCerrar` replicando el `borrarSesion()` del controlador— `onCerrar` se llama **una** vez y tras 10 s más de ticks sigue en una. Confirmó además que **el efecto de persistencia no resucita la sesión** tras el cierre, que era el riesgo real de tener las dos cosas en el mismo componente.
+- **Examen mentiroso bloqueado**: midió que `armarSimulacro(FINAL)` **devolvería 28 ítems para un examen de 100** si nadie lo impidiera, y que los cinco simulacros se declaran inviables.
+- **Pie**: `grep -rl COLEF .next/static/chunks/` → **vacío**. La atribución de ADR-001 no entra al bundle cliente, que era el punto del envoltorio.
+
+### Qué se arregló a raíz de la revisión
+
+| # | Hallazgo | Arreglo |
+|---|---|---|
+| **R1** | **Un reloj hacia atrás o un `iniciadoEnMs` futuro congelan el auto-envío.** Medido: reloj atrasado 3 h → `restantes()` devuelve la duración **completa**; y una sesión con inicio en el futuro **pasa Zod** y `seAcabo()` da `false` en 2030 | `inicioCoherente()` en `cronometro.ts`, aplicada en la reanudación (que es donde ya se lee el reloj). Una sesión con inicio futuro se trata como **no reconstruible**, igual que si le faltaran ítems |
+| **R2** | `Viabilidad.exacto` se calculaba y **no lo consumía nadie**. Inerte hoy; el primer afectado sería el diagnóstico del Paso 13, que recibiría un «viable» falso en silencio | La portada **no ofrece empezar** con `exacto === false` y explica por qué; `empezar()` lo revalida; y 3 tests fijan el contrato **hoy**, en vez de confiar en que alguien relea un comentario dentro de dos pasos |
+| **R3** | **Dos simulacros seguidos repetían ítems: 5 de 10.** `armarSimulacro` acepta `itemsRecientes` y `itemsDeIntentosRecientes` existía, pero no los llamaba nadie | Cableado ya. Hoy la lista sale vacía porque los intentos no se persisten hasta el Paso 12; en cuanto `guardarIntento` escriba, funciona sin tocar una línea |
+| **M2** | `empezar()` no revalidaba la viabilidad; alcanzable desde `descartarYEmpezar` con una sesión vieja de un blueprint que dejó de ser viable | Guarda al principio de `empezar()` |
+
+**Mutación de los arreglos:** `inicioCoherente` devolviendo siempre `true` mata 1 test; `exacto` fijado a `true` mata 3.
+
+### Lo que NO se arregló, y por qué
+
+- **M1 · `controlador-simulacro.tsx` tiene 368 líneas frente a la regla de 300** — y el revisor señala con razón que **ADR-020 justifica la partición precisamente con esa regla**. Contadas sin comentarios son 251. Hay precedente aprobado en los pasos 9 y 10 (`controlador-sesion` 390, `controlador-repaso` 594), así que la práctica del proyecto es consistente y la regla escrita no. **No lo decido yo: queda para el `software-architect`**, que tiene que elegir entre contar líneas de código o enmendar la regla. Anotado en `PENDIENTES.md`.
+- **M3 · un simulacro terminado se pierde al recargar.** Es el aplazamiento ya declarado: `IntentoSimulacro.desglose` exige `calcularDesglose` de `informe.ts`, que nace en el Paso 12. El revisor lo deja anotado «para que nadie lo dé por hecho», y tiene razón: hoy se pueden hacer 120 minutos y perder el resultado con F5 en la pantalla de resumen. Sigue siendo preferible a escribir intentos que el Paso 12 tendría que migrar.
+
+**Lo que confirmó bien resuelto:** el 🔴 del Paso 10 —`import()` sin `.catch()` dejando esqueleto eterno— se aplicó aquí en las tres cadenas de `cargarBanco`, con reintento. Y la partición de ADR-021 no es cosmética: verificó que ningún chunk de cliente lleva `COLEF` y que el canario sigue con la frontera intacta.

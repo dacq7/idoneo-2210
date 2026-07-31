@@ -9,6 +9,7 @@
 import { BarraLateral } from './barra-lateral';
 import { Encabezado } from './encabezado';
 import { NavInferior } from './nav-inferior';
+import { OcultaEnSimulacro } from './oculta-en-simulacro';
 import { Pie } from './pie';
 
 export function Shell({ children }: { children: React.ReactNode }) {
@@ -43,7 +44,13 @@ export function Shell({ children }: { children: React.ReactNode }) {
           <main id="contenido" tabIndex={-1} className="mx-auto w-full max-w-3xl grow px-4 pt-6 sm:px-6">
             {children}
           </main>
-          <Pie />
+          {/* Durante un simulacro cronometrado el pie se oculta, no se
+              desmonta (ADR-001). `Pie` sigue siendo Server Component: viaja
+              como payload RSC dentro del envoltorio cliente y no entra al
+              bundle del navegador. Ver `oculta-en-simulacro.tsx`. */}
+          <OcultaEnSimulacro>
+            <Pie />
+          </OcultaEnSimulacro>
         </div>
       </div>
 

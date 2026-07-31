@@ -26,7 +26,6 @@ export const esqEstadoContenido = z.enum(['completo', 'en-preparacion']);
 
 const RE_ID_ITEM = /^[ABCD]\d{1,2}-\d{3}$/;
 const RE_REFERENCIA = /^Cartilla [1-4], Tema \d+/;
-const RE_FECHA = /^\d{4}-\d{2}-\d{2}$/;
 
 const camposBase = {
   id: z.string().regex(RE_ID_ITEM, 'el id debe tener la forma "C5-014"'),
@@ -332,73 +331,11 @@ export const esqModulo = z.object({
   estadoContenido: esqEstadoContenido,
 });
 
-/* ─── Progreso (valida el JSON importado en /ajustes) ─────────────── */
+/* ─── Progreso y sesión ───────────────────────────────────────────── */
 
-export const esqTarjetaSRS = z.object({
-  id: z.string().min(3),
-  facilidad: z.number().min(1.3).max(2.8),
-  intervaloDias: z.number().int().min(0),
-  repeticiones: z.number().int().min(0),
-  proximaRevision: z.string().regex(RE_FECHA),
-});
-
-export const esqEstadoModulo = z.object({
-  teoriaLeida: z.boolean(),
-  tarjetasVistas: z.number().int().min(0),
-  practicaCompletada: z.boolean(),
-  mejorQuiz: z.number().min(0).max(100).nullable(),
-  intentosQuiz: z.number().int().min(0),
-  dominado: z.boolean(),
-  ultimaVisita: z.string().nullable(),
-});
-
-const esqConteo = z.object({
-  correctas: z.number().int().min(0),
-  total: z.number().int().min(0),
-});
-
-export const esqIntento = z.object({
-  id: z.string().min(1),
-  tipo: z.enum(['diagnostico', 'quiz', 'bloque', 'final']),
-  ambito: z.string().min(1),
-  semilla: z.number(),
-  iniciadoEn: z.string(),
-  terminadoEn: z.string(),
-  segundosUsados: z.number().int().min(0),
-  totalItems: z.number().int().min(1),
-  itemIds: z.array(z.string()),
-  respuestas: z.array(
-    z.object({
-      itemId: z.string(),
-      respuesta: z.unknown(),
-      correcta: z.boolean(),
-      segundos: z.number().min(0),
-      marcada: z.boolean(),
-    }),
-  ),
-  puntaje: z.number().min(0).max(100),
-  desglose: z.object({
-    porBloque: z.record(esqConteo),
-    porModulo: z.record(esqConteo),
-    porNivel: z.record(esqConteo),
-  }),
-});
-
-export const esqEstadoProgreso = z.object({
-  version: z.literal(1),
-  creadoEn: z.string(),
-  nombre: z.string().max(40).optional(),
-  fechaExamen: z.string().regex(RE_FECHA).optional(),
-  diagnosticoHecho: z.boolean(),
-  modulos: z.record(esqEstadoModulo),
-  colaRepaso: z.record(esqTarjetaSRS),
-  intentos: z.array(esqIntento),
-  racha: z.object({ dias: z.number().int().min(0), ultimoDiaActivo: z.string() }),
-  preferencias: z.object({
-    tema: z.enum(['claro', 'oscuro', 'sistema']),
-    sonido: z.boolean(),
-    ultimoRespaldo: z.string().nullable(),
-  }),
-});
-
-export type EstadoProgresoValidado = z.infer<typeof esqEstadoProgreso>;
+// Viven en `esquemas-progreso.ts` y se re-exportan aquí para que ningún
+// consumidor tenga que saber de la partición. La separación es de EMPAQUETADO,
+// no de contenido: `almacenamiento.ts` importa del archivo pequeño y así el
+// bundle del navegador deja de arrastrar los siete esquemas de ítem, que en el
+// cliente no usa nadie. Ver ADR-021.
+export * from './esquemas-progreso';

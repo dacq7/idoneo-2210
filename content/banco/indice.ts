@@ -26,3 +26,23 @@ export async function cargarBancoCompleto(): Promise<Item[]> {
   const tandas = await Promise.all(Object.values(BANCO).map((c) => c()));
   return tandas.flat();
 }
+
+/**
+ * Cuántos ítems publicados tiene cada módulo. **Solo conteos**: ni un enunciado,
+ * ni una explicación.
+ *
+ * Es lo que permite que las portadas de `/simulacros` digan la verdad sobre si
+ * el banco alcanza —`diagnosticarViabilidad` en `src/lib/simulacro.ts`— sin
+ * mandar el banco al navegador. Con 29 módulos son 29 números; el banco completo
+ * serían ~750 ítems en la carga útil RSC de una ruta que el usuario abre para
+ * *decidir* si va a hacer un simulacro, no para hacerlo (ADR-010).
+ *
+ * Se llama desde Server Components. En build carga el banco entero una vez por
+ * ruta estática, que es el momento correcto para pagarlo.
+ */
+export async function censarBanco(): Promise<Record<string, number>> {
+  const entradas = await Promise.all(
+    Object.entries(BANCO).map(async ([slug, cargar]) => [slug, (await cargar()).length] as const),
+  );
+  return Object.fromEntries(entradas);
+}
