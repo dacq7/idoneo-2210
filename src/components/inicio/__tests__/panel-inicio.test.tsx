@@ -131,12 +131,19 @@ describe('PanelInicio — la prioridad de la acción principal', () => {
   it('3 · con diagnóstico hecho, lo que toca hoy según el plan', async () => {
     sembrar({ diagnosticoHecho: true, intentos: [intentoDiagnostico()] });
     montar();
-    // Solo C5 está publicado, así que el plan del día es C5.
-    await waitFor(() =>
-      expect(screen.getByRole('link', { name: /Estudiar este módulo/ }).getAttribute('href')).toBe(
-        '/modulos/c5-umbrales-zonas',
-      ),
-    );
+    // Qué módulo concreto toca hoy lo decide `generarPlan`, que ordena por
+    // debilidad × peso del bloque: cambia con cada paso de contenido, y fijar un
+    // slug aquí convierte este test en un detector de pasos nuevos en vez de un
+    // test de la portada. Lo que sí tiene que cumplirse siempre es que apunte a
+    // un módulo PUBLICADO — mandar al usuario a uno en preparación es el fallo
+    // que este escalón existe para impedir.
+    const publicados = new Set(PUBLICADOS.map((m) => `/modulos/${m.slug}`));
+    await waitFor(() => {
+      const destino = screen
+        .getByRole('link', { name: /Estudiar este módulo/ })
+        .getAttribute('href');
+      expect(publicados.has(destino ?? '')).toBe(true);
+    });
   });
 
   it('4 · con el módulo del día ya dominado, gana la cola de repaso', async () => {

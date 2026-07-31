@@ -303,7 +303,9 @@ export const MODULOS: Modulo[] = [
     ],
     conceptosClave: ['Fosfocreatina', 'Creatina quinasa', 'Glucólisis', 'Ciclo de Krebs'],
     prerequisitos: ['a5-sistemas-energeticos-biomarcadores'],
-    estadoContenido: 'en-preparacion',
+    // Volteado en el paso 16 (ADR-004). El validador le exige teoría + ≥12
+    // tarjetas + ≥28 ítems (bloque C, ADR-006) + sus conceptos clave en el glosario.
+    estadoContenido: 'completo',
   },
   {
     slug: 'c2-cardiovascular',
@@ -320,7 +322,7 @@ export const MODULOS: Modulo[] = [
     ],
     conceptosClave: ['Frecuencia cardíaca máxima', 'Frecuencia cardíaca de reserva', 'Gasto cardíaco', 'Volumen sistólico'],
     prerequisitos: ['a3-tejidos-organos-sistemas'],
-    estadoContenido: 'en-preparacion',
+    estadoContenido: 'completo',
   },
   {
     slug: 'c3-respiratorio-vo2',
@@ -337,7 +339,7 @@ export const MODULOS: Modulo[] = [
     ],
     conceptosClave: ['VO₂máx', 'MET', 'Diferencia arteriovenosa', 'Ventilación'],
     prerequisitos: ['c2-cardiovascular'],
-    estadoContenido: 'en-preparacion',
+    estadoContenido: 'completo',
   },
   {
     slug: 'c4-nervioso-digestivo-osteomuscular',
@@ -354,7 +356,7 @@ export const MODULOS: Modulo[] = [
     ],
     conceptosClave: ['Propiocepción', 'Huso muscular', 'Contracción excéntrica', 'Fibra tipo II'],
     prerequisitos: ['a3-tejidos-organos-sistemas'],
-    estadoContenido: 'en-preparacion',
+    estadoContenido: 'completo',
   },
   {
     slug: 'c5-umbrales-zonas',
@@ -402,7 +404,7 @@ export const MODULOS: Modulo[] = [
     ],
     conceptosClave: ['Cinética', 'Cinemática', 'Centro de gravedad', 'Cadena cinemática'],
     prerequisitos: ['a2-terminologia-anatomica'],
-    estadoContenido: 'en-preparacion',
+    estadoContenido: 'completo',
   },
   {
     slug: 'c7-nutricion-deportiva',
@@ -419,7 +421,7 @@ export const MODULOS: Modulo[] = [
     ],
     conceptosClave: ['Índice glucémico', 'Ventana de recuperación', 'Bebida isotónica', 'Gasto energético total'],
     prerequisitos: ['a4-nutrientes'],
-    estadoContenido: 'en-preparacion',
+    estadoContenido: 'completo',
   },
   {
     slug: 'c8-psicologia-deporte',
@@ -435,7 +437,7 @@ export const MODULOS: Modulo[] = [
     ],
     conceptosClave: ['Condicionamiento operante', 'Aprendizaje vicario', 'Refuerzo positivo', 'Activación mental'],
     prerequisitos: [],
-    estadoContenido: 'en-preparacion',
+    estadoContenido: 'completo',
   },
   {
     slug: 'c9-dopaje',
@@ -452,7 +454,7 @@ export const MODULOS: Modulo[] = [
     ],
     conceptosClave: ['Responsabilidad estricta', 'AMA/WADA', 'Localización fallida', 'Asociación prohibida'],
     prerequisitos: [],
-    estadoContenido: 'en-preparacion',
+    estadoContenido: 'completo',
   },
 
   /* ══════════ BLOQUE D — Entrenamiento Deportivo ══════════ */

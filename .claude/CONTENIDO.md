@@ -23,15 +23,15 @@ Aplica a los 9 módulos de C, incluido el piloto C5.
 | b4-componentes-didacticos | B | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 17 |
 | b5-estilos-ensenanza | B | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 17 |
 | b6-aprendizaje-sesion | B | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 17 |
-| c1-vias-energeticas | C | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 16 |
-| c2-cardiovascular | C | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 16 |
-| c3-respiratorio-vo2 | C | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 16 |
-| c4-nervioso-digestivo-osteomuscular | C | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 16 |
+| c1-vias-energeticas | C | ✅ | ✅ 15 | ✅ 28 | ✅ 4 | ✅ | **Paso 16 — integrado.** Cuotas en verde con `cuotasDelBloque('C')` (12/9/7 · dif 6/16/6 · los 7 tipos). Sesgo de longitud **33 %**. Cubre DD-001 a DD-008. **ADR-014:** enseña 30–32 ATP por glucosa (30 en músculo esquelético), fosfágeno 5–15 s y ATP libre 2–3 s, reutilizando la investigación de esta ficha. **ADR-029:** DD-007 corregido a ≈106 ATP |
+| c2-cardiovascular | C | ✅ | ✅ 15 | ✅ 28 | ✅ 4 | ✅ | **Paso 16 — integrado.** Cuotas en verde (12/9/7 · dif 5/18/5 · los 7 tipos). Sesgo **30 %**. Cubre DD-020 a DD-029, con las 5 fórmulas de FCmáx y su población. **ADR-014:** la FCmáx no sube con el entrenamiento. **ADR-029:** DD-020 corregido a 60–100 lpm |
+| c3-respiratorio-vo2 | C | ✅ | ✅ 15 | ✅ 28 | ✅ 4 | ✅ | **Paso 16 — integrado.** Cuotas en verde (12/9/7 · dif 4/18/6 · los 7 tipos). Sesgo **25 %**. Cubre DD-030 a DD-035. Reutiliza la investigación de Cooper y Course Navette ya verificada para `d4-resistencia` |
+| c4-nervioso-digestivo-osteomuscular | C | ✅ | ✅ 15 | ✅ 28 | ✅ 4 | ✅ | **Paso 16 — integrado.** Cuotas en verde (12/9/7 · dif 4/18/6 · los 7 tipos, con 2 ordenar para los 7 pasos de la contracción y el recorrido digestivo). Sesgo **24 %**. Sin datos duros propios. **ADR-014:** el ATP suelta el puente cruzado, no lo forma |
 | c5-umbrales-zonas | C | ✅ | ✅ 15 | ✅ 28 | ✅ 9 | ✅ | **Módulo piloto — paso 8.** Plantilla de oro. **28 ítems, no los 25 de §14.3** (ADR-006): C5-026 recuerdo/d1/única · C5-027 comprensión/d2/múltiple · C5-028 aplicación/d3/cálculo. Reparto 12/9/7. Cableado, en `'completo'` y con cuotas corriendo. **Paso 8b:** la teoría enseña el dato verdadero en prosa, sin hablar de las cartillas (ADR-014) |
-| c6-biomecanica | C | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 16 |
-| c7-nutricion-deportiva | C | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 16 |
-| c8-psicologia-deporte | C | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 16 |
-| c9-dopaje | C | ⬜ | ⬜ 0 | ⬜ 0 | ⬜ | ⬜ | Pendiente — paso 16 |
+| c6-biomecanica | C | ✅ | ✅ 15 | ✅ 28 | ✅ 4 | ✅ | **Paso 16 — integrado.** Cuotas en verde (12/9/7 · dif 4/18/6 · los 7 tipos). Sesgo **30 %**. Sin datos duros propios. **ADR-014:** P = F × v y por tanto la potencia máxima cae con cargas medias — la investigación ya escrita en d3 y d5, aquí con su origen físico |
+| c7-nutricion-deportiva | C | ✅ | ✅ 15 | ✅ 28 | ✅ 4 | ✅ | **Paso 16 — integrado.** Cuotas en verde (12/9/7 · dif 4/19/5 · los 7 tipos). Sesgo **30 %**. Cubre DD-050 a DD-057; el eje del módulo es la cronología antes/durante/después |
+| c8-psicologia-deporte | C | ✅ | ✅ 15 | ✅ 28 | ✅ 4 | ✅ | **Paso 16 — integrado.** Cuotas en verde (12/9/7 · dif 3/19/6 · **6 tipos, sin cálculo**: el módulo no tiene magnitudes que calcular y forzarlo daría aritmética disfrazada). Sesgo **30 %**. Sin datos duros propios |
+| c9-dopaje | C | ✅ | ✅ 15 | ✅ 28 | ✅ 4 | ✅ | **Paso 16 — integrado.** Cuotas en verde (12/9/7 · dif 3/19/6 · **6 tipos, sin cálculo**, mismo motivo que c8). Sesgo **30 %**. Cubre DD-102 a DD-104. **ADR-014:** DD-104 pierde el «(memorizar como está en la cartilla)», que era residuo del sistema de erratas |
 | d1-conceptualizacion | D | ✅ | ✅ 15 | ✅ 25 | ✅ 4 | ✅ | **Paso 15 — integrado.** Cableado en los dos índices, en `'completo'` y con cuotas de `cuotasDelBloque('D')` en verde (11/8/6 · dif 5/13/7 · 6 tipos). Glosario integrado desde `/tmp/glosario-d1-d2.ts` |
 | d2-carga | D | ✅ | ✅ 15 | ✅ 25 | ✅ 4 | ✅ | **Paso 15 — integrado.** Cuotas en verde (11/8/6 · dif 5/14/6 · 7 tipos, con 4 de cálculo de densidad, tonelaje y carga de sesión). Glosario: se integraron `Carga interna` y `Carga externa`; `Densidad` y `Escala de Borg (RPE)` ya estaban sembrados del paso 6 — **verificado, sin duplicado** |
 | d3-fuerza | D | ✅ | ✅ 15 | ✅ 25 | ✅ 3 | ✅ | **Paso 15 — integrado.** Cuotas en verde (11/8/6 · dif 6/13/6 · los 7 tipos). Cubre DD-010, DD-011 y DD-012. **Referencias remapeadas** a `Tema 3, Subtema 3.1.1–3.1.4`: las suyas colisionaban con d6 en `3.4` |
@@ -41,12 +41,28 @@ Aplica a los 9 módulos de C, incluido el piloto C5.
 | d7-modelos-planificacion | D | ✅ | ✅ 15 | ✅ 25 | ✅ 3 | ✅ | **Paso 15 — integrado.** Cuotas en verde con `CUOTAS` (11/8/6 · dif 6/12/7 · 7 tipos). Glosario integrado desde `/tmp/glosario-d7-d8.ts` |
 | d8-estructuras | D | ✅ | ✅ 15 | ✅ 25 | ✅ 4 | ✅ | **Paso 15 — integrado.** Cuotas en verde con `CUOTAS` (11/8/6 · dif 7/12/6 · 7 tipos). Los 2 ordenar cubren la jerarquía de estructuras y las partes de la sesión. Glosario integrado desde `/tmp/glosario-d7-d8.ts` |
 
-**Total:** 9 de 29 módulos completos (C5 + los 8 del bloque D) · 228 ítems · 135 tarjetas ·
-49 términos de glosario · 70 datos duros.
+**Total:** 17 de 29 módulos completos (los 9 del bloque C + los 8 del bloque D) · 452 ítems ·
+255 tarjetas · 76 términos de glosario · 70 datos duros.
 
-C5 y los 8 módulos del bloque D están cableados en `content/banco/indice.ts` y
-`content/tarjetas/indice.ts`, en `estadoContenido: 'completo'`, y el validador les corre las cuotas
-de `cuotasDelBloque(...)` en verde: 28 ítems para C5 (bloque C) y 25 para cada módulo de D.
+Los 17 módulos están cableados en `content/banco/indice.ts` y `content/tarjetas/indice.ts`, en
+`estadoContenido: 'completo'`, y el validador les corre las cuotas de `cuotasDelBloque(...)` en
+verde: **28 ítems para cada uno de los 9 del bloque C** y 25 para cada uno de los 8 de D.
+
+**Numeración de referencias del bloque C** (fijada ANTES de escribir el paso 16, que es la
+obligación que dejó el 15). Se construyó alrededor de las referencias que C5 ya tenía —`2.1` para la
+tabla de FCmáx y `2.6.x` para las zonas—, así que ninguna referencia previa se tocó:
+
+| Tema | Contenido | Subtemas |
+|---|---|---|
+| **Tema 1** | Vías energéticas | 1.1 visión general · 1.2 fosfágeno · 1.3 glucólisis anaeróbica · 1.4 glucólisis aeróbica y Krebs · 1.5 lípidos · 1.6 %1RM y vía dominante → **c1** |
+| **Tema 2** | Sistemas corporales y respuesta al ejercicio | 2.1 FC y fórmulas de FCmáx · 2.2 anatomía y ciclo cardíaco · 2.3 gasto cardíaco y volumen sistólico · 2.4 adaptaciones → **c2** · 2.5 ventilación y mecánica respiratoria · 2.7 VO₂máx, MET y baremos → **c3** · **2.6 zonas y umbrales → c5, YA FIJADO** · 2.8 sistema nervioso y propiocepción · 2.9 osteomuscular · 2.10 digestivo → **c4** |
+| **Tema 3** | Biomecánica | 3.1 cinética y cinemática · 3.2 palancas · 3.3 centro de gravedad y equilibrio · 3.4 eficiencia en la carrera → **c6** |
+| **Tema 4** | Nutrición deportiva | 4.1 antes · 4.2 durante e hidratación · 4.3 recuperación · 4.4 antropometría → **c7** |
+| **Tema 5** | Psicología del deporte | 5.1 ciclo vital · 5.2 teorías y autores · 5.3 técnicas en la sesión → **c8** |
+| **Tema 6** | Dopaje | 6.1 programa antidopaje · 6.2 Artículo 2 · 6.3 responsabilidad estricta · 6.4 Artículo 3 → **c9** |
+
+Que C5 cite `2.1` —un subtema que desarrolla C2— es correcto y no es colisión: la `referencia`
+mapea el **temario de la cartilla**, no el módulo de la app.
 
 **Numeración de referencias del bloque D** (fijada al integrar el paso 15, porque los cuatro
 escritores la habían asignado por separado y colisionaba): Tema 1 → d1 · Tema 2 → d2 ·

@@ -1,0 +1,134 @@
+Casi todo lo que prescribe un entrenador de resistencia se apoya en un número: la frecuencia cardíaca máxima. Las zonas se calculan sobre ella, las series se controlan con ella y el pulsómetro del deportista no sabe hacer otra cosa. Por eso conviene saber tres cosas: cómo se estima, **con qué fórmula**, y hasta qué punto ese número es de fiar.
+
+## Cómo se toma el pulso
+
+<TablaClave titulo="Conversión de una toma de pulso a latidos por minuto">
+
+| Duración de la toma | Factor | Ejemplo |
+|---|---|---|
+| **15 segundos** | × 4 | 34 latidos → 136 lpm |
+| **10 segundos** | × 6 | 22 latidos → 132 lpm |
+| **6 segundos** | × 10 | 13 latidos → 130 lpm |
+
+</TablaClave>
+
+El factor siempre es 60 dividido entre los segundos que dura la toma, así que no hay que memorizar la tabla: se reconstruye. Y conviene comprobar que el resultado sea fisiológicamente posible — si te sale 204 lpm en un adulto haciendo trabajo suave, multiplicaste por el factor equivocado.
+
+En reposo, el adulto sano está entre <Dato etiqueta="FC en reposo" valor="60–100 lpm" />.
+
+<Ojo>
+Un corredor de fondo entrenado puede tener 43 lpm en reposo, y eso **no es una enfermedad**: es la firma de un corazón que mueve mucha sangre por latido. El rango de 60–100 describe a la población general, no a un deportista con seis años de entrenamiento encima. Aplicarle el rango clínico y recomendarle bajar el volumen es un error de criterio, no de medición.
+</Ojo>
+
+## Las cinco fórmulas de FCmáx
+
+Esto es lo que más cae del módulo, y lo que cae es la fórmula **con su autor y su población**.
+
+<TablaClave titulo="Las 5 fórmulas de frecuencia cardíaca máxima">
+
+| Autor y año | Fórmula | Población |
+|---|---|---|
+| **Fox et al. (1971)** | FCmáx = 220 − edad | General |
+| **Astrand (1952)** | FCmáx = 216,6 − (0,84 × edad) | General |
+| **Tanaka et al. (2001)** | FCmáx = 208 − (0,7 × edad) | Hombres y mujeres sanos |
+| **Gellish et al. (2007)** | FCmáx = 207 − (0,7 × edad) | Adultos físicamente activos |
+| **Gulati et al. (2010)** | FCmáx = 206 − (0,88 × edad) | Mujeres asintomáticas de mediana edad |
+
+</TablaClave>
+
+Trucos que funcionan para no cruzarlas:
+
+- Si **no hay coeficiente** delante de la edad, es **Fox**.
+- **Tanaka y Gellish** comparten el 0,7 y se separan en un punto: 208 y 207.
+- Las constantes **bajan según avanza el año**: 220 · 216,6 · 208 · 207 · 206. La más reciente es la de mujeres.
+
+<Ojo>
+Las cinco son **estimaciones de población**, no medidas. Son rectas de regresión con un error estándar del orden de diez latidos, así que dos personas de 40 años con la misma fórmula pueden diferir en veinte latidos reales. La fórmula orienta; una prueba de esfuerzo mide. Y elegir la fórmula por costumbre en vez de por población tiene precio: a una mujer de 55 años, Fox le da 165 lpm y Gulati 157,6. Ocho latidos que desplazan todas las zonas hacia arriba, justo en la población donde menos conviene pasarse.
+</Ojo>
+
+## La frecuencia de reserva y el método de Karvonen
+
+La **frecuencia cardíaca de reserva** es el margen entre el reposo y el máximo:
+
+<Formula nota="Es el margen de trabajo cardíaco disponible: cuántos latidos puedes 'gastar' por encima del reposo.">
+FC de reserva = FCmáx − FC en reposo
+</Formula>
+
+Karvonen la usa para individualizar la prescripción:
+
+<Formula nota="FCmáx 190, reposo 60, al 70 %: FC reserva = 130; 60 + (130 × 0,70) = 151 lpm. El porcentaje directo sobre la FCmáx daría 133 lpm, dieciocho latidos menos.">
+FC objetivo = FC en reposo + (FC de reserva × intensidad)
+</Formula>
+
+Los dos errores clásicos: **olvidar sumar de vuelta la FC de reposo** —lo que da valores absurdamente bajos— y aplicar el porcentaje sobre el máximo en lugar de sobre la reserva. Karvonen individualiza precisamente porque dos personas con la misma FCmáx y distinta FC de reposo reciben zonas distintas.
+
+## Gasto cardíaco y volumen sistólico
+
+<Formula nota="En reposo: ~70 ml × ~70 lpm ≈ 5 L/min. El producto sale en ml/min, así que hay que dividir entre mil.">
+Gasto cardíaco = frecuencia cardíaca × volumen sistólico
+</Formula>
+
+Tres cifras que se confunden entre sí:
+
+- **Volumen sistólico** — lo que expulsa el ventrículo **en un latido** (~70 ml en reposo).
+- **Gasto cardíaco** — lo que bombea el corazón **en un minuto** (~5 L/min en reposo).
+- **Volemia** — la sangre **total** del organismo (~5 L en un adulto).
+
+## Las adaptaciones al entrenamiento
+
+Aquí está el bloque de preguntas que más se falla, porque una de las cuatro va en dirección contraria a la intuición.
+
+<TablaClave titulo="Qué cambia con el entrenamiento de resistencia">
+
+| Variable | Cómo cambia |
+|---|---|
+| **Volemia** | Sube |
+| **Volumen sistólico** | Sube |
+| **Gasto cardíaco máximo** | Sube |
+| **FC en reposo** | **Baja** |
+| **FC máxima** | **No cambia** |
+
+</TablaClave>
+
+La cadena es una sola: más sangre en circulación llena mejor el ventrículo, un ventrículo mejor llenado expulsa más sangre por latido, y con más sangre por latido el corazón mueve lo mismo con menos latidos. De ahí la bradicardia del deportista.
+
+<Ojo>
+**La FCmáx no sube con el entrenamiento.** Es un techo que depende de la edad, no del estado de forma — de hecho tiende a bajar ligeramente en deportistas muy entrenados. Lo que se entrena es cuánta sangre mueves en cada latido, no cuántos latidos alcanzas. Un ciclista profesional y un sedentario de la misma edad llegan a valores máximos parecidos, aunque uno rinda el triple que el otro.
+</Ojo>
+
+Y ojo también con el gasto cardíaco **en reposo**: no baja con el entrenamiento. Las necesidades metabólicas en reposo son las mismas para todos; lo que cambia es cuántos latidos hacen falta para cubrirlas. Donde sí gana el entrenado es en el gasto cardíaco **máximo**.
+
+### Dilatación o hipertrofia: depende del esfuerzo
+
+<TablaClave titulo="Dos sobrecargas, dos corazones distintos">
+
+| Tipo de esfuerzo | Sobrecarga | Adaptación | Consecuencia |
+|---|---|---|---|
+| **Dinámico / resistencia** | De volumen | Dilatación de la cavidad | ↑ volumen sistólico |
+| **Isométrico / fuerza** | De presión | Engrosamiento de la pared | ↑ fuerza de contracción |
+
+</TablaClave>
+
+Regla de bolsillo: **volumen dilata, presión engrosa**.
+
+## El recorrido de la sangre
+
+- **Circulación menor (pulmonar):** ventrículo derecho → arteria pulmonar → pulmón → venas pulmonares → aurícula izquierda.
+- **Circulación mayor (sistémica):** ventrículo izquierdo → aorta → organismo → venas cavas → aurícula derecha.
+
+El ventrículo izquierdo tiene la pared más gruesa porque tiene que empujar sangre a todo el cuerpo, no solo al pulmón que tiene al lado.
+
+<Ojo>
+**Arteria no significa «con oxígeno»**, significa «que sale del corazón». La arteria pulmonar lleva sangre pobre en oxígeno y las venas pulmonares la llevan rica: es la excepción que demuestra que la definición correcta es la de dirección, no la de contenido.
+</Ojo>
+
+## Lo mínimo que tienes que llevarte
+
+- Las **cinco fórmulas con su autor y su población**, y sobre todo que Gulati es la de mujeres.
+- Que las fórmulas **estiman**, con un error de unos diez latidos: no sustituyen una prueba.
+- **FC de reserva = FCmáx − FC en reposo**, y que Karvonen aplica el porcentaje **sobre la reserva** y luego devuelve la FC de reposo.
+- **GC = FC × volumen sistólico**, en litros por minuto.
+- Toma de pulso: **×4** a los 15 s, **×6** a los 10 s, **×10** a los 6 s.
+- Con entrenamiento de resistencia: **baja la FC en reposo** y **suben** volemia, volumen sistólico y gasto cardíaco máximo. **La FCmáx no se mueve.**
+- **Volumen dilata, presión engrosa.**
+- FC en reposo normal **60–100 lpm**; en el deportista entrenado, 40–60 es adaptación.

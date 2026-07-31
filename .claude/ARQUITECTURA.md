@@ -1365,3 +1365,19 @@ Tenía razón y la compuerta tenía el hueco: **solo miraba por arriba**. Un mó
 Añadido `UMBRAL_SESGO_INVERTIDO = 0.12`, **como aviso y no como error**. La asimetría es deliberada: el sesgo invertido no aparece escribiendo con normalidad —nadie engorda distractores sin querer—, así que solo puede salir de un repaso como este, y un error bloquearía módulos legítimos que por muestra pequeña caigan bajo. 12 % está a ~1,5σ por debajo del azar con n = 18.
 
 **La lección general, que vale más que el umbral:** una métrica que solo se vigila en una dirección enseña a empujar en la otra. Al fijar un límite conviene preguntarse qué pasa si alguien lo optimiza demasiado.
+
+## ADR-029 — Tres datos duros corregidos: ADR-014 también aplica a `datos-duros.ts` — 2026-07-31
+
+**Decisión:** corregir `DD-007` (≈129 → **≈106 ATP netos** por palmitato), `DD-020` (50–100 → **60–100 lpm** de FC en reposo, con la nota del deportista entrenado) y `DD-104` (quitarle el «(memorizar como está en la cartilla)»).
+
+**Alternativas consideradas:** dejarlos como estaban, argumentando que `content/datos-duros.ts` se transcribió del blueprint en el paso 6 y por tanto no es contenido de autor sujeto a ADR-014.
+
+**Razón:** esa distinción no sobrevive al primer usuario. `/ultima-noche` **enseña** estos valores la víspera del examen, así que son contenido aunque su origen fuera una transcripción, y ADR-014 dice que el contenido enseña el dato verdadero.
+
+Los tres casos son distintos y conviene separarlos:
+
+- **DD-007 es una incoherencia interna del propio blueprint**, y es el argumento más fuerte de los tres. `DD-006` ya dice **30–32 ATP** por glucosa, que es la cifra con las razones P/O vigentes (2,5 por NADH y 1,5 por FADH₂). Los ≈129 del palmitato salen de las razones **viejas** (3 y 2) — exactamente el mismo error que los 36–38 que `DD-006` corrige. Con las vigentes: 31 NADH × 2,5 + 15 FADH₂ × 1,5 + 8 GTP − 2 de activación = **≈106**. No se puede enseñar un criterio para la glucosa y el contrario para la grasa en la misma pantalla.
+- **DD-020** es el rango clínico estándar del adulto: 60–100 lpm, y por debajo de 60 es bradicardia. El valor añade además lo que le importa a un entrenador y el rango solo no dice: en el deportista de resistencia, 40–60 lpm es **adaptación, no enfermedad**. Sin esa segunda mitad, un usuario aplicaría el rango poblacional a un corredor entrenado y concluiría lo contrario de lo cierto — que es justo el caso que plantea `C2-027`.
+- **DD-104** no tenía un dato falso: los doce meses son correctos. Lo que sobraba era el paréntesis «(memorizar como está en la cartilla)», **residuo del sistema de erratas que ADR-014 eliminó**. La app no habla de las cartillas en ningún sitio, y menos para pedirle al usuario que memorice algo *porque* lo diga el material fuente. Se sustituye por el enunciado completo de la infracción.
+
+**Consecuencia para los pasos 17 y siguientes:** `datos-duros.ts` y `glosario.ts` **no son zonas exentas de ADR-014**. Quien escriba un módulo tiene que verificar los datos duros de su módulo igual que verifica los ítems, y corregirlos si no cuadran. Los que quedan por revisar son los de los bloques A y B, que nadie ha mirado con la bibliografía delante: en particular la serie de biomarcadores `DD-060` a `DD-074`, que son rangos de laboratorio y varían con el método de medición.

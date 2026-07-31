@@ -114,8 +114,21 @@ describe('moduloAlternativo', () => {
   it('devuelve el módulo publicado con más banco', async () => {
     // Es la salida que se ofrece a quien no puede hacer el simulacro todavía:
     // tiene que ser una alternativa real, no la primera que aparezca.
+    //
+    // Desde el paso 16 hay 17 módulos publicados y varios EMPATADOS en el
+    // máximo, así que fijar un slug concreto probaría el desempate alfabético y
+    // no la función. Lo que se comprueba es la propiedad: el elegido está entre
+    // los que tienen el banco más grande.
     const alt = await moduloAlternativo();
     expect(alt).not.toBeNull();
-    expect(alt!.slug).toBe('c5-umbrales-zonas');
+
+    const censo = await censarModulos();
+    const publicados = new Set(
+      MODULOS.filter((m) => m.estadoContenido === 'completo').map((m) => m.slug),
+    );
+    const maximo = Math.max(
+      ...censo.filter((c) => publicados.has(c.slug)).map((c) => c.disponibles),
+    );
+    expect(censo.find((c) => c.slug === alt!.slug)!.disponibles).toBe(maximo);
   });
 });

@@ -12,7 +12,12 @@ export const DATOS_DUROS: DatoDuro[] = [
   { id: 'DD-004', categoria: 'Vías energéticas', concepto: 'Glucólisis anaeróbica', valor: '30 s – 2 min · produce lactato', modulo: 'c1-vias-energeticas' },
   { id: 'DD-005', categoria: 'Vías energéticas', concepto: 'Glucólisis, fase citoplasmática', valor: '2 ATP netos + 2 NADH', modulo: 'c1-vias-energeticas' },
   { id: 'DD-006', categoria: 'Vías energéticas', concepto: 'ATP total por glucosa en aerobiosis', valor: '30–32 ATP · 30 en músculo esquelético', modulo: 'c1-vias-energeticas' },
-  { id: 'DD-007', categoria: 'Vías energéticas', concepto: 'Oxidación del palmitato', valor: '≈129 ATP', modulo: 'c1-vias-energeticas' },
+  // ADR-029 · ADR-014. Los ≈129 ATP salen de las razones P/O viejas (3 ATP/NADH,
+  // 2/FADH₂), las mismas que daban los 36–38 por glucosa que DD-006 ya corrige.
+  // Con las vigentes (2,5 y 1,5): 31 NADH × 2,5 + 15 FADH₂ × 1,5 + 8 GTP − 2 de
+  // activación = ≈106. No se puede enseñar 30–32 para la glucosa y 129 para la
+  // grasa: son la misma cuenta con dos criterios distintos.
+  { id: 'DD-007', categoria: 'Vías energéticas', concepto: 'Oxidación del palmitato', valor: '≈106 ATP netos', modulo: 'c1-vias-energeticas' },
   { id: 'DD-008', categoria: 'Vías energéticas', concepto: 'Dónde ocurre cada fase', valor: 'Glucólisis → citoplasma · Krebs → matriz mitocondrial · Cadena de transporte → membrana interna mitocondrial', modulo: 'c1-vias-energeticas' },
 
   /* ── Fuerza y %1RM ── */
@@ -21,7 +26,9 @@ export const DATOS_DUROS: DatoDuro[] = [
   { id: 'DD-012', categoria: 'Fuerza y %1RM', concepto: 'Resistencia muscular (aeróbico)', valor: '≥45 s · ≥15 reps · ≤30 s de descanso', modulo: 'd3-fuerza' },
 
   /* ── Cardiovascular ── */
-  { id: 'DD-020', categoria: 'Cardiovascular', concepto: 'FC en reposo normal', valor: '50–100 lpm', modulo: 'c2-cardiovascular' },
+  // ADR-029 · ADR-014. El rango clínico del adulto es 60–100 lpm; por debajo de
+  // 60 es bradicardia, y en el deportista entrenado es adaptación, no enfermedad.
+  { id: 'DD-020', categoria: 'Cardiovascular', concepto: 'FC en reposo normal', valor: '60–100 lpm en el adulto · 40–60 en el deportista de resistencia entrenado, por adaptación', modulo: 'c2-cardiovascular' },
   { id: 'DD-021', categoria: 'Cardiovascular', concepto: 'Fox et al. (1971)', valor: 'FCmáx = 220 − edad', modulo: 'c2-cardiovascular' },
   { id: 'DD-022', categoria: 'Cardiovascular', concepto: 'Astrand (1952)', valor: 'FCmáx = 216,6 − (0,84 × edad)', modulo: 'c2-cardiovascular' },
   { id: 'DD-023', categoria: 'Cardiovascular', concepto: 'Tanaka et al. (2001)', valor: 'FCmáx = 208 − (0,7 × edad)', modulo: 'c2-cardiovascular' },
@@ -93,7 +100,10 @@ export const DATOS_DUROS: DatoDuro[] = [
   { id: 'DD-101', categoria: 'Ley 2210 y dopaje', concepto: 'Niveles de la Ley 2210', valor: 'Formación · perfeccionamiento · altos logros', modulo: 'd1-conceptualizacion' },
   { id: 'DD-102', categoria: 'Ley 2210 y dopaje', concepto: 'Estrategias del programa antidopaje', valor: 'Educación · disuasión · detección', modulo: 'c9-dopaje' },
   { id: 'DD-103', categoria: 'Ley 2210 y dopaje', concepto: 'Infracciones del Artículo 2', valor: '11 infracciones', modulo: 'c9-dopaje' },
-  { id: 'DD-104', categoria: 'Ley 2210 y dopaje', concepto: 'Localización fallida (2.4)', valor: 'Dentro de un período de doce meses (memorizar como está en la cartilla)', modulo: 'c9-dopaje' },
+  // ADR-014 · el «(memorizar como está en la cartilla)» era residuo del sistema
+  // de erratas que el ADR eliminó: la app no habla de las cartillas en ningún
+  // sitio. El dato en sí es correcto y se enuncia completo.
+  { id: 'DD-104', categoria: 'Ley 2210 y dopaje', concepto: 'Localización fallida (2.4)', valor: 'Cualquier combinación de 3 incumplimientos —controles fallidos o paraderos no presentados— dentro de un período de doce meses', modulo: 'c9-dopaje' },
 ];
 
 export const CATEGORIAS_DATOS_DUROS = [...new Set(DATOS_DUROS.map((d) => d.categoria))];
