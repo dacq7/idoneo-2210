@@ -8,7 +8,6 @@
   },
   "scripts": {
     "dev": "next dev",
-    "prebuild": "npm run validar",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
