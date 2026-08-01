@@ -1381,3 +1381,54 @@ Los tres casos son distintos y conviene separarlos:
 - **DD-104** no tenía un dato falso: los doce meses son correctos. Lo que sobraba era el paréntesis «(memorizar como está en la cartilla)», **residuo del sistema de erratas que ADR-014 eliminó**. La app no habla de las cartillas en ningún sitio, y menos para pedirle al usuario que memorice algo *porque* lo diga el material fuente. Se sustituye por el enunciado completo de la infracción.
 
 **Consecuencia para los pasos 17 y siguientes:** `datos-duros.ts` y `glosario.ts` **no son zonas exentas de ADR-014**. Quien escriba un módulo tiene que verificar los datos duros de su módulo igual que verifica los ítems, y corregirlos si no cuadran. Los que quedan por revisar son los de los bloques A y B, que nadie ha mirado con la bibliografía delante: en particular la serie de biomarcadores `DD-060` a `DD-074`, que son rangos de laboratorio y varían con el método de medición.
+
+---
+
+## ADR-030 — El recordatorio de respaldo deja de mirar la racha — 2026-07-31
+
+**Decisión:** reescribir `necesitaRespaldo` de `src/lib/almacenamiento.ts`. La regla pasa a ser una sola: *si hay intentos guardados y hace 7 días o más del último respaldo —o del día en que el usuario empezó, si nunca hizo uno— se avisa*. La firma pierde el parámetro `hoy`, que dejaba de usarse.
+
+**Alternativas consideradas:** (a) dejar §6 tal cual y aceptar el hueco declarado desde el Paso 10; (b) añadir un campo `diasDeUso` a `EstadoProgreso`, contando días distintos de actividad; (c) usar `intentos.length` como disparador en vez del calendario.
+
+**Razón:** la versión del blueprint miraba `racha.dias` cuando no había respaldo previo, y la racha son días **consecutivos**: se reinicia a 1 en cuanto se salta uno. El usuario que §1 describe —un entrenador adulto que estudia de noche después de trabajar— no encadena siete días seguidos casi nunca, así que **nunca veía el recordatorio**. La función existía y no se disparaba, que es la peor forma de tener una función.
+
+La opción (b) es la más precisa y cuesta una versión de esquema y una migración por un contador; el Paso 18 no es el sitio para eso, y `creadoEn` ya está en el estado y responde a la misma pregunta con suficiente aproximación: *¿hace cuánto que este usuario tiene progreso sin respaldar?* La (c) confunde volumen con antigüedad: alguien puede hacer cinco simulacros en un fin de semana y no necesitar respaldo todavía.
+
+Cae también la condición `racha.ultimoDiaActivo === hoy` de la segunda rama. Existía para avisar solo en días de uso y era contraproducente: la racha la escribe la portada, así que entrar directo a `/ajustes` desde el pie —que es exactamente lo que hace quien busca el respaldo— dejaba el aviso invisible. Quien está leyendo `/ajustes` está usando la app, por definición.
+
+**Consecuencia:** los cinco tests de `necesitaRespaldo` se reescribieron. El que documentaba el hueco (`DOCUMENTA UN HUECO: el uso intermitente nunca dispara el recordatorio`) pasa a afirmar lo contrario y se llama `EL HUECO CERRADO`. Dos de los nuevos ponen la racha en 30 a propósito: si alguien vuelve a mirarla, fallan.
+
+---
+
+## ADR-031 — El tema no viaja en el respaldo, y el interruptor de sonido no se pinta — 2026-07-31
+
+**Decisión:** `/ajustes` gobierna el tema **solo** a través de `next-themes`, sin escribir `EstadoProgreso.preferencias.tema`, y **no muestra ningún control para `preferencias.sonido`**. Los dos campos se quedan en el esquema sin consumidor.
+
+**Alternativas consideradas:** (a) copiar el tema elegido también a `preferencias.tema`, para que viaje en el respaldo; (b) quitar los dos campos del esquema, subiendo a `version: 2` con su migración; (c) pintar el interruptor de sonido igualmente, aunque no haga nada.
+
+**Razón:** son tres decisiones distintas con el mismo hilo, que es no mentirle al usuario.
+
+El **tema** es una preferencia **del dispositivo**, no del progreso. Copiarlo al estado crea dos fuentes de verdad que pueden discrepar —next-themes escribe su propia clave y no la lee de la nuestra— y obliga a responder una pregunta que no tiene buena respuesta: al importar en el portátil el respaldo del móvil, ¿el portátil se pone en oscuro? Cualquier respuesta sorprende a alguien. Es el mismo razonamiento por el que el descarte del aviso de instalación de la PWA vive en su propia clave (`CLAVE_INSTALAR`) y no en el estado.
+
+El **sonido** no tiene consumidor: la app no reproduce ningún sonido. La opción (c) es exactamente lo que la versión provisional de esta pantalla prometía no hacer —«preferimos decirlo a enseñarte controles que no hacen nada»— y un interruptor que no silencia nada es peor que su ausencia, porque el usuario cree haberlo desactivado.
+
+Y la (b) se descarta por precio: quitar dos campos opcionales de un esquema cuesta subir la versión, escribir la migración y arriesgar el progreso de todo el mundo, a cambio de que un objeto JSON tenga dos claves menos. Los campos quedan listos para el día que haya algo que silenciar.
+
+**Consecuencia:** si alguna vez se añade sonido, el campo ya está y solo hay que pintar el control. Si alguna vez se decide que el tema sí debe viajar, hay que resolver antes el conflicto de importación, y ese es el trabajo de verdad — no el de escribir el campo.
+
+
+---
+
+## Enmienda a ADR-024 — recharts se queda, y ahora con la cifra delante — 2026-07-31
+
+ADR-024 dejó la decisión para el Paso 18, con la condición de que se reconsiderara «si sigue siendo la única gráfica». El Paso 18 **no añadió ninguna visualización**, así que la condición se cumple y toca decidir.
+
+**Medido hoy, que es lo que faltaba:** recharts pesa **99,8 kB gz** y vive en **un solo chunk diferido**. No está en los chunks de carga ansiosa de `/resultados/[intentoId]` —comprobado contra `app-build-manifest.json`—, así que no lo descarga nadie hasta que el informe pinta la gráfica.
+
+**Decisión: se queda.** Y el argumento no es §2, es lo que el Paso 12 construyó alrededor:
+
+- La gráfica **no lleva información propia**: `tabla-dominio.tsx` tiene los mismos números y se renderiza de inmediato.
+- Su fallo **está absorbido**: el `import()` con `catch` explícito de `barras-dominio.tsx` deja `Grafica` en `null` si el chunk no llega, y el informe no se entera. Eso costó un bug real —un `ChunkLoadError` que se llevaba la pantalla entera después de dos horas de examen— y está documentado en el propio archivo.
+- El coste que queda es **una descarga en segundo plano que el service worker cachea** desde el Paso 18.1. La primera vez y ninguna más.
+
+Sustituirla por ~40 líneas de SVG a mano seguiría siendo una limpieza legítima, y ahorraría 99,8 kB de descarga diferida. Lo que ya no es es urgente: cambiaría un componente que sobrevivió a una caza de bugs documentada por otro sin auditar, al final de una sesión larga, a cambio de un ahorro que el diferido y el precache ya amortiguan. **Queda como limpieza opcional, no como deuda.**

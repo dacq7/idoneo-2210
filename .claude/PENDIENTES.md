@@ -92,7 +92,7 @@ Las cuatro obligaciones heredadas del Paso 11, cerradas:
 
 - **Paso 13 — el diagnóstico también termina en un informe.** `construirInforme` ya lo soporta (`tipo: 'diagnostico'`), y `/diagnostico` tendrá que persistir su `IntentoSimulacro` igual que hacen los simulacros, con `diagnosticoHecho` puesto por `guardarIntento`.
 - **Paso 13 — `diagnosticarViabilidad` sigue sin ser exacta con filtros.** Sin cambios respecto al Paso 11: el diagnóstico filtra por tipo y dificultad, así que su veredicto es una cota superior y la portada lo bloquea (`exacto: false`). Hay que ampliar el censo con la distribución conjunta tipo × dificultad, o cargar el banco en el servidor y contar.
-- **Paso 18 — reconsiderar recharts si sigue siendo la única gráfica.** Cuatro barras horizontales son ~40 líneas de SVG a mano y ahorrarían la dependencia entera; hoy se conserva porque §2 la fija y el 18 puede querer más visualizaciones. Ver **ADR-024**.
+- ~~**Paso 18 — reconsiderar recharts si sigue siendo la única gráfica.**~~ **RESUELTO el 2026-07-31.** El Paso 18 no añadió visualizaciones, así que la condición se cumplió y se decidió con la cifra delante: recharts pesa **99,8 kB gz en un único chunk diferido**, fuera de los ansiosos de `/resultados`. Se queda, porque la gráfica no lleva información propia, su fallo está absorbido y el service worker cachea la descarga. Sustituirla por SVG a mano sigue siendo limpieza legítima, pero **no es deuda**. Ver la enmienda a ADR-024.
 - **Pasos 15–17 — el informe mejora solo con el contenido.** Hoy un simulacro solo puede tocar C5, así que `temasPrioritarios` devuelve un tema y `dominioPorBloque` una barra. Nada que arreglar: la pantalla ya dice la verdad sobre lo que midió.
 
 ## Paso 13 — Diagnóstico y plan · ✅ CERRADO el 2026-07-31
@@ -206,11 +206,58 @@ sale con **0 errores y 0 avisos** por primera vez.
   debajo del 12 % ya no es una red teórica: es el que más salta.** Si algún día se revisa el
   umbral, ese dato es la razón para no bajarlo.
 
-## Paso 18.1 — PWA
+## Paso 18 — accesibilidad · lo que queda abierto
 
-- Al reescribir `next.config.ts` con `withSerwist`, **conservar `reactStrictMode: true`**. §16 ya lo incluye, así que no hay conflicto, pero es una reescritura completa del archivo.
+El `accessibility-auditor` levantó diez hallazgos sobre `/herramientas` y `/glosario`. **Nueve se
+corrigieron y se verificaron en runtime**; queda uno, a propósito:
 
-## Paso 18.5 — Ajustes
+- **A-53 · 123 enlaces «Ver módulo» seguidos en el orden de tabulación de `/glosario`.** Del
+  buscador al pie hay 123 paradas con el filtro «Todos». No incumple 2.4.1 —el enlace de salto del
+  armazón existe y funciona— pero es fricción real para quien navega con teclado. Arreglarlo bien
+  exige cambiar el modelo de interacción de la lista (paginar, plegar las fichas, o un índice
+  alfabético que salte), y eso es diseño, no un atributo. **Le toca al `ui-designer`.**
+
+Los otros nueve, cerrados: **A-45** contraste de la pestaña inactiva (4,40 → par medido a 4,93) ·
+**A-46** la unidad del campo entra en `aria-describedby`, que era regresión de A-26 y fallaba en 10
+de 14 campos · **A-47** las regiones vivas del resultado llevan nombre, que hacía falta porque en
+Cardio hay tres a la vez · **A-48** los rótulos de sección suben a `h2` y desaparece el salto
+h1 → h3 · **A-49** la población de la fórmula se asocia al `select` · **A-50** la fórmula
+desbordable deja de ser parada de foco anónima con contorno de 1 px · **A-51** el riel de pestañas
+deja de recortar 8 px, y con ellos el foco —el `h-auto` necesitaba el **mismo prefijo de variante**
+que la clase base, o `tailwind-merge` no los considera la misma propiedad— · **A-52** las píldoras
+de filtro usan `--input` y no `--border` · **A-54** el `input[type=file]` oculto de `/ajustes` sale
+del orden de foco.
+
+**Aviso de método del auditor, que conviene no perder:** no pudo correr axe —sin red para
+inyectarlo— así que las diez son mediciones a mano sobre el DOM. De su propia estimación, **axe
+habría visto dos como mucho**. La auditoría automática no habría encontrado ocho de estos diez.
+
+## Paso 18.1 — PWA · ✅ CERRADO el 2026-07-31
+
+- ✅ `next.config.ts` reescrito con `withSerwist` y **`reactStrictMode: true` conservado**.
+- ✅ `src/app/sw.ts`, `src/app/manifest.ts` y los cuatro PNG de `public/`, generados por
+  `scripts/generar-iconos.py` — que se versiona para que dentro de un año se sepa cómo se
+  hicieron y con qué color.
+- ✅ Verificado en runtime: manifiesto servido, los tres iconos y `og.png` responden 200, el
+  service worker se registra y una ruta ya visitada **abre con la red cortada**.
+
+## Paso 18.5 — Ajustes · ✅ CERRADO el 2026-07-31
+
+Las cuatro obligaciones, cerradas:
+
+- ✅ **La cuarentena de ADR-008 tiene UI**: `components/ajustes/cuarentena.tsx` avisa con el
+  motivo traducido —`version-futura` es «viene de una versión más nueva de la app», no «está
+  corrupto»—, descarga el payload y descarta con confirmación. El texto dice la verdad
+  incómoda: la cuarentena **hace el progreso recuperable, no lo restaura**.
+- ✅ **`leerIlegible()` se llama desde un efecto**, no en render, junto con
+  `almacenamientoDegradado()`, que también tiene efecto (escribe una sonda de 1 byte).
+- ✅ **El hueco de `necesitaRespaldo` se cerró** en vez de heredarse: ver **ADR-030**.
+- ✅ **El modo privado y el disco lleno se detectan y se dicen**:
+  `components/ajustes/aviso-almacenamiento.tsx` avisa de que el progreso no se está guardando
+  y de que se perderá al recargar, que es la única situación en la que la app puede perder
+  datos en silencio.
+
+El texto original de las obligaciones, por si hace falta el contexto:
 
 - **La UI de /ajustes debe exponer la cuarentena de ADR-008.** Es obligación, no mejora: sin ella el mecanismo existe y nadie puede usarlo, y el progreso apartado queda inalcanzable. Tres cosas concretas:
   1. **Avisar** cuando `leerIlegible()` devuelve algo: que hay un progreso anterior apartado, y de qué tipo. El campo `motivo` distingue los casos y debe traducirse a lenguaje de usuario — `version-futura` es *"viene de una versión más nueva de la app"*, no *"está corrupto"*.
@@ -222,13 +269,36 @@ sale con **0 errores y 0 avisos** por primera vez.
 - **Hueco conocido de `necesitaRespaldo`, con test que lo documenta:** §18.5 dice "cada 7 días de uso", pero la rama sin `ultimoRespaldo` mira `racha.dias`, que son días **consecutivos** y se reinicia a 1 al saltarse uno. Un entrenador que estudia 3 noches por semana durante dos meses **nunca** ve el recordatorio. Se copió §6 tal cual; aquí es donde hay UI y contexto para decidir si se arregla.
 - El modo privado y el disco lleno degradan a memoria y **no sobreviven un recargue**. Si /ajustes puede detectarlo, conviene decírselo al usuario: su progreso no se está guardando.
 
-## Paso 18.10 — Prueba en dispositivos reales
+## Paso 18.10 — Prueba en dispositivos reales · ⚠️ CERRADO A MEDIAS el 2026-07-31
+
+- ✅ **`error.tsx` ejercitado en runtime, por fin.** Se forzó con una ruta temporal
+  (`src/app/probar-error/page.tsx`, con `force-dynamic` para que el throw ocurriera al servir
+  y no al construir) sobre `next start`, y se borró al terminar. Verificado: pinta el titular,
+  dice que el progreso no se perdió, registra el error en consola, **`[Reintentar]` responde**,
+  y el botón se alcanza con `Tab` con contorno de 3 px sólidos.
+- ✅ **`SimulacroSinRed` ejercitado en runtime.** Se bloqueó el chunk del banco —localizado por
+  su contenido, porque el hash cambia en cada build— y apareció el estado correcto, con su
+  mensaje de que el cronómetro no ha arrancado. **Hizo falta `service_workers="block"` en el
+  contexto de Playwright**: sin eso el SW de Serwist sirve los chunks por su cuenta, las
+  peticiones no pasan por la intercepción y el simulacro arranca igual. La PWA se defendía de
+  la prueba, lo que de paso confirma que el precache funciona.
+- ✅ **A-29 remedido con la cuadrícula de 100 celdas real**, que era la obligación de los pasos
+  15–17: el simulacro final se armó con el banco entero y la cuadrícula rinde a 375 px.
+- ⬜ **Lo que NO se hizo: los tres dispositivos reales.** Todo lo anterior es Chromium headless
+  a 375 px. Falta la checklist de §18.10 en un Android de gama media, un iPhone y un
+  escritorio — y en particular **Safari/iOS, que es donde la instalación es manual y donde el
+  `viewportFit: cover` y el `env(safe-area-inset-bottom)` de la barra inferior se comportan
+  distinto**. Ningún emulador sustituye eso.
+
+Texto original de la obligación:
 
 - **`src/app/error.tsx` no se ha ejercitado nunca en runtime.** En `npm run dev` el overlay de Next intercepta el límite de error, así que el `accessibility-auditor` del Paso 5 no pudo verificarlo: quedó auditado por código, no por comportamiento. Hay que **forzar un error con build de producción** (`npm run build && npm run start`) y comprobar que el mensaje se lee, que `[Reintentar]` llama a `reset()` y que los dos botones se alcanzan con `Tab` y muestran el foco de 2 px. Usa los mismos `<Button>` + `<Link>` que el 404, que sí quedó verificado.
 
-## Paso 18.9 — README
+## Paso 18.9 — README · ✅ CERRADO el 2026-07-31
 
-- Reescribir el `README.md` que dejó create-next-app, con la sección de licencia y atribución a COLEF/COCED. Es la segunda obligación **BY** de la licencia (la primera es el pie del Paso 5). Ver ADR-001.
+- ✅ `README.md` reescrito entero, con la sección de licencia y atribución a COLEF/COCED y las
+  tres obligaciones de CC BY-NC-SA 4.0 enunciadas una por una. Es la segunda obligación **BY**
+  de la licencia; la primera es el pie del Paso 5. Ver ADR-001.
 
 ---
 

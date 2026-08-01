@@ -19,6 +19,8 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { BLOQUES, MODULOS } from '@/content/estructura';
+import { GLOSARIO } from '@/content/glosario';
+import { DATOS_DUROS } from '@/content/datos-duros';
 import {
   crearEstadoInicial,
   guardarEstado,
@@ -89,7 +91,12 @@ function intentoDiagnostico(): IntentoSimulacro {
 }
 
 function montar() {
-  return render(<PanelInicio modulos={MODULOS_PROPS} bloques={BLOQUES_PROPS} />);
+  return render(<PanelInicio
+      modulos={MODULOS_PROPS}
+      bloques={BLOQUES_PROPS}
+      totalGlosario={GLOSARIO.length}
+      totalDatosDuros={DATOS_DUROS.length}
+    />);
 }
 
 beforeEach(() => {

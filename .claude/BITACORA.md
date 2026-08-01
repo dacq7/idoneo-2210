@@ -2814,3 +2814,250 @@ las tres cuotas de nivel (40/35/25) y **las siete de tipo** (65 única · 10 cas
 7 múltiple · 5 emparejar · 3 ordenar · 2 V/F), que §7.3 solo prometía por aproximación. Sin ítems
 repetidos. Lo mismo para el diagnóstico y para los cuatro simulacros de bloque. **El aviso de
 `repartoIncumplido` de la portada se apaga**, que era su estado previsto desde el paso 11.
+
+---
+
+## [2026-07-31 15:20] · code-reviewer · Paso 18
+
+**Qué revisé:** el diff completo de `paso-18-salida` contra `main` — 49 archivos, +3880/−185.
+PWA (`next.config.ts`, `src/app/sw.ts`, `manifest.ts`, `public/*.png`, `scripts/generar-iconos.py`,
+`pwa/aviso-instalar.tsx`), `/glosario`, `/herramientas` + `src/lib/calculos.ts` + 7 componentes,
+`/ultima-noche`, `/ajustes` completo (7 componentes + `descargar-archivo.ts` + el cambio de
+`necesitaRespaldo`), `robots.ts` + OG, README, y la extracción de `enlace-destino.tsx` /
+`consulta-rapida.tsx`.
+
+**Compuertas:** validar ✅ (29 módulos · 752 ítems · 435 tarjetas · 123 términos · 0 errores ·
+0 avisos) · typecheck ✅ · lint ✅ · test ✅ (23 archivos / 724 pruebas) · build ✅ · canario ✅
+(41 chunks ansiosos, frontera intacta). Las seis por código de salida.
+
+**Invariantes verificados, con el comando al lado:**
+`grep -rn "Math.random" src/ content/ scripts/` → 4 hits, los 4 en comentarios ·
+`grep -rn "localStorage" src/ --include=*.ts{,x} | grep -v lib/almacenamiento` → 0 accesos reales ·
+`grep -rn "Date.now()\|new Date(" src/lib/` → solo `new Date(iso)` determinista ·
+`ls tailwind.config.*` falla · `grep -n "@tailwind " globals.css` vacío · `components.json` con
+`"config": ""` · ADR-022 medido sobre los 31 archivos del alcance: máximo 266 líneas de código y
+un componente exportado por archivo · ADR-010/021 con `npm run canario` y con la métrica de
+`/layout` js gz en **dos builds reales** (`main` en worktree contra la rama).
+
+**Hallazgos: 🔴 2 · 🟡 5 · 💭 7.**
+- 🔴 `respaldo.tsx:79` — `new Date()` en el cuerpo del render. Rompe §22 regla 6, escrita absoluta.
+  Sin efecto visible hoy porque `PanelAjustes` no monta la sección hasta después del efecto de
+  montaje, pero es el único hit del proyecto y deja el grep del invariante contaminado.
+- 🔴 El código cita **`[ADR-030]`** en `almacenamiento.ts:446` y en `almacenamiento.test.ts:762`, y
+  ese ADR **no existe**: la rama no toca ni un archivo de `.claude/`. Lo que ampara es un cambio de
+  **firma y de comportamiento** en `necesitaRespaldo`, código copiado de §6, que §22 regla 2 manda
+  copiar tal cual. El cambio me parece correcto en el fondo y sus tests matan al mutante; lo que
+  falta es la autorización donde se busca. Escalado al `software-architect`.
+
+**Veredicto: APROBADO CON CAMBIOS.** Las seis compuertas en verde, ninguna regresión de
+comportamiento encontrada, y las dos obligaciones que este paso heredaba —la UI de la cuarentena
+(ADR-008) y el README con la atribución (ADR-001)— cumplidas.
+
+**Pendiente antes de cerrar el paso:**
+1. Mover el reloj de `respaldo.tsx:79` fuera del render (el efecto de montaje de `PanelAjustes` ya
+   existe: basta pasar `hoy` por prop).
+2. Escribir ADR-030, o revertir el cambio de `necesitaRespaldo`. Decide el `software-architect`.
+3. Registrar en `COMPONENTES.md` la métrica nueva: `/layout` js gz **133.6 → 135.3 kB** (+1.7 en las
+   20 rutas, 8 → 9 chunks), con su causa —el registro del SW de Serwist, verificado con
+   `grep -rl serwist .next/static/chunks/`— que es lo que ADR-021 obliga a declarar.
+4. Derivado al `accessibility-auditor`: el `role="radiogroup"` sin navegación por flechas de
+   `preferencias.tsx`, y los tres `aria-live` que anuncian sobre elementos recién montados o que
+   cambian con cada tecla (`resultado.tsx:51`, `repaso-datos.tsx:109`, `respaldo.tsx:132`).
+5. Derivado al `technical-writer`: la nota de Karvonen de `panel-cardio.tsx:127` («pide el
+   segundo») admite la lectura que enseña justo el error que C5-011 penaliza.
+
+---
+
+## Paso 18 — Extras, PWA y salida — 2026-07-31
+
+**Estado:** ⚠️ Completado con una salvedad declarada (18.10: no hay dispositivos reales)
+**Archivos:** `next.config.ts` · `src/app/sw.ts` · `src/app/manifest.ts` · `src/app/robots.ts` ·
+`scripts/generar-iconos.py` + 4 PNG en `public/` · `src/app/{glosario,herramientas,ultima-noche}/page.tsx` ·
+`src/app/ajustes/page.tsx` (reemplazo completo) · `src/lib/{calculos,descargar-archivo}.ts` ·
+7 componentes de `ajustes/`, 8 de `herramientas/`, 1 de `glosario/`, 2 de `ultima-noche/`, 1 de `pwa/` ·
+`src/components/inicio/{enlace-destino,consulta-rapida}.tsx` · `README.md` · `eslint.config.mjs` ·
+`tsconfig.json` · `.gitignore` · `package.json`
+**Verificación:** las seis compuertas por código de salida — `validar` 0 · `typecheck` 0 · `lint` 0 ·
+`test` 0 (**724 tests**, +37) · `build` 0 · `canario` 0. Más **47 comprobaciones en runtime** sobre
+`next start`, todas en verde.
+
+### Lo que se construyó
+
+**18.1 · PWA.** Serwist con `reactStrictMode` conservado, service worker, manifiesto y los cuatro
+PNG. Los iconos los genera `scripts/generar-iconos.py`, que se versiona a propósito: dentro de un
+año alguien querrá saber de dónde salió el azul y por qué el maskable no es el mismo archivo con
+otro nombre —Android recorta hasta un 20 % por lado, así que su marca se dibuja dentro del 60 %
+central—. El `AvisoInstalar` vive en la **portada y no en `Shell`**: montarlo en el armazón lo
+pondría en las 20 rutas y devolvería `almacenamiento.ts` al grafo del layout raíz, que es
+exactamente el coste de 16 kB gz que ADR-021 quitó.
+
+**18.2 · `/glosario`.** Filtro en cliente sobre 123 términos, sin índice de búsqueda: `normalizar`
+más `includes` resuelve el caso, funciona sin conexión y no cuesta nada. Con dos añadidos que
+salieron de usarlo: **relevancia** —quien escribe «MLSS» quiere la entrada MLSS, no las cuatro que
+la mencionan— y **normalización de subíndices**, porque nadie teclea «VO₂» en un móvil y sin ese
+mapeo la entrada más buscada del bloque C era inencontrable.
+
+**18.3 · `/herramientas`.** `src/lib/calculos.ts` con las fórmulas y **36 tests nuevos** que no
+prueban la aritmética sino las **constantes**: un 220 que se vuelve 210, o un 3,5 que se vuelve 3,0,
+no rompe ningún tipo y enseña mal a alguien que se examina. Los valores esperados salen de los
+propios ítems del banco (C5-011, C5-017), así que si alguien cambia una constante, el banco y la
+calculadora dejan de decir lo mismo y el test lo dice.
+
+**18.4 · `/ultima-noche`.** No registra progreso ni alimenta el SRS, y lo dice dos veces: meter 70
+elementos en la cola de repaso espaciado **la víspera del examen** llenaría los días siguientes de
+tarjetas inútiles y arruinaría la cola construida en semanas.
+
+**18.5 · `/ajustes`.** Lo que más faltaba para poder compartir la app. Respaldo con importación de
+tres tiempos —validar, enseñar qué hay dentro y qué se pierde, y solo entonces sobrescribir—, la
+cuarentena de ADR-008 con sus tres acciones, la zona de peligro con doble confirmación por palabra
+escrita, y el aviso de almacenamiento degradado.
+
+### Las tres decisiones que registro
+
+1. **ADR-030 · el recordatorio de respaldo deja de mirar la racha.** El hueco que el Paso 10 dejó
+   documentado con un test: `racha.dias` son días **consecutivos**, así que el entrenador que
+   estudia tres noches por semana —el usuario que §1 describe— **nunca** veía el aviso. La función
+   existía y no se disparaba, que es la peor forma de tener una función. Ahora la referencia es el
+   último respaldo o, si no hay, `creadoEn`. Cae también la condición de «solo en días de actividad»,
+   que dejaba el aviso invisible justo al entrar a /ajustes desde el pie.
+2. **ADR-031 · el tema no viaja en el respaldo y el sonido no se pinta.** `preferencias.sonido` no
+   tiene consumidor —la app no reproduce ningún sonido— y enseñar el interruptor es exactamente lo
+   que la versión provisional de esta pantalla prometía no hacer. El tema es preferencia **del
+   dispositivo**: copiarlo al estado obliga a decidir si importar el respaldo del móvil pone el
+   portátil en oscuro, y cualquier respuesta sorprende a alguien.
+3. **Enmienda a ADR-024 · recharts se queda, con la cifra delante.** Medido: **99,8 kB gz en un
+   único chunk diferido**, fuera de los ansiosos de `/resultados`. Se queda porque la gráfica no
+   lleva información propia, su fallo está absorbido y el service worker cachea la descarga.
+   Cambiarla por SVG a mano sigue siendo limpieza legítima; ya no es deuda.
+
+### Un fallo real que encontró el build, no yo
+
+`metadataBase` no estaba puesto, así que Next resolvía `/og.png` contra `http://localhost:3000` y
+lo avisaba en cada build. En producción eso significa que **la previsualización del enlace no
+carga**: WhatsApp intenta descargar la imagen de un localhost que no es el suyo. Y compartir esta
+app es literalmente mandar un enlace (§1). Resuelto leyendo `VERCEL_PROJECT_PRODUCTION_URL` →
+`VERCEL_URL` → `localhost`, sin romper la promesa de cero variables de entorno: las inyecta la
+plataforma. Verificado en los dos sentidos: sin la variable resuelve a localhost, con ella a
+`https://<dominio>/og.png`.
+
+### La verificación en runtime, que era la deuda más vieja
+
+Las dos obligaciones que llevaban desde el Paso 5 y el Paso 9 sin poder cumplirse, cerradas:
+
+- **`error.tsx`** se forzó con una ruta temporal `force-dynamic` sobre `next start` y se borró al
+  terminar. `[Reintentar]` responde, el foco llega con `Tab` y pinta 3 px sólidos, y el error queda
+  en la consola del dispositivo, que es lo único que hay para diagnosticar en un teléfono.
+- **`SimulacroSinRed`** se alcanzó bloqueando el chunk del banco, localizado **por su contenido**
+  porque el hash cambia en cada build. Y hubo que **bloquear el service worker en el contexto de
+  Playwright**: sin eso el SW de Serwist sirve los chunks por su cuenta, la intercepción no llega a
+  ocurrir y el simulacro arranca igual. La PWA se defendía de su propia prueba, lo que de paso
+  confirma que el precache hace su trabajo.
+
+De paso se cerró **A-29 con la cuadrícula real**: el simulacro final se armó con los 752 ítems y las
+100 celdas rinden a 375 px, que era la obligación que los pasos 15–17 dejaron pendiente de medir
+con banco de verdad.
+
+### Peso
+
+`/layout` **133,6 → 135,3 kB gz js** (+1,7) y 8 → 9 chunks. La cifra de partida es la que midió el
+`code-reviewer` construyendo `main` en un worktree, que es mejor que la que yo tenía anotada de
+oídas. El delta es el registro del service worker, que entra en `main-*.js` y en el chunk compartido
+del layout: es el precio de la PWA, no una fuga —el canario está verde— y está muy por debajo del
+umbral de +20 kB que `COMPONENTES.md` fija para investigar. Las rutas nuevas:
+
+| Ruta | js gz | chunks |
+|---|---|---|
+| `/ultima-noche` | 120,9 kB | 7 |
+| `/glosario` | 122,9 kB | 7 |
+| `/herramientas` | 132,6 kB | 8 |
+| `/ajustes` | 143,8 kB | 10 |
+
+Ninguna se sale de su tipo. `/ajustes` es la más pesada de las cuatro y tiene por qué: es la única
+que arrastra `almacenamiento.ts` entero con Zod, porque valida el JSON importado.
+
+### Las dos revisiones
+
+**`code-reviewer`: aprobado con cambios, los cuatro aplicados.** El bloqueante era real y era mío:
+un `new Date()` en el cuerpo de un render en `respaldo.tsx`, el **único del proyecto**. Hoy no lo
+veía nadie —`PanelAjustes` no monta esa sección hasta después de su efecto— pero dejaba el grep del
+invariante con algo que hay que re-razonar cada vez, y se recalculaba en cada tecla del campo de
+nombre. También: la nota de Karvonen decía «pide el segundo» donde había que nombrar el método —en
+la pantalla cuya razón de ser es distinguirlos, la frase que los distingue no puede depender de
+resolver un ordinal—; `consulta-rapida.tsx` se declaraba Server Component sin serlo; y las cifras
+«123 conceptos» y «70 valores» estaban a mano en la portada, así que ahora se derivan del catálogo
+y los tests las derivan también, que es la lección del Paso 17 aplicada.
+
+Confirmó además lo que más quería saber: **ninguna de las diez fórmulas está mal** —contrastadas
+contra `datos-duros.ts` y `banco/c2-cardiovascular.ts`— y **el flujo de importar no tiene ningún
+camino que escriba antes de confirmar**.
+
+**`accessibility-auditor`: diez hallazgos, nueve corregidos y verificados en runtime.** Seis
+incumplían AA. El más caro es **A-46**, regresión directa de A-26: el sufijo de unidad del campo
+llevaba `aria-hidden` con el argumento de que «la unidad ya va en la etiqueta», y el auditor lo
+midió campo a campo — **era falso en 10 de 14**. Un lector anunciaba «Peso, edición de texto» y el
+usuario no sabía si teclear kilos o libras. Y **A-47**: en la pestaña Cardio hay tres regiones
+vivas a la vez y ninguna tenía nombre, así que rellenar «FC máxima» disparaba dos anuncios seguidos
+sin decir cuál era Karvonen y cuál el gasto cardíaco.
+
+Dos merecen nota por lo que enseñan. **A-50**: `overflow-x-auto` + `whitespace-nowrap` hacen que
+Chromium vuelva enfocable una `<p>`, y la regla de foco de `globals.css` solo lista controles — así
+que esa parada caía al contorno de 1 px a alfa 0,5, que mide **2,26:1**. Es el falso indicador que
+el propio documento advertía, salvo que aquí no era transitorio. Y **A-51**: el `h-auto` con el que
+arreglé el recorte del riel **no funcionó a la primera** porque la clase base lleva prefijo de
+variante (`group-data-[orientation=horizontal]/tabs:h-9`) y `tailwind-merge` no considera la misma
+propiedad dos clases con prefijos distintos. Lo descubrí midiendo, no leyendo.
+
+Queda abierto **A-53**: 123 enlaces seguidos en el orden de tabulación de `/glosario`. No incumple
+2.4.1 y arreglarlo bien exige cambiar el modelo de interacción de la lista — es diseño, y le toca
+al `ui-designer`.
+
+**Y el aviso de método, que conviene no perder:** el auditor no pudo correr axe —sin red para
+inyectarlo— así que los diez hallazgos son mediciones a mano sobre el DOM. De su propia estimación,
+**axe habría visto dos como mucho**. Ocho de estos diez no los encuentra una auditoría automática.
+
+### Lo que queda sin ejercitar, y conviene que se sepa
+
+- **Los tres dispositivos reales del 18.10.** Todo lo anterior es Chromium headless a 375 px. Falta
+  Android de gama media, iPhone y escritorio — y sobre todo **Safari/iOS**, donde la instalación es
+  manual y donde `viewportFit: cover` y el `env(safe-area-inset-bottom)` de la barra inferior se
+  comportan distinto. Ningún emulador sustituye eso.
+- **El `beforeinstallprompt` real.** El aviso de instalación solo aparece desde el tercer día de
+  racha y con el evento disponible; en Chromium headless ese evento no se dispara, así que el
+  componente está auditado por código y no por comportamiento.
+- **La rama `version-futura` de la cuarentena.** Se puede provocar a mano escribiendo un estado con
+  `version: 2`, pero no se hizo: exige simular un despliegue futuro.
+- **El despliegue.** No hay CLI de Vercel ni remoto de git en esta máquina.
+
+## [2026-07-31 18:40] · accessibility-auditor · Paso 18
+
+**Qué audité:** `/herramientas` (`calculadora.tsx`, `campo-numero.tsx`, `resultado.tsx` y los cinco
+paneles) y `/glosario` (`buscador-glosario.tsx`). Barrido adicional, no exhaustivo, de
+`/ultima-noche` y `/ajustes`.
+
+**Cómo lo probé:** build de producción (`npm run build && npm run start -p 3310`) · Chromium
+headless · recorrido completo por teclado con lectura del indicador de foco tras 360-450 ms ·
+flechas/Home/End en el riel de pestañas · observadores de mutación sobre las regiones vivas mientras
+se teclea · 375 px y 188 px (375 al 200 %) · claro y oscuro por separado · contraste medido con
+`getComputedStyle` + conversor `oklch`/`oklab` → sRGB propio y composición de alfa por ancestros.
+**Sin axe:** no hay red para inyectarlo; todo son mediciones a mano sobre el DOM.
+
+**Hallazgos:** Crítico 0 · Serio 2 · Moderado 4 · Menor 4 (A-45 … A-54).
+
+**Bloqueantes:** ninguno.
+
+**Contraste:** 20 de 21 pares pasan AA en los dos temas. Falla **uno**: la pestaña inactiva en tema
+claro, **4,40:1** frente a 4,5 (`text-foreground/60` de shadcn sobre `--muted`) → A-45; en oscuro
+pasa a 5,06. Fuera de texto, el contorno de foco que Chromium pone por defecto en la `<p>` de la
+fórmula mide **2,26:1 / 2,64:1** frente al 3:1 de 1.4.11 → A-50. Las cuatro insignias de bloque
+quedan verificadas en runtime sobre `bg-card`: 4,98–5,88 claro y 6,69–7,96 oscuro, y llevan el texto
+«Bloque X», así que el color no es el único portador (DISENO.md §1.2, cumplido).
+
+**Pendiente:**
+- Los diez hallazgos A-45 … A-54 siguen abiertos. Los dos Serios (A-46, la unidad que no llega al
+  lector en 10 de 14 campos, regresión de A-26; y A-47, tres regiones vivas anónimas en la pestaña
+  Cardio) son los que conviene cerrar antes del 18.10.
+- A-45 y A-51 tocan `TabsTrigger`: conviene resolverlos juntos, y A-51 con la válvula `data-compacto`
+  que este proyecto ya tenía prevista para estos triggers, no con `min-h-11`.
+- `/ultima-noche` y `/ajustes` solo llevan barrido, no auditoría completa.
+- Nada de esto se ha probado con lector de pantalla real ni en dispositivo real: sigue siendo tarea
+  del 18.10.

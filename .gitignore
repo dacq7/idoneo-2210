@@ -4,6 +4,8 @@ node_modules/
 .pnp.*
 
 # build
+public/sw.js
+public/swe-worker-*.js
 .next/
 out/
 build/
